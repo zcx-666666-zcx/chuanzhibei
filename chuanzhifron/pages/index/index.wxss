@@ -234,6 +234,16 @@
   font-size: 26rpx;
   color: #333;
   font-weight: 500;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.recommend-tag {
+  font-size: 20rpx;
+  color: #c41e3a;
+  background-color: rgba(196, 30, 58, 0.1);
+  padding: 4rpx 8rpx;
+  border-radius: 6rpx;
 }
 
 /* AR体验样式 */
@@ -322,4 +332,65 @@
     margin-right: 0;
     margin-bottom: 30rpx;
   }
+}
+
+/* 骨架屏样式 */
+.skeleton-swiper {
+  height: 400rpx;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.skeleton-recommends {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30rpx;
+}
+
+.skeleton-recommend {
+  width: 120rpx;
+  height: 160rpx;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 8rpx;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 错误处理样式 */
+.error-container {
+  height: 400rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f8f8;
+  border-radius: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.error-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.retry-button {
+  background-color: #c41e3a;
+  color: white;
+  border: none;
+  padding: 15rpx 30rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
 }

@@ -21,17 +21,25 @@
   <!-- 主内容区域 -->
   <view class="content">
     <!-- 轮播图 -->
-    <swiper indicator-dots="{{true}}" autoplay="{{true}}" interval="5000" duration="1000" class="swiper" circular="{{true}}">
+    <swiper wx:if="{{!loading}}" indicator-dots="{{true}}" autoplay="{{true}}" interval="5000" duration="1000" class="swiper" circular="{{true}}">
       <block wx:for="{{bannerList}}" wx:key="id">
         <swiper-item bindtap="onBannerTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="swiper-img" mode="aspectFill"></image>
+          <image src="{{item.image_url}}" class="swiper-img" mode="aspectFill"></image>
           <view class="swiper-text">
             <text class="swiper-title">{{item.title}}</text>
-            <text class="swiper-desc">{{item.description}}</text>
           </view>
         </swiper-item>
       </block>
     </swiper>
+
+    <!-- 骨架屏 - 轮播图占位 -->
+    <view wx:if="{{loading}}" class="skeleton-swiper"></view>
+
+    <!-- 加载失败提示 -->
+    <view wx:if="{{loadError}}" class="error-container">
+      <text class="error-text">加载失败，请检查网络连接</text>
+      <button class="retry-button" bindtap="reloadHomeConfig">点击重试</button>
+    </view>
 
     <!-- 非遗动态 -->
     <view class="section">
@@ -61,10 +69,16 @@
       <view class="section-header">
         <text class="section-title">推荐非遗项目</text>
       </view>
-      <view class="recommend-grid">
+      <!-- 骨架屏 - 推荐项目占位 -->
+      <view wx:if="{{loading}}" class="skeleton-recommends">
+        <view class="skeleton-recommend" wx:for="{{[1, 2, 3, 4]}}" wx:key="index"></view>
+      </view>
+      
+      <view wx:else class="recommend-grid">
         <view class="recommend-item" wx:for="{{recommendList}}" wx:key="id" bindtap="onRecommendTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="recommend-img" mode="aspectFill"></image>
+          <image src="{{item.image}}" class="recommend-img" mode="aspectFill" lazy-load="{{true}}"></image>
           <text class="recommend-text">{{item.name}}</text>
+          <text class="recommend-tag" wx:if="{{item.level}}">{{item.level}}</text>
         </view>
       </view>
     </view>

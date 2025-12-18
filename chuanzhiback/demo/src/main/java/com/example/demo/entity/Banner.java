@@ -9,6 +9,8 @@ public class Banner extends BaseEntity {
     private String title;
     private String description;
     private String imageUrl;
+    private Integer targetType; // 跳转类型 1-内部页面 2-外部链接
+    private String targetPath;  // 跳转路径
     
     // Constructors
     public Banner() {
@@ -44,5 +46,21 @@ public class Banner extends BaseEntity {
     
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Integer getTargetType() {
+        return targetType;
+    }
+
+    public void setTargetType(Integer targetType) {
+        this.targetType = targetType;
+    }
+
+    public String getTargetPath() {
+        return targetPath;
+    }
+
+    public void setTargetPath(String targetPath) {
+        this.targetPath = targetPath;
     }
 }

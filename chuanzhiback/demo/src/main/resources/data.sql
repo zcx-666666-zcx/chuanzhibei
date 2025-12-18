@@ -35,10 +35,22 @@ INSERT INTO ar_experience (name, description, image_url, model_url, instructions
 ON DUPLICATE KEY UPDATE name=name;
 
 -- Sample banners for homepage
-INSERT INTO banner (title, description, image_url) VALUES 
-('2024年全国非遗文化节', '传承经典，弘扬中华文化', 'http://localhost:8001/uploads/banners_index/banner_1.jpg'),
-('陶瓷技艺入选世界非遗名录', '景德镇陶瓷烧制技艺列入人类非遗代表作名录', 'http://localhost:8001/uploads/banners_index/banner_2.jpg'),
-('剪纸艺术进校园活动', '全国范围内开展剪纸艺术进校园系列活动', 'http://localhost:8001/uploads/banners_index/banner_3.jpg'),
-('传统工艺创新大赛', '展现新时代工匠精神', 'http://localhost:8001/uploads/banners_index/banner_4.jpg'),
-('非遗文化宣传周', '让更多人了解和热爱传统文化', 'http://localhost:8001/uploads/banners_index/banner_5.jpg')
-ON DUPLICATE KEY UPDATE title=title;
+INSERT INTO `banner` (`id`, `title`, `description`, `image_url`, `target_type`, `target_path`, `create_time`, `update_time`) VALUES
+(1, '2024年全国非遗文化节', '传承经典，弘扬中华文化', 'http://localhost:8001/uploads/banners_index/banner_1.jpg', 1, '/pages/Heritage/Heritage?id=1', NOW(), NOW()),
+(2, '陶瓷技艺入选世界非遗名录', '景德镇陶瓷烧制技艺列入人类非遗代表作名录', 'http://localhost:8001/uploads/banners_index/banner_2.jpg', 1, '/pages/Heritage/Heritage?id=2', NOW(), NOW()),
+(3, '剪纸艺术进校园活动', '全国范围内开展剪纸艺术进校园系列活动', 'http://localhost:8001/uploads/banners_index/banner_3.png', 1, '/pages/Heritage/Heritage?id=3', NOW(), NOW()),
+(4, '传统工艺创新大赛', '展现新时代工匠精神', 'http://localhost:8001/uploads/banners_index/banner_4.jpg', 1, '/pages/Heritage/Heritage?id=4', NOW(), NOW()),
+(5, '非遗文化宣传周', '让更多人了解和热爱传统文化', 'http://localhost:8001/uploads/banners_index/banner_5.jpg', 1, '/pages/Heritage/Heritage?id=5', NOW(), NOW());
+
+INSERT INTO `heritage` (`id`, `name`, `description`, `image_url`, `region`, `category`, `level`, `create_time`, `update_time`) VALUES
+(1, '书法', '中国书法是一门古老的汉字书写艺术', 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg', '全国', '传统技艺', 1, NOW(), NOW()),
+(2, '刺绣', '刺绣是用针引线在织物上绣制图案的工艺', 'http://localhost:8001/uploads/heritage_index/recommend_heritage_cixiu.jpg', '全国', '传统技艺', 1, NOW(), NOW()),
+(3, '中医药', '中医药是中华民族的瑰宝', 'http://localhost:8001/uploads/heritage_index/recommend_heritage_zhongyiyao.jpg', '全国', '传统医药', 1, NOW(), NOW()),
+(4, '武术', '中华武术是中国传统文化的重要组成部分', 'http://localhost:8001/uploads/heritage_index/recommend_heritage_wushu.jpg', '全国', '传统体育', 1, NOW(), NOW());
+
+INSERT INTO `news` (`id`, `title`, `description`, `content`, `image_url`, `publish_date`, `create_time`, `update_time`) VALUES
+(1, '非遗进校园活动圆满结束', '本次活动覆盖了全国100所中小学', '详细内容...', 'http://localhost:8001/uploads/news_index/news_1.jpg', NOW(), NOW(), NOW()),
+(2, '传统工艺创新大赛启动', '面向全国征集创新设计作品', '详细内容...', 'http://localhost:8001/uploads/news_index/news_2.jpg', NOW(), NOW(), NOW()),
+(3, '国家级非遗传承人名单公布', '共有200名传承人入选', '详细内容...', 'http://localhost:8001/uploads/news_index/news_3.jpg', NOW(), NOW(), NOW()),
+(4, '非遗数字化保护项目启动', '运用AI技术保护非遗文化', '详细内容...', 'http://localhost:8001/uploads/news_index/news_4.jpg', NOW(), NOW(), NOW()),
+(5, '非遗文化节即将开幕', '届时将有精彩纷呈的表演', '详细内容...', 'http://localhost:8001/uploads/news_index/news_5.jpg', NOW(), NOW(), NOW());

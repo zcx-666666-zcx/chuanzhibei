@@ -9,65 +9,15 @@ Page({
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     newsList: [],
-    bannerList: [
-      {
-        id: 1,
-        title: '2024年全国非遗文化节',
-        description: '传承经典，弘扬中华文化',
-        image: 'http://localhost:8001/uploads/banners_index/banner_1.jpg'
-      },
-      {
-        id: 2,
-        title: '陶瓷技艺入选世界非遗名录',
-        description: '景德镇陶瓷烧制技艺列入人类非遗代表作名录',
-        image: 'http://localhost:8001/uploads/banners_index/banner_2.jpg'
-      },
-      {
-        id: 3,
-        title: '剪纸艺术进校园活动',
-        description: '全国范围内开展剪纸艺术进校园系列活动',
-        image: 'http://localhost:8001/uploads/banners_index/banner_3.png'
-      },
-      {
-        id: 4,
-        title: '传统工艺创新大赛',
-        description: '展现新时代工匠精神',
-        image: 'http://localhost:8001/uploads/banners_index/banner_4.jpg'
-      },
-      {
-        id: 5,
-        title: '非遗文化宣传周',
-        description: '让更多人了解和热爱传统文化',
-        image: 'http://localhost:8001/uploads/banners_index/banner_5.jpg'
-      }
-    ],
-    recommendList: [
-      {
-        id: 1,
-        name: '书法',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg'
-      },
-      {
-        id: 2,
-        name: '刺绣',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_cixiu.jpg'
-      },
-      {
-        id: 3,
-        name: '中医药',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_zhongyiyao.jpg'
-      },
-      {
-        id: 4,
-        name: '武术',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_wushu.jpg'
-      }
-    ],
-    loading: true
+    bannerList: [],
+    recommendList: [],
+    loading: true,
+    loadError: false
   },
 
   onLoad: function () {
-    // 加载新闻数据
+    // 并行请求所有首页数据
+    this.loadHomeConfig();
     this.loadNewsData();
     
     if (app.globalData.userInfo) {
@@ -96,6 +46,41 @@ Page({
         }
       })
     }
+  },
+
+  // 获取首页配置数据
+  loadHomeConfig: function() {
+    // 使用Promise.all并行请求banner和推荐项目数据
+    Promise.all([
+      request({ url: '/index/banner' }),
+      request({ url: '/index/recommend-heritage' })
+    ]).then(([bannerData, recommendData]) => {
+      this.setData({
+        bannerList: bannerData,
+        recommendList: recommendData,
+        loading: false,
+        loadError: false
+      });
+    }).catch(err => {
+      console.error('获取首页配置失败:', err);
+      this.setData({
+        loading: false,
+        loadError: true
+      });
+      wx.showToast({
+        title: '加载配置失败',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 重新加载首页配置数据
+  reloadHomeConfig: function() {
+    this.setData({
+      loading: true,
+      loadError: false
+    });
+    this.loadHomeConfig();
   },
 
   getUserInfo: function (e) {
@@ -180,19 +165,28 @@ Page({
   // 推荐项目点击
   onRecommendTap: function(e) {
     const item = e.currentTarget.dataset.item
-    wx.showToast({
-      title: `查看项目：${item.name}`,
-      icon: 'none'
+    // 跳转到非遗项目详情页
+    wx.navigateTo({
+      url: `/pages/Heritage/Heritage?id=${item.id}`
     })
   },
 
   // 轮播图点击
   onBannerTap: function(e) {
     const item = e.currentTarget.dataset.item
-    wx.showToast({
-      title: `查看：${item.title}`,
-      icon: 'none'
-    })
+    
+    // 根据后端返回的target_type和target_path进行跳转
+    if (item.target_type === 1) {
+      // 内部页面跳转
+      wx.navigateTo({
+        url: item.target_path
+      });
+    } else if (item.target_type === 2) {
+      // 外部链接跳转（使用web-view）
+      wx.navigateTo({
+        url: `/pages/webview/webview?url=${encodeURIComponent(item.target_path)}`
+      });
+    }
   },
 
   // 跳转到AR体验页面

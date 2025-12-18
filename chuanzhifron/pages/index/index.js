@@ -9,26 +9,58 @@ Page({
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     newsList: [],
+    bannerList: [
+      {
+        id: 1,
+        title: '2024年全国非遗文化节',
+        description: '传承经典，弘扬中华文化',
+        image: 'http://localhost:8001/uploads/banners_index/banner_1.jpg'
+      },
+      {
+        id: 2,
+        title: '陶瓷技艺入选世界非遗名录',
+        description: '景德镇陶瓷烧制技艺列入人类非遗代表作名录',
+        image: 'http://localhost:8001/uploads/banners_index/banner_2.jpg'
+      },
+      {
+        id: 3,
+        title: '剪纸艺术进校园活动',
+        description: '全国范围内开展剪纸艺术进校园系列活动',
+        image: 'http://localhost:8001/uploads/banners_index/banner_3.png'
+      },
+      {
+        id: 4,
+        title: '传统工艺创新大赛',
+        description: '展现新时代工匠精神',
+        image: 'http://localhost:8001/uploads/banners_index/banner_4.jpg'
+      },
+      {
+        id: 5,
+        title: '非遗文化宣传周',
+        description: '让更多人了解和热爱传统文化',
+        image: 'http://localhost:8001/uploads/banners_index/banner_5.jpg'
+      }
+    ],
     recommendList: [
       {
         id: 1,
         name: '书法',
-        image: 'https://s.coze.cn/image/VOG-SbZf2KQ/'
+        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg'
       },
       {
         id: 2,
         name: '刺绣',
-        image: 'https://s.coze.cn/image/tztU_nPiuas/'
+        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_cixiu.jpg'
       },
       {
         id: 3,
         name: '中医药',
-        image: 'https://s.coze.cn/image/pJnL6QQmRwQ/'
+        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_zhongyiyao.jpg'
       },
       {
         id: 4,
         name: '武术',
-        image: 'https://s.coze.cn/image/e39bZ7dgw8E/'
+        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_wushu.jpg'
       }
     ],
     loading: true
@@ -150,6 +182,15 @@ Page({
     const item = e.currentTarget.dataset.item
     wx.showToast({
       title: `查看项目：${item.name}`,
+      icon: 'none'
+    })
+  },
+
+  // 轮播图点击
+  onBannerTap: function(e) {
+    const item = e.currentTarget.dataset.item
+    wx.showToast({
+      title: `查看：${item.title}`,
       icon: 'none'
     })
   },

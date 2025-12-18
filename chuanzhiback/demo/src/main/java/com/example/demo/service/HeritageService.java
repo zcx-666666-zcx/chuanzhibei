@@ -25,6 +25,10 @@ public class HeritageService {
         return heritageRepository.findByCategory(category);
     }
     
+    public List<Heritage> getRecommendedHeritages() {
+        return heritageRepository.findTop4ByOrderByIdAsc();
+    }
+    
     public Heritage getHeritageById(Long id) {
         return heritageRepository.findById(id).orElse(null);
     }

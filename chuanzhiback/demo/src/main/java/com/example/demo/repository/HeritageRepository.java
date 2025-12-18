@@ -10,4 +10,5 @@ import java.util.List;
 public interface HeritageRepository extends JpaRepository<Heritage, Long> {
     List<Heritage> findByLevel(Integer level);
     List<Heritage> findByCategory(String category);
+    List<Heritage> findTop4ByOrderByIdAsc();
 }

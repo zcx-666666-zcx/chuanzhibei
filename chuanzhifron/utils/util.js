@@ -35,7 +35,7 @@ const request = (options) => {
   
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `http://localhost:8080/api${options.url}`,
+      url: `http://localhost:8001/api${options.url}`,
       method: options.method || 'GET',
       data: options.data || {},
       header: {

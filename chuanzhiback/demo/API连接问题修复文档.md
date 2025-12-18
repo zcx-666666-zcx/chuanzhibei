@@ -8,7 +8,7 @@
 - 微信小程序在调用后端API时出现网络错误
 - 浏览器控制台报错信息：
   ```
-  localhost:8080/api/auth/register:1 Failed to load resource: net::ERR_CONNECTION_REFUSED
+  http://localhost:8001/api/auth/register:1 Failed to load resource: net::ERR_CONNECTION_REFUSED
   ```
 
 ### 2. 影响范围
@@ -21,8 +21,8 @@
 通过对项目代码和运行环境的分析，确定了两个主要原因：
 
 ### 1. 端口配置不一致
-- 微信小程序前端代码中配置的后端API地址为：`http://localhost:8080`
-- 实际后端服务运行在端口：`8081`
+- 微信小程序前端代码中配置的后端API地址为：`http://localhost:8001`
+- 实际后端服务运行在端口：`8001`
 - 端口不匹配导致连接被拒绝
 
 ### 2. 数据库配置问题
@@ -39,19 +39,19 @@
 
 #### 修改内容：
 将文件中的API基础URL从：
-```javascript
-url: `http://localhost:8080/api${options.url}`
+```
+url: `http://localhost:8001/api${options.url}`
 ```
 
 修改为：
-```javascript
-url: `http://localhost:8081/api${options.url}`
+```
+url: `http://localhost:8001/api${options.url}`
 ```
 
 #### 实现方式：
 使用sed命令批量替换：
-```bash
-sed -i '' 's/localhost:8080/localhost:8081/g' /Users/zhangchenxi/Desktop/CodeProjects/微信小程序/chuanzhifron/utils/util.js
+```
+sed -i '' 's/http:\/\/localhost:8001/http:\/\/localhost:8001/g' /Users/zhangchenxi/Desktop/CodeProjects/微信小程序/chuanzhifron/utils/util.js
 ```
 
 ### 2. 创建缺失的数据库

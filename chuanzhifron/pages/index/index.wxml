@@ -4,7 +4,7 @@
   <view class="header">
     <view class="header-content">
       <view class="logo">
-        <image src="https://s.coze.cn/image/3q2zO9taVRI/" class="logo-img"></image><!--图片显示被压缩需修改-->
+        <image src="http://localhost:8001/uploads/login-bg.png.png" class="logo-img"></image>
         <text class="logo-text">非遗传承</text>
       </view>
       <view class="header-icons">
@@ -22,27 +22,15 @@
   <view class="content">
     <!-- 轮播图 -->
     <swiper indicator-dots="{{true}}" autoplay="{{true}}" interval="5000" duration="1000" class="swiper" circular="{{true}}">
-      <swiper-item>
-        <image src="https://s.coze.cn/image/ZmDGHyHSc8Y/" class="swiper-img" mode="aspectFill"></image>
-        <view class="swiper-text">
-          <text class="swiper-title">2024年全国非遗文化节</text>
-          <text class="swiper-desc">传承经典，弘扬中华文化</text>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <image src="https://s.coze.cn/image/soDA5vwwUNI/" class="swiper-img" mode="aspectFill"></image>
-        <view class="swiper-text">
-          <text class="swiper-title">陶瓷技艺入选世界非遗名录</text>
-          <text class="swiper-desc">景德镇陶瓷烧制技艺列入人类非遗代表作名录</text>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <image src="https://s.coze.cn/image/FZSjJ9b6B20/" class="swiper-img" mode="aspectFill"></image>
-        <view class="swiper-text">
-          <text class="swiper-title">剪纸艺术进校园活动</text>
-          <text class="swiper-desc">全国范围内开展剪纸艺术进校园系列活动</text>
-        </view>
-      </swiper-item>
+      <block wx:for="{{bannerList}}" wx:key="id">
+        <swiper-item bindtap="onBannerTap" data-item="{{item}}">
+          <image src="{{item.image}}" class="swiper-img" mode="aspectFill"></image>
+          <view class="swiper-text">
+            <text class="swiper-title">{{item.title}}</text>
+            <text class="swiper-desc">{{item.description}}</text>
+          </view>
+        </swiper-item>
+      </block>
     </swiper>
 
     <!-- 非遗动态 -->

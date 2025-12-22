@@ -4,9 +4,10 @@ import { request } from '../../utils/util.js'
 Page({
   data: {
     currentCategory: 'all',
-    nationalList: [],
-    provincialList: [],
-    filteredList: [],
+    allNationalList: [],  // 所有国家级项目（原始数据）
+    allProvincialList: [], // 所有省级项目（原始数据）
+    nationalList: [],      // 当前筛选后的国家级项目
+    provincialList: [],    // 当前筛选后的省级项目
     loading: true
   },
 
@@ -19,24 +20,33 @@ Page({
     // 获取所有非遗项目
     request({
       url: '/heritage'
-    }).then(data => {
-      // 分离国家级和省级项目
-      const nationalList = data.filter(item => item.level === 1).map(item => ({
+    }).then(res => {
+      // 处理后端返回的 Result 结构
+      if (!res.success) {
+        throw new Error(res.message || '获取非遗数据失败');
+      }
+      
+      const data = res.data || [];
+      
+      // 处理图片路径，补充服务器地址
+      const processedData = data.map(item => ({
         ...item,
+        image: item.imageUrl && item.imageUrl.startsWith('http')
+          ? item.imageUrl
+          : ('http://localhost:8001' + (item.imageUrl || '')),
         isBookmarked: false
       }));
       
-      const provincialList = data.filter(item => item.level === 2).map(item => ({
-        ...item,
-        isBookmarked: false
-      }));
+      // 分离国家级和省级项目
+      const nationalList = processedData.filter(item => item.level === 1);
+      const provincialList = processedData.filter(item => item.level === 2);
       
       this.setData({
-        nationalList: nationalList,
-        provincialList: provincialList,
+        allNationalList: nationalList,  // 保存原始数据
+        allProvincialList: provincialList, // 保存原始数据
         loading: false
       }, () => {
-        this.filterHeritage();
+        this.filterHeritage();  // 初始化时执行筛选
       });
     }).catch(err => {
       console.error('获取非遗数据失败:', err);
@@ -59,19 +69,26 @@ Page({
     this.filterHeritage();
   },
 
-  // 筛选非遗项目
+  // 筛选非遗项目（根据分类筛选国家级和省级列表）
   filterHeritage: function() {
-    const { currentCategory, nationalList, provincialList } = this.data;
-    let filtered = [];
+    const { currentCategory, allNationalList, allProvincialList } = this.data;
+    
+    let filteredNational = [];
+    let filteredProvincial = [];
     
     if (currentCategory === 'all') {
-      filtered = [...nationalList, ...provincialList];
+      // 显示全部
+      filteredNational = allNationalList;
+      filteredProvincial = allProvincialList;
     } else {
-      filtered = [...nationalList, ...provincialList].filter(item => item.category === currentCategory);
+      // 按分类筛选
+      filteredNational = allNationalList.filter(item => item.category === currentCategory);
+      filteredProvincial = allProvincialList.filter(item => item.category === currentCategory);
     }
     
     this.setData({
-      filteredList: filtered
+      nationalList: filteredNational,
+      provincialList: filteredProvincial
     });
   },
 
@@ -87,27 +104,29 @@ Page({
   // 收藏功能
   onBookmarkTap: function(e) {
     const item = e.currentTarget.dataset.item;
-    const { nationalList, provincialList } = this.data;
+    const { allNationalList, allProvincialList } = this.data;
     
-    // 更新国家级列表
-    const nationalIndex = nationalList.findIndex(heritage => heritage.id === item.id);
+    // 更新原始数据中的收藏状态
+    const nationalIndex = allNationalList.findIndex(heritage => heritage.id === item.id);
     if (nationalIndex !== -1) {
-      nationalList[nationalIndex].isBookmarked = !nationalList[nationalIndex].isBookmarked;
+      allNationalList[nationalIndex].isBookmarked = !allNationalList[nationalIndex].isBookmarked;
     }
     
-    // 更新省级列表
-    const provincialIndex = provincialList.findIndex(heritage => heritage.id === item.id);
+    const provincialIndex = allProvincialList.findIndex(heritage => heritage.id === item.id);
     if (provincialIndex !== -1) {
-      provincialList[provincialIndex].isBookmarked = !provincialList[provincialIndex].isBookmarked;
+      allProvincialList[provincialIndex].isBookmarked = !allProvincialList[provincialIndex].isBookmarked;
     }
     
+    // 重新执行筛选，确保展示列表同步更新
     this.setData({
-      nationalList: nationalList,
-      provincialList: provincialList
+      allNationalList: allNationalList,
+      allProvincialList: allProvincialList
+    }, () => {
+      this.filterHeritage();  // 重新筛选以更新展示列表
     });
     
     wx.showToast({
-      title: !item.isBookmarked ? '已取消收藏' : '已收藏',
+      title: !item.isBookmarked ? '已收藏' : '已取消收藏',
       icon: 'none'
     });
   }

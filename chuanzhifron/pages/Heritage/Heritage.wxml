@@ -106,8 +106,12 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:if="{{filteredList.length === 0}}" class="empty">
-    <image src="/images/empty.png" class="empty-img"></image>
+  <view wx:if="{{nationalList.length === 0 && provincialList.length === 0 && !loading}}" class="empty">
     <text class="empty-text">暂无相关非遗项目</text>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="empty">
+    <text class="empty-text">加载中...</text>
   </view>
 </view>

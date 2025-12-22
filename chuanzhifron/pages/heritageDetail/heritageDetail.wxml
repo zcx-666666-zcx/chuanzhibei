@@ -1,0 +1,32 @@
+<view class="container">
+  <!-- 头部标题与基础信息 -->
+  <view class="header">
+    <text class="title">{{heritageDetail.name}}</text>
+    <view class="meta">
+      <text class="tag level-tag">{{levelText}}</text>
+      <text class="tag region-tag">{{heritageDetail.region}}</text>
+      <text class="tag category-tag">{{categoryText}}</text>
+    </view>
+  </view>
+
+  <!-- 封面图片 -->
+  <view wx:if="{{imageUrl}}" class="cover-wrapper">
+    <image src="{{imageUrl}}" class="cover-image" mode="aspectFill"></image>
+  </view>
+
+  <!-- 文字介绍 -->
+  <view class="section">
+    <text class="section-title">项目简介</text>
+    <view class="section-content">
+      <block wx:for="{{descriptionParagraphs}}" wx:key="index">
+        <text class="paragraph">{{item}}</text>
+      </block>
+    </view>
+  </view>
+
+  <!-- 预留更多模块（传承人、传承地等） -->
+  <view class="section" wx:if="{{false}}">
+    <text class="section-title">更多信息</text>
+  </view>
+</view>
+

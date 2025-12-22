@@ -41,34 +41,15 @@ Page({
         image: 'http://localhost:8001/uploads/banners_index/banner_5.jpg'
       }
     ],
-    recommendList: [
-      {
-        id: 1,
-        name: '书法',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg'
-      },
-      {
-        id: 2,
-        name: '刺绣',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_cixiu.jpg'
-      },
-      {
-        id: 3,
-        name: '中医药',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_zhongyiyao.jpg'
-      },
-      {
-        id: 4,
-        name: '武术',
-        image: 'http://localhost:8001/uploads/heritage_index/recommend_heritage_wushu.jpg'
-      }
-    ],
+    // 推荐非遗项目列表（从后端获取）
+    recommendList: [],
     loading: true
   },
 
   onLoad: function () {
-    // 加载新闻数据
+    // 加载新闻数据与推荐非遗项目
     this.loadNewsData();
+    this.loadRecommendHeritage();
     
     if (app.globalData.userInfo) {
       this.setData({
@@ -119,16 +100,53 @@ Page({
   loadNewsData: function() {
     request({
       url: '/news/recent'
-    }).then(response => {
-      // 处理后端返回的数据格式
-      let data = response.data || [];
-      // 处理数据格式
-      const newsList = data.map(item => ({
-        ...item,
-        isFav: false
-      }));
+    }).then(res => {
+      // 与后端 Result<T> 结构对齐：{ success, message, data }
+      if (!res.success) {
+        throw new Error(res.message || '获取新闻失败');
+      }
+
+      const list = res.data || [];
+
+      // 处理新闻数据：补充图片与日期字段，并增加收藏状态
+      const newsList = list.map(item => {
+        // 处理封面图：取 imageUrls 中第一张，没有则按 id 兜底
+        let image = '';
+        if (item.imageUrls) {
+          const first = item.imageUrls.split(',')[0].trim();
+          image = first.startsWith('http')
+            ? first
+            : 'http://localhost:8001' + first;
+        } else if (item.id != null) {
+          image = `http://localhost:8001/uploads/news_index/news_${item.id}.jpg`;
+        }
+
+        // 处理发布日期，转换为字符串，供界面展示
+        let dateStr = '';
+        let publishTime = item.publishTime;
+        if (publishTime) {
+          if (typeof publishTime === 'object' && publishTime.year) {
+            // Java LocalDateTime 对象
+            dateStr = `${publishTime.year}-${String(publishTime.monthValue).padStart(2, '0')}-${String(publishTime.dayOfMonth).padStart(2, '0')}`;
+          } else if (typeof publishTime === 'object' && Object.prototype.hasOwnProperty.call(publishTime, 'time')) {
+            // 时间戳对象
+            const d = new Date(publishTime.time);
+            dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          } else if (typeof publishTime === 'string') {
+            // 已经是字符串，按“日期 时间”拆分，只取日期部分
+            dateStr = publishTime.split(' ')[0];
+          }
+        }
+
+        return {
+          ...item,
+          image,
+          date: dateStr,
+          isFav: false
+        };
+      });
       
-      // 更新轮播图数据，确保ID与新闻ID匹配，并保留原有图片格式
+      // 更新轮播图数据：沿用原有图片，只同步标题与描述，并保证 ID 与新闻匹配
       const originalBannerList = this.data.bannerList;
       const bannerList = newsList.slice(0, 5).map((news, index) => ({
         id: news.id,
@@ -138,8 +156,8 @@ Page({
       }));
       
       this.setData({
-        newsList: newsList,
-        bannerList: bannerList,
+        newsList,
+        bannerList,
         loading: false
       });
     }).catch(err => {
@@ -154,6 +172,33 @@ Page({
     });
   },
 
+  // 加载推荐非遗项目（用于首页“推荐非遗项目”板块）
+  loadRecommendHeritage: function() {
+    request({
+      url: '/heritage/recommended'
+    }).then(res => {
+      if (!res.success) {
+        throw new Error(res.message || '获取推荐非遗项目失败');
+      }
+      const list = res.data || [];
+      const recommendList = list.map(item => ({
+        id: item.id,
+        name: item.name,
+        image: item.imageUrl && item.imageUrl.startsWith('http')
+          ? item.imageUrl
+          : ('http://localhost:8001' + (item.imageUrl || '')),
+        region: item.region,
+        category: item.category,
+        level: item.level
+      }));
+      this.setData({
+        recommendList
+      });
+    }).catch(err => {
+      console.error('获取推荐非遗项目失败:', err);
+    });
+  },
+
   // 通知功能
   onNotification: function() {
     wx.showToast({
@@ -165,9 +210,9 @@ Page({
   // 新闻点击
   onNewsTap: function(e) {
     const item = e.currentTarget.dataset.item
-    wx.showToast({
-      title: `查看新闻：${item.title}`,
-      icon: 'none'
+    // 与轮播图点击保持一致：跳转到新闻详情页面
+    wx.navigateTo({
+      url: `/pages/newsDetail/newsDetail?id=${item.id}`
     })
   },
 
@@ -193,9 +238,9 @@ Page({
   // 推荐项目点击
   onRecommendTap: function(e) {
     const item = e.currentTarget.dataset.item
-    wx.showToast({
-      title: `查看项目：${item.name}`,
-      icon: 'none'
+    // 跳转到可复用的非遗项目详情页面
+    wx.navigateTo({
+      url: `/pages/heritageDetail/heritageDetail?id=${item.id}`
     })
   },
 

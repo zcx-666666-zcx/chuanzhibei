@@ -78,11 +78,9 @@ Page({
   // 非遗项目点击
   onHeritageTap: function(e) {
     const item = e.currentTarget.dataset.item;
-    wx.showModal({
-      title: item.name,
-      content: item.description,
-      showCancel: false,
-      confirmText: '知道了'
+    // 复用与首页相同的详情展示页面
+    wx.navigateTo({
+      url: `/pages/heritageDetail/heritageDetail?id=${item.id}`
     });
   },
 

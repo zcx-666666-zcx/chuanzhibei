@@ -7,7 +7,8 @@
     "pages/PersonalCenter/PersonalCenter",
     "pages/logs/logs",
     "pages/learning/learning",
-    "pages/newsDetail/newsDetail"
+    "pages/newsDetail/newsDetail",
+    "pages/heritageDetail/heritageDetail"
   ],
   "window": {
     "navigationBarTextStyle": "black",

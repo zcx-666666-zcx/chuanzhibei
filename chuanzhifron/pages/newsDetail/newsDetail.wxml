@@ -1,10 +1,25 @@
 <view class="container">
   <view class="header">
     <text class="title">{{newsDetail.title}}</text>
+    <view class="meta">
+      <text class="author">作者：{{newsDetail.author}}</text>
+      <text class="publish-time">发布时间：{{newsDetail.publishTime}}</text>
+    </view>
   </view>
   
   <view class="content">
-    <image wx:if="{{newsDetail.image}}" src="{{newsDetail.image}}" class="news-image" mode="widthFix"></image>
-    <view class="description">{{newsDetail.description}}</view>
+    <text class="description">{{newsDetail.description}}</text>
+    
+    <!-- 显示多张图片 -->
+    <block wx:for="{{imageList}}" wx:key="index">
+      <image src="{{item}}" class="news-image" mode="widthFix"></image>
+    </block>
+    
+    <!-- 显示详细内容 -->
+    <view class="rich-content">
+      <block wx:for="{{contentParagraphs}}" wx:key="index">
+        <text class="content-paragraph">{{item}}</text>
+      </block>
+    </view>
   </view>
 </view>

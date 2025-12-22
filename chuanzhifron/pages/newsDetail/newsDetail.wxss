@@ -16,6 +16,15 @@
   font-size: 36rpx;
   font-weight: bold;
   color: #333;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #999;
 }
 
 .content {
@@ -25,14 +34,29 @@
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
+.description {
+  font-size: 28rpx;
+  line-height: 42rpx;
+  color: #666;
+  margin-bottom: 30rpx;
+  font-weight: bold;
+}
+
 .news-image {
   width: 100%;
   border-radius: 10rpx;
   margin-bottom: 30rpx;
 }
 
-.description {
-  font-size: 28rpx;
-  line-height: 42rpx;
-  color: #666;
+.rich-content {
+  margin-top: 20rpx;
+}
+
+.content-paragraph {
+  font-size: 26rpx;
+  line-height: 45rpx;
+  color: #555;
+  display: block;
+  margin-bottom: 25rpx;
+  text-align: justify;
 }

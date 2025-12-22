@@ -7,11 +7,12 @@ INSERT INTO user (username, password, nickname, email) VALUES
 ON DUPLICATE KEY UPDATE username=username;
 
 -- Sample news
-INSERT INTO news (title, description, image_url, date) VALUES 
-('2024年全国非遗文化节即将开幕', '一年一度的全国非物质文化遗产节将在北京举行，届时将有来自全国各地的非遗项目参展。', 'http://localhost:8001/uploads/news/festival.jpg', '2024-05-20'),
-('传统工艺创新大赛圆满落幕', '为期三个月的传统工艺创新大赛在杭州落下帷幕，共有来自全国各地的200余件作品参赛。', 'http://localhost:8001/uploads/news/competition.jpg', '2024-05-18'),
-('非遗传承人走进校园', '多位非遗传承人走进北京大学，为学生们带来了一场精彩的文化盛宴。', 'http://localhost:8001/uploads/news/campus.jpg', '2024-05-15'),
-('数字化保护助力非遗传承', '随着科技的发展，越来越多的非遗项目通过数字化手段得到保护和传播。', 'http://localhost:8001/uploads/news/digital.jpg', '2024-05-10')
+INSERT INTO news (title, description, content, image_urls, date, author, publish_time) VALUES 
+('2024年全国非遗文化节', '传承经典，弘扬中华文化', '全国非遗文化节是一场盛大的文化庆典，汇聚了全国各地的非物质文化遗产项目。\n\n今年的文化节特别推出了数字化展示区，通过VR技术让观众身临其境地体验传统工艺的魅力。\n\n文化节期间还将举办多场大师工作坊，让公众有机会近距离接触非遗传承人，学习传统技艺。', '/uploads/news_index/news_1.jpg,/uploads/news_index/news_2.jpg', '2024-05-20', '非遗文化编辑部', '2024-05-20 10:00:00'),
+('陶瓷技艺入选世界非遗名录', '景德镇陶瓷烧制技艺列入人类非遗代表作名录', '经过多年的努力，景德镇陶瓷烧制技艺终于成功入选联合国教科文组织人类非物质文化遗产代表作名录。\n\n这一成就不仅是对景德镇千年陶瓷文化的认可，也为中国非遗保护工作树立了新的标杆。\n\n未来，相关部门将进一步加强对陶瓷技艺的保护和传承，培养更多年轻传承人。', '/uploads/news_index/news_3.jpg,/uploads/news_index/news_4.jpg', '2024-05-18', '非遗文化编辑部', '2024-05-18 09:30:00'),
+('剪纸艺术进校园活动', '全国范围内开展剪纸艺术进校园系列活动', '为了更好地传承和发扬剪纸艺术，文化和旅游部联合教育部在全国范围内启动了剪纸艺术进校园活动。\n\n活动将邀请知名剪纸艺术家走进大中小学，通过现场教学和互动体验的方式，让学生们感受传统艺术的魅力。\n\n预计全年将覆盖超过1000所学校，惠及数十万学生。', '/uploads/news_index/news_5.jpg,/uploads/news_index/news_6.jpg', '2024-05-15', '非遗文化编辑部', '2024-05-15 14:15:00'),
+('传统工艺创新大赛', '展现新时代工匠精神', '2024年传统工艺创新大赛吸引了来自全国各地的工艺师参与，参赛作品涵盖了陶瓷、刺绣、木雕等多个领域。\n\n大赛评委团由国家级工艺大师和设计专家组成，评选标准不仅注重传统技艺的传承，更强调创新元素的融入。\n\n获奖作品将在全国巡展，并有机会被国家博物馆收藏。', '/uploads/news_index/news_7.jpg,/uploads/news_index/news_8.jpg', '2024-05-10', '非遗文化编辑部', '2024-05-10 11:45:00'),
+('非遗文化宣传周', '让更多人了解和热爱传统文化', '非遗文化宣传周旨在提高公众对非物质文化遗产的认知和保护意识。\n\n活动周期间将在各大城市举办主题展览、非遗市集、文化讲座等丰富多彩的活动。\n\n通过线上线下相结合的方式，让更多人能够参与到非遗保护和传承中来。', '/uploads/news_index/news_9.jpg,/uploads/news_index/news_10.jpg', '2024-05-05', '非遗文化编辑部', '2024-05-05 16:20:00')
 ON DUPLICATE KEY UPDATE title=title;
 
 -- Sample heritage items

@@ -12,8 +12,5 @@ public class WebConfig implements WebMvcConfigurer {
         // 配置静态资源访问路径
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:uploads/");
-        // 允许访问 news_index 文件夹
-        registry.addResourceHandler("/news_index/**")
-                .addResourceLocations("file:news_index/");
     }
 }

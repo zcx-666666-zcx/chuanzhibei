@@ -4,32 +4,31 @@ public class Result<T> {
     private boolean success;
     private String message;
     private T data;
-    private String error;
 
+    // 构造函数
+    public Result() {}
+
+    public Result(boolean success, String message, T data) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+    }
+
+    // 成功时的静态方法
     public static <T> Result<T> success(T data) {
-        Result<T> result = new Result<>();
-        result.success = true;
-        result.message = "操作成功";
-        result.data = data;
-        return result;
+        return new Result<>(true, "操作成功", data);
     }
 
     public static <T> Result<T> success(String message, T data) {
-        Result<T> result = new Result<>();
-        result.success = true;
-        result.message = message;
-        result.data = data;
-        return result;
+        return new Result<>(true, message, data);
     }
 
-    public static <T> Result<T> error(String errorMsg) {
-        Result<T> result = new Result<>();
-        result.success = false;
-        result.error = errorMsg;
-        return result;
+    // 失败时的静态方法
+    public static <T> Result<T> error(String message) {
+        return new Result<>(false, message, null);
     }
 
-    // Getters and setters
+    // Getter和Setter方法
     public boolean isSuccess() {
         return success;
     }
@@ -52,13 +51,5 @@ public class Result<T> {
 
     public void setData(T data) {
         this.data = data;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
     }
 }

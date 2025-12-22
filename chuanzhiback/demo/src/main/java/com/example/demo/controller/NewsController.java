@@ -1,28 +1,20 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.News;
+import com.example.demo.service.NewsService;
 import com.example.demo.common.Result;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/news")
 @CrossOrigin(origins = "*")
 public class NewsController {
 
-    // 定义上传目录
-    private static final String UPLOAD_DIR = "uploads/news_index/";
+    @Autowired
+    private NewsService newsService;
 
     /**
      * 获取新闻详情
@@ -31,56 +23,34 @@ public class NewsController {
      * @return 新闻详情
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Result<Map<String, Object>>> getNewsDetail(@PathVariable Long id) {
-        Map<String, Object> newsDetail = new HashMap<>();
-
+    public Result<Map<String, Object>> getNewsDetail(@PathVariable Long id) {
+        System.out.println("请求新闻详情，ID: " + id);
+        
         try {
-            // 图片路径
-            String imagePath = "/uploads/news_index/news_" + id + ".jpg";
-
-            // 尝试读取文本内容
-            String textContent = readTextContent(id);
-
-            // 构建返回数据
-            newsDetail.put("id", id);
-            newsDetail.put("title", "新闻标题 " + id);
-            newsDetail.put("image", imagePath);
-            newsDetail.put("description", textContent);
-            newsDetail.put("publishTime", "2024-06-01 12:00:00");
-            newsDetail.put("author", "非遗文化编辑部");
-
-            return ResponseEntity.ok(Result.success(newsDetail));
-        } catch (Exception e) {
-            // 出错时使用默认内容
-            newsDetail.put("id", id);
-            newsDetail.put("title", "新闻标题 " + id);
-            newsDetail.put("image", "/uploads/news_index/news_" + id + ".jpg");
-            newsDetail.put("description", "这是新闻ID为 " + id + " 的详细内容。在这里可以展示非遗项目的详细介绍、历史渊源、传承现状等等。非遗文化是中华民族的瑰宝，值得我们去传承和发扬光大。");
-            newsDetail.put("publishTime", "2024-06-01 12:00:00");
-            newsDetail.put("author", "非遗文化编辑部");
-
-            return ResponseEntity.ok(Result.success(newsDetail));
-        }
-    }
-
-    /**
-     * 读取指定ID的文本内容
-     *
-     * @param id 新闻ID
-     * @return 文本内容
-     * @throws IOException 读取文件异常
-     */
-    private String readTextContent(Long id) throws IOException {
-        // 尝试多种文本文件格式
-        String[] extensions = {".txt", ".md"};
-        for (String ext : extensions) {
-            Path textPath = Paths.get(UPLOAD_DIR + "news_" + id + ext);
-            if (Files.exists(textPath)) {
-                return Files.readString(textPath, StandardCharsets.UTF_8);
+            News news = newsService.getNewsById(id);
+            System.out.println("查找ID为 " + id + " 的新闻结果: " + news);
+            
+            if (news == null) {
+                System.out.println("未找到ID为 " + id + " 的新闻");
+                return Result.error("新闻不存在，请求的ID: " + id);
             }
+            
+            Map<String, Object> newsDetail = new HashMap<>();
+            newsDetail.put("id", news.getId());
+            newsDetail.put("title", news.getTitle());
+            newsDetail.put("description", news.getDescription());
+            newsDetail.put("content", news.getContent());
+            newsDetail.put("imageUrls", news.getImageUrls());
+            newsDetail.put("publishTime", news.getPublishTime());
+            newsDetail.put("author", news.getAuthor());
+            
+            System.out.println("返回的新闻详情: " + newsDetail);
+            return Result.success(newsDetail);
+        } catch (Exception e) {
+            System.err.println("获取新闻详情时发生错误: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("获取新闻详情时发生错误: " + e.getMessage());
         }
-        // 如果没找到文本文件，返回默认内容
-        return "这是新闻ID为 " + id + " 的详细内容。在这里可以展示非遗项目的详细介绍、历史渊源、传承现状等等。非遗文化是中华民族的瑰宝，值得我们去传承和发扬光大。";
     }
 
     /**
@@ -89,13 +59,33 @@ public class NewsController {
      * @return 最近新闻列表
      */
     @GetMapping("/recent")
-    public ResponseEntity<Result<Object>> getRecentNews() {
-        return ResponseEntity.ok(Result.success("success"));
-    }
-
-    // 搜索功能（简单实现）
-    @GetMapping("/search")
-    public ResponseEntity<Result<Object>> searchNews(@RequestParam String keyword) {
-        return ResponseEntity.ok(Result.success("success"));
+    public Result<List<Map<String, Object>>> getRecentNews() {
+        try {
+            List<News> newsList = newsService.getAllNews();
+            System.out.println("获取到的新闻列表: " + newsList);
+            
+            // 按ID排序确保顺序一致
+            List<News> sortedNews = newsList.stream()
+                .sorted((n1, n2) -> n1.getId().compareTo(n2.getId()))
+                .collect(java.util.stream.Collectors.toList());
+            
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (News news : sortedNews) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", news.getId());
+                item.put("title", news.getTitle());
+                item.put("description", news.getDescription());
+                item.put("imageUrls", news.getImageUrls());
+                item.put("publishTime", news.getPublishTime());
+                item.put("author", news.getAuthor());
+                result.add(item);
+            }
+            
+            return Result.success(result);
+        } catch (Exception e) {
+            System.err.println("获取新闻列表时发生错误: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("获取新闻列表时发生错误: " + e.getMessage());
+        }
     }
 }

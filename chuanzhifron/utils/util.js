@@ -45,13 +45,14 @@ const request = (options) => {
       },
       success(res) {
         if (res.statusCode === 200) {
+          // 直接返回完整的响应数据
           resolve(res.data);
         } else {
-          reject(res);
+          reject(new Error(`HTTP ${res.statusCode}: ${res.errMsg}`));
         }
       },
       fail(err) {
-        reject(err);
+        reject(new Error(`网络请求失败: ${err.errMsg}`));
       }
     });
   });

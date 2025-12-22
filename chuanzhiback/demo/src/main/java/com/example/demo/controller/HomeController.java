@@ -46,7 +46,7 @@ public class HomeController {
         homeData.put("recommendHeritages", recommendHeritages);
         
         // 获取最新新闻
-        List<News> recentNews = newsService.getRecentNews();
+        List<News> recentNews = newsService.getAllNews();
         homeData.put("recentNews", recentNews);
         
         return ResponseEntity.ok(Result.success(homeData));

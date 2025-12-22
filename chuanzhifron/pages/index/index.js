@@ -119,14 +119,27 @@ Page({
   loadNewsData: function() {
     request({
       url: '/news/recent'
-    }).then(data => {
+    }).then(response => {
+      // 处理后端返回的数据格式
+      let data = response.data || [];
       // 处理数据格式
       const newsList = data.map(item => ({
         ...item,
         isFav: false
       }));
+      
+      // 更新轮播图数据，确保ID与新闻ID匹配，并保留原有图片格式
+      const originalBannerList = this.data.bannerList;
+      const bannerList = newsList.slice(0, 5).map((news, index) => ({
+        id: news.id,
+        title: news.title,
+        description: news.description,
+        image: originalBannerList[index]?.image || `http://localhost:8001/uploads/banners_index/banner_${index + 1}.jpg`
+      }));
+      
       this.setData({
         newsList: newsList,
+        bannerList: bannerList,
         loading: false
       });
     }).catch(err => {

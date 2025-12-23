@@ -248,28 +248,29 @@
 
 /* 体验记录 */
 .record-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
+  padding: 0 30rpx;
 }
 
 .record-item {
   background: white;
   border-radius: 16rpx;
-  padding: 24rpx;
+  overflow: hidden;
   box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
   display: flex;
-  align-items: center;
+  flex-direction: column;
 }
 
 .record-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 12rpx;
-  margin-right: 24rpx;
+  width: 100%;
+  height: 240rpx;
+  border-radius: 16rpx 16rpx 0 0;
 }
 
 .record-content {
+  padding: 24rpx;
   flex: 1;
 }
 
@@ -278,25 +279,40 @@
   font-weight: bold;
   color: #333;
   display: block;
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
 }
 
 .record-time {
   font-size: 24rpx;
-  color: #999;
-  display: block;
-  margin-bottom: 8rpx;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
 .record-duration {
   font-size: 24rpx;
-  color: #666;
+  color: #999;
   display: block;
+  margin-bottom: 20rpx;
 }
 
 .record-button {
-  padding: 16rpx 24rpx;
-  font-size: 24rpx;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 16rpx;
+  font-size: 28rpx;
+}
+
+.record-button text {
+  font-size: 28rpx;
 }
 
 /* 图标字体 */
@@ -322,7 +338,8 @@
 
 /* 响应式调整 */
 @media (max-width: 750rpx) {
-  .ar-grid {
+  .ar-grid,
+  .record-list {
     grid-template-columns: 1fr;
   }
   
@@ -333,22 +350,5 @@
   
   .intro-content {
     flex-direction: column;
-  }
-  
-  .record-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .record-image {
-    width: 100%;
-    height: 200rpx;
-    margin-right: 0;
-    margin-bottom: 20rpx;
-  }
-  
-  .record-button {
-    width: 100%;
-    margin-top: 20rpx;
   }
 }

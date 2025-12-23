@@ -2,68 +2,40 @@
 <view class="container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-title">AR文物复原体验</text>
+    <text class="page-title">AR文物体验</text>
   </view>
 
   <!-- AR体验介绍 -->
   <view class="intro-section">
     <view class="intro-content">
       <view class="intro-text">
-        <text class="intro-title">什么是AR文物复原？</text>
-        <text class="intro-desc">AR文物复原是一种利用增强现实技术，将破损或消失的文物通过数字技术还原，让用户可以在现实环境中与虚拟文物进行互动的创新体验方式。</text>
-        <text class="intro-features">通过我们的AR功能，您可以：</text>
+        <text class="intro-title">什么是文物 AR 体验？</text>
+        <text class="intro-desc">对准指定的文物图片（Marker），在真实画面上叠加播放文物的讲解视频与细节演示，让文物"动起来"。</text>
+        <text class="intro-features">通过我们的 AR 功能，您可以：</text>
         <view class="feature-list">
           <view class="feature-item">
             <text class="feature-icon">🔍</text>
-            <text class="feature-text">360°全方位观看文物细节</text>
+            <text class="feature-text">在真实场景中观看文物细节视频</text>
           </view>
           <view class="feature-item">
             <text class="feature-icon">👆</text>
-            <text class="feature-text">与虚拟文物进行互动</text>
+            <text class="feature-text">对准海报/展板即可触发 AR 叠加</text>
           </view>
           <view class="feature-item">
             <text class="feature-icon">📖</text>
-            <text class="feature-text">了解文物背后的历史故事</text>
+            <text class="feature-text">聆听文物背后的历史与工艺故事</text>
           </view>
           <view class="feature-item">
             <text class="feature-icon">🔧</text>
-            <text class="feature-text">参与文物修复的虚拟体验</text>
+            <text class="feature-text">体验视频讲解而非复杂 3D 修复</text>
           </view>
         </view>
       </view>
       <image src="https://s.coze.cn/image/PwCwmJk5298/" class="intro-image" mode="aspectFill"></image>
     </view>
   </view>
-
-  <!-- AR体验项目 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">热门AR体验项目</text>
-    </view>
-    <view class="ar-grid">
-      <view class="ar-card card card-hover" 
-            wx:for="{{arProjects}}" 
-            wx:key="id" 
-            bindtap="onARProjectTap" 
-            data-item="{{item}}">
-        <view class="ar-image-container">
-          <image src="{{item.image}}" class="ar-image" mode="aspectFill"></image>
-          <view wx:if="{{item.isHot}}" class="hot-badge">热门</view>
-        </view>
-        <view class="ar-content">
-          <text class="ar-title">{{item.name}}</text>
-          <text class="ar-desc">{{item.description}}</text>
-          <button class="btn-primary ar-button" bindtap="startARExperience" data-item="{{item}}" catchtap="true">
-            <text class="iconfont icon-cube"></text>
-            <text>开始体验</text>
-          </button>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- AR体验指南 -->
-  <view class="guide-section">
+ <!-- AR体验指南 -->
+ <view class="guide-section">
     <view class="section-header">
       <text class="section-title">AR体验指南</text>
     </view>
@@ -92,23 +64,58 @@
     </view>
   </view>
 
-  <!-- 体验记录 -->
+  <!-- AR体验项目 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">热门AR体验项目</text>
+    </view>
+    <view class="ar-grid">
+      <view class="ar-card card card-hover" 
+            wx:for="{{arProjects}}" 
+            wx:key="id" 
+            bindtap="onARProjectTap" 
+            data-item="{{item}}">
+        <view class="ar-image-container">
+          <image src="{{item.coverImage || 'http://localhost:8001/uploads/photo_ARExperinece/deomphoto.jpg'}}" class="ar-image" mode="aspectFill"></image>
+          <view wx:if="{{item.isHot}}" class="hot-badge">热门</view>
+        </view>
+        <view class="ar-content">
+          <text class="ar-title">{{item.name}}</text>
+          <text class="ar-desc">{{item.description}}</text>
+          <button class="btn-primary ar-button" bindtap="startARExperience" data-item="{{item}}" catchtap="true">
+            <text class="iconfont icon-cube"></text>
+            <text>开始体验</text>
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+ 
+  <!-- 我的体验记录 -->
   <view class="section">
     <view class="section-header">
       <text class="section-title">我的体验记录</text>
-      <text class="more-link">查看全部</text>
     </view>
-    <view class="record-list">
-      <view class="record-item" wx:for="{{experienceRecords}}" wx:key="id">
-        <image src="{{item.image}}" class="record-image" mode="aspectFill"></image>
-        <view class="record-content">
-          <text class="record-title">{{item.name}}</text>
-          <text class="record-time">{{item.time}}</text>
-          <text class="record-duration">体验时长：{{item.duration}}</text>
+    <view class="ar-grid">
+      <view class="ar-card card card-hover" 
+            wx:for="{{experienceRecords}}" 
+            wx:key="id" 
+            wx:if="{{experienceRecords.length > 0}}">
+        <view class="ar-image-container">
+          <image src="{{item.image || 'http://localhost:8001/uploads/photo_ARExperinece/deomphoto.jpg'}}" class="ar-image" mode="aspectFill"></image>
         </view>
-        <button class="btn-secondary record-button" bindtap="replayExperience" data-item="{{item}}">
-          重新体验
-        </button>
+        <view class="ar-content">
+          <text class="ar-title">{{item.name}}</text>
+          <text class="ar-desc">体验时间：{{item.time}}</text>
+          <text class="ar-desc">时长：{{item.duration}}</text>
+          <button class="btn-secondary ar-button" bindtap="replayExperience" data-item="{{item}}" catchtap="true">
+            <text>重新体验</text>
+          </button>
+        </view>
+      </view>
+      <view wx:if="{{experienceRecords.length === 0}}" class="no-record">
+        <text>暂无体验记录</text>
       </view>
     </view>
   </view>

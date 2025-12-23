@@ -1,0 +1,44 @@
+<view class="container">
+  <view class="header">
+    <text class="title">{{project.name}}</text>
+    <text class="desc">{{project.description}}</text>
+  </view>
+
+  <view class="card">
+    <text class="card-title">识别提示</text>
+    <text class="card-text">请对准下方"识别图"，保持手机稳定，识别成功后会在图像上叠加播放 AR 视频。</text>
+    <image wx:if="{{project.markerImage}}" src="{{project.markerImage}}" class="marker-img" mode="aspectFill"></image>
+  </view>
+
+  <view class="card">
+    <text class="card-title">体验指南</text>
+    <block wx:for="{{instructionLines}}" wx:key="index">
+      <text class="card-text">{{item}}</text>
+    </block>
+  </view>
+
+  <view class="footer">
+    <button class="btn-primary" bindtap="startCamera">调用摄像头并开始识别</button>
+  </view>
+  
+  <!-- AR识别结果展示区域 -->
+  <view wx:if="{{arRecognitionActive}}" class="ar-overlay">
+    <view class="ar-result">
+      <text class="result-text">识别成功！正在播放AR视频...</text>
+      <video wx:if="{{project.videoUrl}}" 
+             src="{{project.videoUrl}}" 
+             controls 
+             autoplay 
+             class="video" 
+             poster="{{project.coverImage}}"
+             show-center-play-btn="{{false}}"
+             show-play-btn="{{false}}"
+             enable-danmu="{{false}}"
+             enable-play-gesture="{{false}}"
+             vslide-gesture="{{false}}"
+             vslide-gesture-in-fullscreen="{{false}}"
+             picture-in-picture="{{false}}">
+      </video>
+    </view>
+  </view>
+</view>

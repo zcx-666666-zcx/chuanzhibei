@@ -8,7 +8,8 @@
     "pages/logs/logs",
     "pages/learning/learning",
     "pages/newsDetail/newsDetail",
-    "pages/heritageDetail/heritageDetail"
+    "pages/heritageDetail/heritageDetail",
+    "pages/ARPlay/ARPlay"
   ],
   "window": {
     "navigationBarTextStyle": "black",

@@ -1,24 +1,33 @@
-# AR体验界面接口文档
+# AR体验界面接口文档（文物 AR 视频体验版）
 
 ## 1. 概述
 
-本文档详细描述了AR体验界面所需的所有后端接口，供后端开发人员实现相应功能。
+本文档描述 **文物 AR 体验界面** 所需的后端接口，支持以下前端核心功能：
+
+- **AR体验介绍**：在首页展示可用的 AR 文物体验项目列表。
+- **AR体验指南**：为用户提供使用说明（前端文案为主，本接口文档只说明数据字段中相关的介绍内容）。
+- **热门AR体验项目**：从项目列表中筛选/标记热门项目进行展示。
+- **体验记录**：记录并查询用户历史 AR 体验。
+
+本项目的 AR 体验形式为：  
+**通过摄像头识别预设的“文物图片（Marker）”，在该图片平面上叠加播放对应的文物 AR 视频**，而不是突出“文物修复”或复杂 3D 建模。
 
 ## 2. 接口列表
 
-### 2.1 获取AR体验项目列表
+### 2.1 获取 AR 体验项目列表（用于“AR体验介绍”“热门AR体验项目”）
+
 #### 接口地址
 ```
 GET /api/ar/projects
 ```
 
 #### 请求参数
-| 参数名 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| category | string | 否 | 分类筛选条件 |
-| keyword | string | 否 | 搜索关键词 |
-| page | integer | 否 | 页码，默认为1 |
-| size | integer | 否 | 每页条数，默认为10 |
+| 参数名   | 类型    | 必填 | 说明                           |
+| -------- | ------- | ---- | ------------------------------ |
+| category | string  | 否   | 分类筛选条件（如文物类型）     |
+| keyword  | string  | 否   | 搜索关键词（按名称/描述模糊） |
+| page     | integer | 否   | 页码，默认为1                 |
+| size     | integer | 否   | 每页条数，默认为10            |
 
 #### 响应参数
 ```json
@@ -29,21 +38,25 @@ GET /api/ar/projects
     "list": [
       {
         "id": 1,
-        "name": "青铜器复原体验",
-        "description": "通过AR技术还原古代青铜器的制作过程",
-        "imageUrl": "https://example.com/ar_1.jpg",
-        "thumbUrl": "https://example.com/ar_thumb_1.jpg",
-        "duration": "15分钟",
-        "category": "文物复原"
+        "name": "景德镇青花瓷 AR 体验",
+        "description": "通过摄像头对准青花瓷海报，让器物纹样在画面中“活起来”。",
+        "coverImage": "http://localhost:8001/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg",
+        "markerImage": "http://localhost:8001/uploads/ar_index/ar_architecture.jpg",
+        "videoUrl": "http://localhost:8001/uploads/ar_videos/qinghua_demo.mp4",
+        "duration": "约 2 分钟",
+        "category": "陶瓷艺术",
+        "isHot": true
       },
       {
         "id": 2,
-        "name": "古画复活体验",
-        "description": "利用AR技术让古画中的场景动起来",
-        "imageUrl": "https://example.com/ar_2.jpg",
-        "thumbUrl": "https://example.com/ar_thumb_2.jpg",
-        "duration": "12分钟",
-        "category": "艺术欣赏"
+        "name": "苏绣·双面绣 AR 体验",
+        "description": "扫描指定绣品图片，在画面中叠加展示绣线铺陈与细节放大视频。",
+        "coverImage": "http://localhost:8001/uploads/heritage_index/recommend_heritage_shujin.jpg",
+        "markerImage": "http://localhost:8001/uploads/ar_index/ar_painting.jpg",
+        "videoUrl": "http://localhost:8001/uploads/ar_videos/suxiu_demo.mp4",
+        "duration": "约 2 分钟",
+        "category": "传统技艺",
+        "isHot": false
       }
     ],
     "total": 100,
@@ -54,7 +67,14 @@ GET /api/ar/projects
 }
 ```
 
-### 2.2 获取AR体验项目详情
+> 说明：
+> - `coverImage`：列表、卡片使用的封面图（可直接使用 `heritage_index` 或 `ar_index` 中的图片）。
+> - `markerImage`：**用于 AR 识别的“文物图片”**，在 AR 场景的 `xr-ar-tracker` 上作为 `src`。
+> - `videoUrl`：**在识别成功后叠加播放的文物 AR 视频**。
+> - `isHot`：标记热门项目，前端可作为“热门AR体验项目”的筛选条件。
+
+### 2.2 获取 AR 体验项目详情（用于“AR体验介绍”“AR体验指南”详情页/弹窗）
+
 #### 接口地址
 ```
 GET /api/ar/projects/{id}
@@ -62,7 +82,7 @@ GET /api/ar/projects/{id}
 
 #### 请求参数
 路径参数：
-- id: AR项目ID
+- `id`: AR 项目 ID
 
 #### 响应参数
 ```json
@@ -71,18 +91,19 @@ GET /api/ar/projects/{id}
   "message": "获取成功",
   "data": {
     "id": 1,
-    "name": "青铜器复原体验",
-    "description": "通过AR技术还原古代青铜器的制作过程",
-    "detail": "本体验项目通过先进的AR技术，带领用户穿越时空，亲身体验中国古代青铜器的制作全过程。从选料、制模、浇铸到打磨，每一个环节都力求真实再现古代工匠的精湛技艺。",
-    "instruction": "1. 确保设备电量充足\n2. 选择光线充足的环境\n3. 按照提示逐步操作\n4. 注意观察每个制作环节的细节",
-    "imageUrl": "https://example.com/ar_1.jpg",
-    "modelUrl": "https://example.com/models/bronze.glb",
-    "duration": "15分钟",
-    "category": "文物复原",
+    "name": "景德镇青花瓷 AR 体验",
+    "description": "通过摄像头对准青花瓷海报，让器物纹样在画面中“活起来”。",
+    "detail": "本体验项目以景德镇青花瓷为主角，当用户对准指定的青花瓷图片时，画面中会叠加播放一段关于瓷器纹样、烧制工艺和文化故事的短视频，帮助观众在现实展品之外获得更立体的感受。",
+    "instruction": "1. 确保网络和摄像头权限已开启。\n2. 走近展板或海报，对准指定青花瓷图片。\n3. 稳定握持手机，等待画面中出现 AR 视频。\n4. 可跟随讲解视角，观察器物纹样和细节变化。",
+    "coverImage": "http://localhost:8001/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg",
+    "markerImage": "http://localhost:8001/uploads/ar_index/ar_architecture.jpg",
+    "videoUrl": "http://localhost:8001/uploads/ar_videos/qinghua_demo.mp4",
+    "duration": "约 2 分钟",
+    "category": "陶瓷艺术",
     "relatedHeritages": [
       {
-        "id": 1,
-        "name": "青铜器制作技艺",
+        "id": 10,
+        "name": "景德镇瓷器烧制技艺",
         "level": "国家级"
       }
     ]
@@ -90,7 +111,13 @@ GET /api/ar/projects/{id}
 }
 ```
 
-### 2.3 记录AR体验历史
+> 说明：
+> - `detail`：可在 “AR体验介绍” 或详情页中展示更长篇幅的文字介绍。
+> - `instruction`：用于 “AR体验指南” 中，以步骤形式提示如何正确体验。
+> - 不再强制要求 `modelUrl`，如果后续需要 3D 模型体验，可扩展字段。
+
+### 2.3 记录 AR 体验历史（用于“体验记录”写入）
+
 #### 接口地址
 ```
 POST /api/ar/history
@@ -100,9 +127,13 @@ POST /api/ar/history
 ```json
 {
   "projectId": 1,
-  "duration": 900  // 体验时长（秒）
+  "duration": 120  // 本次体验时长（秒）
 }
 ```
+
+> 说明：
+> - `projectId`：对应 AR 项目 ID。
+> - `duration`：从进入 AR 播放页面到退出/结束的时长，由前端统计。
 
 #### 响应参数
 ```json
@@ -112,17 +143,18 @@ POST /api/ar/history
 }
 ```
 
-### 2.4 获取用户AR体验历史
+### 2.4 获取用户 AR 体验历史（用于“体验记录”列表）
+
 #### 接口地址
 ```
 GET /api/ar/history
 ```
 
 #### 请求参数
-| 参数名 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| page | integer | 否 | 页码，默认为1 |
-| size | integer | 否 | 每页条数，默认为10 |
+| 参数名 | 类型    | 必填 | 说明           |
+| ------ | ------- | ---- | -------------- |
+| page   | integer | 否   | 页码，默认为1 |
+| size   | integer | 否   | 每页条数，默认为10 |
 
 #### 响应参数
 ```json
@@ -134,18 +166,18 @@ GET /api/ar/history
       {
         "id": 1,
         "projectId": 1,
-        "projectName": "青铜器复原体验",
-        "projectThumb": "https://example.com/ar_thumb_1.jpg",
+        "projectName": "景德镇青花瓷 AR 体验",
+        "projectThumb": "http://localhost:8001/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg",
         "startTime": "2024-05-20 14:30:00",
-        "duration": 900
+        "duration": 120
       },
       {
         "id": 2,
         "projectId": 2,
-        "projectName": "古画复活体验",
-        "projectThumb": "https://example.com/ar_thumb_2.jpg",
+        "projectName": "苏绣·双面绣 AR 体验",
+        "projectThumb": "http://localhost:8001/uploads/heritage_index/recommend_heritage_shujin.jpg",
         "startTime": "2024-05-18 10:15:00",
-        "duration": 720
+        "duration": 95
       }
     ],
     "total": 2,
@@ -156,7 +188,15 @@ GET /api/ar/history
 }
 ```
 
-### 2.5 获取AR体验统计数据
+> 前端 “体验记录” 区域可展示：
+> - 项目缩略图 `projectThumb`
+> - 项目名称 `projectName`
+> - 最近体验时间 `startTime`
+> - 时长 `duration`
+> - “再次体验”按钮（点击后根据 `projectId` 跳转到 AR 播放页）
+
+### 2.5 获取 AR 体验统计数据（可用于“AR体验介绍”中的概览信息）
+
 #### 接口地址
 ```
 GET /api/ar/statistics
@@ -175,41 +215,22 @@ GET /api/ar/statistics
     "totalDuration": 124500,
     "favoriteProject": {
       "id": 1,
-      "name": "青铜器复原体验",
+      "name": "景德镇青花瓷 AR 体验",
       "count": 45
-    },
-    "recentExperiences": [
-      {
-        "date": "2024-05-20",
-        "count": 12
-      },
-      {
-        "date": "2024-05-19",
-        "count": 8
-      }
-    ]
+    }
   }
 }
 ```
 
-## 3. 图片资源说明
+> 前端可选择性在 “AR体验介绍” 模块展示简单统计信息，如累计体验次数、最受欢迎项目等。
 
-### 3.1 AR项目封面图
-- 尺寸建议：800px * 600px (宽高比 4:3)
-- 格式：jpg/png
-- 文件大小：建议不超过200KB
-- 内容：AR项目的代表性场景截图或概念图
+## 3. 资源与技术说明（与 AR 文物视频体验直接相关）
 
-### 3.2 AR项目缩略图
-- 尺寸建议：200px * 200px (正方形)
-- 格式：jpg/png
-- 文件大小：建议不超过50KB
-- 内容：与封面图内容一致但尺寸更小的版本
+- **封面图 `coverImage`**：用于 “AR体验介绍”“热门AR体验项目” 卡片展示，可复用 `chuanzhiback/uploads/heritage_index` 或 `chuanzhiback/uploads/ar_index` 中的图片。
+- **识别图 `markerImage`**：用于 AR 识别的文物图片，在 `xr-ar-tracker mode="Marker"` 中作为 `src`。
+- **视频资源 `videoUrl`**：在识别成功后叠加在平面上的 AR 视频，建议尺寸适中、码率适中，保证流畅度。
 
-### 3.3 AR模型文件
-- 格式：glb/gltf
-- 文件大小：建议不超过10MB
-- 内容：AR体验所需的3D模型文件
+前端 AR 场景建议基于微信小程序 `xr-frame` 的 `Marker + video-texture` 实现，具体技术细节在 **《AR体验页面技术文档》** 中说明，此处只要求后端提供稳定的 URL 与基础字段。
 
 ## 4. 错误响应格式
 
@@ -221,22 +242,19 @@ GET /api/ar/statistics
 }
 ```
 
-## 5. 权限要求
+## 5. 权限与安全要求
 
-所有接口均需要用户认证，在请求头中添加：
-```
-Authorization: Bearer <token>
-```
+1. 所有接口均需要用户认证，在请求头中添加：
+   ```
+   Authorization: Bearer <token>
+   ```
+2. 用户体验历史数据属于敏感信息，仅对当前登录用户可见。
+3. 视频与图片资源建议做基础的防盗链和权限控制。
+4. 所有接口通信必须通过 HTTPS 加密传输。
 
 ## 6. 分页参数说明
 
 对于支持分页的接口，分页参数遵循以下规范：
-- page: 页码，从1开始计数
-- size: 每页条数，建议范围10-50
-- 返回数据中包含total(总条数)、hasNext(是否有下一页)等分页信息
-
-## 7. 数据安全要求
-
-1. 用户体验历史数据属于敏感信息，必须严格保密
-2. AR模型文件需要防盗链处理
-3. 所有接口通信必须通过HTTPS加密传输
+- `page`: 页码，从 1 开始计数
+- `size`: 每页条数，建议范围 10–50
+- 返回数据中包含 `total`(总条数)、`hasNext`(是否有下一页) 等分页信息

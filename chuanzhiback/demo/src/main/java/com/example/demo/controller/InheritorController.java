@@ -23,6 +23,12 @@ public class InheritorController {
         return ResponseEntity.ok(Result.success(inheritors));
     }
 
+    @GetMapping("/list")
+    public ResponseEntity<Result<List<Inheritor>>> getInheritorList() {
+        List<Inheritor> inheritors = inheritorService.getAllInheritors();
+        return ResponseEntity.ok(Result.success(inheritors));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Result<Inheritor>> getInheritorById(@PathVariable Long id) {
         Inheritor inheritor = inheritorService.getInheritorById(id);

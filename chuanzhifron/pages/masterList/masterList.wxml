@@ -1,0 +1,79 @@
+<!--pages/masterList/masterList.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">传承人列表</text>
+  </view>
+
+  <!-- 分类筛选 -->
+  <view class="filter-section">
+    <scroll-view scroll-x="true" class="filter-scroll">
+      <view class="filter-list">
+        <view class="filter-item {{currentCategory === 'all' ? 'active' : ''}}" 
+              data-category="all" bindtap="onCategoryFilter">
+          <text>全部</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'suxiu' ? 'active' : ''}}" 
+              data-category="suxiu" bindtap="onCategoryFilter">
+          <text>苏绣</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'jingtai' ? 'active' : ''}}" 
+              data-category="jingtai" bindtap="onCategoryFilter">
+          <text>景泰蓝</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'jianzhi' ? 'active' : ''}}" 
+              data-category="jianzhi" bindtap="onCategoryFilter">
+          <text>剪纸</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'jingju' ? 'active' : ''}}" 
+              data-category="jingju" bindtap="onCategoryFilter">
+          <text>京剧</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'junci' ? 'active' : ''}}" 
+              data-category="junci" bindtap="onCategoryFilter">
+          <text>钧瓷</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 传承人列表 -->
+  <view wx:else class="master-grid">
+    <view class="master-card card card-hover" 
+          wx:for="{{masterList}}" 
+          wx:key="id" 
+          bindtap="onMasterTap" 
+          data-item="{{item}}">
+      <image src="{{item.avatar || item.image}}" class="master-image" mode="aspectFill"></image>
+      <view class="master-content">
+        <view class="master-header">
+          <text class="master-name">{{item.name}}</text>
+          <view class="master-header-right">
+            <view class="master-level">{{item.title || item.level || '国家级传承人'}}</view>
+            <button class="favorite-btn" bindtap="toggleFavorite" data-item="{{item}}" catchtap="true">
+              <text class="iconfont {{item.isFavorite ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+            </button>
+          </view>
+        </view>
+        <text class="master-skill">{{item.skill}}</text>
+        <text class="master-desc">{{item.introduction || item.description || '暂无介绍'}}</text>
+      </view>
+      <view class="master-footer">
+        <button class="btn-secondary book-button" bindtap="bookExperience" data-item="{{item}}" catchtap="true">
+          预约体验
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && masterList.length === 0}}" class="empty">
+    <text class="empty-text">暂无传承人信息</text>
+  </view>
+</view>
+

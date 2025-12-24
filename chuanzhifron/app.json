@@ -9,7 +9,11 @@
     "pages/learning/learning",
     "pages/newsDetail/newsDetail",
     "pages/heritageDetail/heritageDetail",
-    "pages/ARPlay/ARPlay"
+    "pages/ARPlay/ARPlay",
+    "pages/newsList/newsList",
+    "pages/nationalHeritageList/nationalHeritageList",
+    "pages/provincialHeritageList/provincialHeritageList",
+    "pages/masterList/masterList"
   ],
   "window": {
     "navigationBarTextStyle": "black",

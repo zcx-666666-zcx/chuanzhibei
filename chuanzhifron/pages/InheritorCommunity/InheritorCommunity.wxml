@@ -1,36 +1,88 @@
 <!--InheritorCommunit.wxml-->
 <view class="container">
-  <!-- 页面标题 -->
+  <!-- 页面标题和搜索 -->
   <view class="page-header">
-    <text class="page-title">传承人社区</text>
+    <view class="header-top">
+      <text class="page-title">传承人社区</text>
+      <button class="search-btn" bindtap="onSearch" style="width: 249rpx; display: flex; box-sizing: border-box; left: 0rpx; top: 0rpx">
+        <text class="iconfont icon-search">🔍</text>
+      </button>
+      <button class="share-btn" bindtap="onShare" style="width: 172rpx; display: flex; box-sizing: border-box; left: 0rpx; top: 0rpx">
+        <text class="iconfont icon-share">📤</text>
+      </button>
+    </view>
+    <!-- 分类筛选 -->
+    <scroll-view scroll-x="true" class="filter-scroll" wx:if="{{showFilters}}">
+      <view class="filter-list">
+        <view class="filter-item {{currentCategory === 'all' ? 'active' : ''}}" 
+              data-category="all" bindtap="onCategoryFilter">
+          <text>全部</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'suxiu' ? 'active' : ''}}" 
+              data-category="suxiu" bindtap="onCategoryFilter">
+          <text>苏绣</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'jingtai' ? 'active' : ''}}" 
+              data-category="jingtai" bindtap="onCategoryFilter">
+          <text>景泰蓝</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'jianzhi' ? 'active' : ''}}" 
+              data-category="jianzhi" bindtap="onCategoryFilter">
+          <text>剪纸</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'jingju' ? 'active' : ''}}" 
+              data-category="jingju" bindtap="onCategoryFilter">
+          <text>京剧</text>
+        </view>
+        <view class="filter-item {{currentCategory === 'junci' ? 'active' : ''}}" 
+              data-category="junci" bindtap="onCategoryFilter">
+          <text>钧瓷</text>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- 传承人推荐 -->
   <view class="section">
     <view class="section-header">
       <text class="section-title">国家级传承人</text>
+      <view class="section-header-right">
+        <text class="section-count" wx:if="{{masterList.length > 0}}">{{masterList.length}}位</text>
+        <navigator url="/pages/masterList/masterList?category={{currentCategory}}" class="more-link" wx:if="{{masterList.length > 4}}">查看更多</navigator>
+      </view>
     </view>
-    <view class="master-grid">
+    <view class="master-grid" wx:if="{{displayMasterList.length > 0}}">
       <view class="master-card card card-hover" 
-            wx:for="{{masterList}}" 
+            wx:for="{{displayMasterList}}" 
             wx:key="id" 
             bindtap="onMasterTap" 
             data-item="{{item}}">
-        <image src="{{item.image}}" class="master-image" mode="aspectFill"></image>
+        <image src="{{item.avatar || item.image}}" class="master-image" mode="aspectFill"></image>
         <view class="master-content">
           <view class="master-header">
             <text class="master-name">{{item.name}}</text>
-            <view class="master-level">{{item.level}}</view>
+            <view class="master-header-right">
+              <view class="master-level">{{item.title || item.level || '国家级传承人'}}</view>
+              <button class="favorite-btn" bindtap="toggleFavorite" data-item="{{item}}" catchtap="true">
+                <text class="iconfont {{item.isFavorite ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+              </button>
+            </view>
           </view>
           <text class="master-skill">{{item.skill}}</text>
-          <text class="master-desc">{{item.description}}</text>
+          <text class="master-desc">{{item.introduction || item.description || '暂无介绍'}}</text>
         </view>
         <view class="master-footer">
           <button class="btn-secondary book-button" bindtap="bookExperience" data-item="{{item}}" catchtap="true">
             预约体验
           </button>
+          <button class="btn-outline share-master-btn" bindtap="shareMaster" data-item="{{item}}" catchtap="true">
+            分享
+          </button>
         </view>
       </view>
+    </view>
+    <view wx:if="{{displayMasterList.length === 0 && !loading}}" class="empty">
+      <text class="empty-text">暂无传承人信息</text>
     </view>
   </view>
 
@@ -39,7 +91,7 @@
     <view class="section-header">
       <text class="section-title">技艺展示</text>
     </view>
-    <view class="skill-grid">
+    <view class="skill-grid" wx:if="{{skillVideos.length > 0}}">
       <view class="skill-card card card-hover" 
             wx:for="{{skillVideos}}" 
             wx:key="id" 
@@ -62,6 +114,9 @@
         </view>
       </view>
     </view>
+    <view wx:if="{{skillVideos.length === 0 && !loading}}" class="empty">
+      <text class="empty-text">暂无视频内容</text>
+    </view>
   </view>
 
   <!-- 社区活动 -->
@@ -69,7 +124,7 @@
     <view class="section-header">
       <text class="section-title">近期活动</text>
     </view>
-    <view class="activity-list">
+    <view class="activity-list" wx:if="{{activities.length > 0}}">
       <view class="activity-item" wx:for="{{activities}}" wx:key="id">
         <view class="activity-date">
           <text class="date-day">{{item.day}}</text>
@@ -85,16 +140,19 @@
         </button>
       </view>
     </view>
+    <view wx:if="{{activities.length === 0 && !loading}}" class="empty">
+      <text class="empty-text">暂无活动信息</text>
+    </view>
   </view>
 
   <!-- 社区动态 -->
   <view class="section">
     <view class="section-header">
       <text class="section-title">社区动态</text>
-      <text class="more-link">查看更多</text>
+      <text class="more-link" bindtap="viewMorePosts">查看更多</text>
     </view>
-    <view class="community-list">
-      <view class="community-item" wx:for="{{communityPosts}}" wx:key="id">
+    <view class="community-list" wx:if="{{communityPosts.length > 0}}">
+      <view class="community-item card card-hover" wx:for="{{communityPosts}}" wx:key="id">
         <image src="{{item.avatar}}" class="user-avatar" mode="aspectFill"></image>
         <view class="post-content">
           <view class="post-header">
@@ -119,5 +177,13 @@
         </view>
       </view>
     </view>
+    <view wx:if="{{communityPosts.length === 0 && !loading}}" class="empty">
+      <text class="empty-text">暂无社区动态</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text class="loading-text">加载中...</text>
   </view>
 </view>

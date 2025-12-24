@@ -49,11 +49,14 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">国家级非遗项目</text>
-      <text class="section-count">{{nationalList.length}}项</text>
+      <view class="section-header-right">
+        <text class="section-count">{{allNationalList.length}}项</text>
+        <navigator url="/pages/nationalHeritageList/nationalHeritageList?category={{currentCategory}}" class="more-link">查看更多</navigator>
+      </view>
     </view>
     <view class="heritage-grid">
       <view class="heritage-card card card-hover" 
-            wx:for="{{nationalList}}" 
+            wx:for="{{displayNationalList}}" 
             wx:key="id" 
             bindtap="onHeritageTap" 
             data-item="{{item}}">
@@ -66,9 +69,6 @@
           <text class="heritage-desc">{{item.description}}</text>
           <view class="heritage-footer">
             <text class="heritage-region">{{item.region}}</text>
-            <button class="bookmark-btn" bindtap="onBookmarkTap" data-item="{{item}}" catchtap="true">
-              <text class="iconfont {{item.isBookmarked ? 'icon-bookmark-fill' : 'icon-bookmark'}}"></text>
-            </button>
           </view>
         </view>
       </view>
@@ -79,11 +79,14 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">省级非遗项目</text>
-      <text class="section-count">{{provincialList.length}}项</text>
+      <view class="section-header-right">
+        <text class="section-count">{{allProvincialList.length}}项</text>
+        <navigator url="/pages/provincialHeritageList/provincialHeritageList?category={{currentCategory}}" class="more-link">查看更多</navigator>
+      </view>
     </view>
     <view class="heritage-grid">
       <view class="heritage-card card card-hover" 
-            wx:for="{{provincialList}}" 
+            wx:for="{{displayProvincialList}}" 
             wx:key="id" 
             bindtap="onHeritageTap" 
             data-item="{{item}}">
@@ -96,9 +99,6 @@
           <text class="heritage-desc">{{item.description}}</text>
           <view class="heritage-footer">
             <text class="heritage-region">{{item.region}}</text>
-            <button class="bookmark-btn" bindtap="onBookmarkTap" data-item="{{item}}" catchtap="true">
-              <text class="iconfont {{item.isBookmarked ? 'icon-bookmark-fill' : 'icon-bookmark'}}"></text>
-            </button>
           </view>
         </view>
       </view>

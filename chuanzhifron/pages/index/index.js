@@ -9,6 +9,7 @@ Page({
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     newsList: [],
+    displayNewsList: [], // 首页显示的新闻列表（只显示3条）
     bannerList: [
       {
         id: 1,
@@ -155,8 +156,12 @@ Page({
         image: originalBannerList[index]?.image || `http://localhost:8001/uploads/banners_index/banner_${index + 1}.jpg`
       }));
       
+      // 首页只显示前3条新闻
+      const displayNewsList = newsList.slice(0, 3);
+      
       this.setData({
         newsList,
+        displayNewsList,
         bannerList,
         loading: false
       });
@@ -216,24 +221,6 @@ Page({
     })
   },
 
-  // 收藏功能
-  onFavTap: function(e) {
-    const item = e.currentTarget.dataset.item
-    const newsList = this.data.newsList
-    const index = newsList.findIndex(news => news.id === item.id)
-    
-    if (index !== -1) {
-      newsList[index].isFav = !newsList[index].isFav
-      this.setData({
-        newsList: newsList
-      })
-      
-      wx.showToast({
-        title: newsList[index].isFav ? '已收藏' : '已取消收藏',
-        icon: 'none'
-      })
-    }
-  },
 
   // 推荐项目点击
   onRecommendTap: function(e) {

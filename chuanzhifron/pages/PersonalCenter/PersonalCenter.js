@@ -10,23 +10,12 @@ Page({
       avatar: 'https://s.coze.cn/image/Ex1Uxeu9hO8/'
     },
     userStats: {
-      collections: 12,
-      creations: 5,
-      bookings: 3
+      collections: 0,
+      creations: 0,
+      bookings: 0
     },
     collections: [],
-    creations: [
-      {
-        id: 1,
-        title: '我的剪纸作品',
-        image: 'https://s.coze.cn/image/4xVhJpO4Qmk/'
-      },
-      {
-        id: 2,
-        title: '非遗展览随拍',
-        image: 'https://s.coze.cn/image/i4_GSuT_V3o/'
-      }
-    ],
+    creations: [],
     bookings: [
       {
         id: 1,
@@ -53,33 +42,135 @@ Page({
     }
     
     this.loadCollections();
+    this.loadCreations();
   },
   
   // 加载收藏数据
   loadCollections: function() {
-    // 这里应该从服务器加载用户的收藏数据
-    // 暂时使用模拟数据
-    const collections = [
+    // 获取当前用户ID
+    const user = getCurrentUser();
+    const userId = user?.id || user?.userId || 1; // 如果没有用户ID，使用默认值1
+    
+    request({
+      url: `/user/collections/${userId}`
+    }).then(res => {
+      if (!res.success) {
+        throw new Error(res.message || '获取收藏失败');
+      }
+      
+      const list = res.data || [];
+      
+      // 处理收藏数据，确保图片路径正确
+      const collections = list.map(item => {
+        let imageUrl = item.imageUrl || '';
+        if (imageUrl && !imageUrl.startsWith('http')) {
+          imageUrl = 'http://localhost:8001' + imageUrl;
+        }
+        
+        return {
+          ...item,
+          image: imageUrl, // 添加image字段用于兼容wxml
+          imageUrl: imageUrl,
+          name: item.heritageName || item.name,
+          level: item.heritageLevel || item.level,
+          description: item.heritageDescription || item.description
+        };
+      });
+      
+      this.setData({
+        collections: collections,
+        'userStats.collections': collections.length,
+        loading: false
+      });
+    }).catch(err => {
+      console.error('获取收藏失败:', err);
+      // 如果接口失败，尝试从本地存储加载
+      this.loadCollectionsFromLocal();
+    });
+  },
+
+  // 从本地存储加载收藏数据
+  loadCollectionsFromLocal: function() {
+    try {
+      const collections = wx.getStorageSync('userCollections') || [];
+      const processedCollections = collections.map(item => {
+        let imageUrl = item.imageUrl || item.image || '';
+        if (imageUrl && !imageUrl.startsWith('http')) {
+          imageUrl = 'http://localhost:8001' + imageUrl;
+        }
+        
+        return {
+          ...item,
+          image: imageUrl,
+          imageUrl: imageUrl,
+          name: item.heritageName || item.name,
+          level: item.heritageLevel || item.level,
+          description: item.heritageDescription || item.description
+        };
+      });
+      
+      this.setData({
+        collections: processedCollections,
+        'userStats.collections': processedCollections.length,
+        loading: false
+      });
+    } catch (e) {
+      console.error('从本地加载收藏失败:', e);
+      this.setData({
+        collections: [],
+        'userStats.collections': 0,
+        loading: false
+      });
+    }
+  },
+  
+  // 加载创作数据
+  loadCreations: function() {
+    // 使用模拟数据，模拟从后端返回的格式
+    const mockCreations = [
       {
         id: 1,
-        name: '昆曲',
-        level: '国家级非物质文化遗产',
-        description: '昆曲是中国最古老的戏曲声腔、剧种，被称为"百戏之祖"，列入联合国教科文组织非物质文化遗产名录...',
-        image: 'https://s.coze.cn/image/v8I8iXe9kEs/'
+        userId: 1,
+        userName: '非遗爱好者',
+        userAvatar: 'https://s.coze.cn/image/Ex1Uxeu9hO8/',
+        content: '今天参观了苏绣展览，感受到了传统工艺的精美，每一针每一线都体现着匠人精神。',
+        imageUrls: 'http://localhost:8001/api/files/master_suxiu.jpg',
+        likesCount: 45,
+        commentsCount: 8,
+        isLiked: true,
+        createTime: '2024-05-15T14:30:00',
+        updateTime: '2024-05-15T14:30:00'
       },
       {
         id: 2,
-        name: '苏绣',
-        level: '国家级非物质文化遗产',
-        description: '苏绣是中国传统刺绣工艺之一，以精细、雅致著称，被誉为"东方艺术明珠"，具有极高的艺术价值...',
-        image: 'https://s.coze.cn/image/-Wnxd47nx_g/'
+        userId: 1,
+        userName: '非遗爱好者',
+        userAvatar: 'https://s.coze.cn/image/Ex1Uxeu9hO8/',
+        content: '学习了景泰蓝的制作过程，从掐丝到点蓝，每一步都需要极高的技艺和耐心。',
+        imageUrls: 'http://localhost:8001/api/files/master_jingjumei.jpg,http://localhost:8001/api/files/master_jingtai.jpg',
+        likesCount: 78,
+        commentsCount: 15,
+        isLiked: false,
+        createTime: '2024-05-10T16:45:00',
+        updateTime: '2024-05-10T16:45:00'
       }
     ];
     
+    // 模拟API响应格式
+    const response = {
+      success: true,
+      message: "操作成功",
+      data: mockCreations
+    };
+    
     this.setData({
-      collections: collections,
-      loading: false,
-      'userStats.collections': collections.length
+      creations: response.data.map(post => ({
+        id: post.id,
+        title: post.content.substring(0, 20) + (post.content.length > 20 ? '...' : ''),
+        image: post.imageUrls ? post.imageUrls.split(',')[0] : ''
+      })),
+      'userStats.creations': response.data.length,
+      loading: false
     });
   },
 
@@ -100,33 +191,86 @@ Page({
   // 收藏点击
   onCollectionTap: function(e) {
     const item = e.currentTarget.dataset.item;
-    wx.showModal({
-      title: item.name,
-      content: item.description,
-      showCancel: false,
-      confirmText: '知道了'
+    const heritageId = item.heritageId || item.id;
+    
+    // 跳转到非遗详情页面
+    wx.navigateTo({
+      url: `/pages/heritageDetail/heritageDetail?id=${heritageId}`
     });
   },
 
   // 移除收藏
   removeCollection: function(e) {
     const item = e.currentTarget.dataset.item;
+    const heritageName = item.heritageName || item.name || '该项目';
+    
     wx.showModal({
       title: '移除收藏',
-      content: `确定要移除"${item.name}"的收藏吗？`,
+      content: `确定要移除"${heritageName}"的收藏吗？`,
       showCancel: true,
       cancelText: '取消',
       confirmText: '确定',
       success: (res) => {
         if (res.confirm) {
-          const collections = this.data.collections.filter(collection => collection.id !== item.id);
-          this.setData({
-            collections: collections,
-            'userStats.collections': this.data.userStats.collections - 1
-          });
-          wx.showToast({
-            title: '已移除收藏',
-            icon: 'success'
+          const user = getCurrentUser();
+          const userId = user?.id || user?.userId || 1;
+          const heritageId = item.heritageId || item.id;
+          
+          // 调用后端接口删除收藏
+          request({
+            url: `/user/collections/${userId}/heritage/${heritageId}`,
+            method: 'DELETE'
+          }).then(response => {
+            if (response && response.success) {
+              // 更新本地数据
+              const collections = this.data.collections.filter(collection => {
+                return (collection.heritageId || collection.id) !== heritageId;
+              });
+              
+              // 同步更新本地存储
+              try {
+                wx.setStorageSync('userCollections', collections);
+              } catch (e) {
+                console.error('保存收藏到本地失败:', e);
+              }
+              
+              this.setData({
+                collections: collections,
+                'userStats.collections': collections.length
+              });
+              
+              wx.showToast({
+                title: '已移除收藏',
+                icon: 'success'
+              });
+            } else {
+              wx.showToast({
+                title: '移除收藏失败',
+                icon: 'none'
+              });
+            }
+          }).catch(err => {
+            console.error('移除收藏失败:', err);
+            // 即使接口失败，也更新本地状态
+            const collections = this.data.collections.filter(collection => {
+              return (collection.heritageId || collection.id) !== heritageId;
+            });
+            
+            try {
+              wx.setStorageSync('userCollections', collections);
+            } catch (e) {
+              console.error('保存收藏到本地失败:', e);
+            }
+            
+            this.setData({
+              collections: collections,
+              'userStats.collections': collections.length
+            });
+            
+            wx.showToast({
+              title: '已移除收藏',
+              icon: 'success'
+            });
           });
         }
       }
@@ -261,6 +405,14 @@ Page({
 
   // 下拉刷新
   onPullDownRefresh: function() {
+    this.setData({
+      loading: true
+    });
+    
+    // 重新加载数据
+    this.loadCollections();
+    this.loadCreations();
+    
     setTimeout(() => {
       wx.stopPullDownRefresh();
       wx.showToast({

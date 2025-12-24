@@ -9,11 +9,48 @@
   margin-bottom: 24rpx;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .title {
   font-size: 36rpx;
   font-weight: 600;
   color: #222;
   line-height: 1.4;
+  flex: 1;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 20rpx;
+  color: #999;
+}
+
+.favorite-btn:active {
+  color: #c41e3a;
+}
+
+.iconfont {
+  font-size: 40rpx;
+}
+
+.icon-heart::before {
+  content: '♡';
+}
+
+.icon-heart-fill::before {
+  content: '♥';
+  color: #c41e3a;
 }
 
 .meta {

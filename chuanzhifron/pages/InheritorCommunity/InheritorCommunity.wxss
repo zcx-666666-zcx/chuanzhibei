@@ -8,14 +8,72 @@
 /* 页面标题 */
 .page-header {
   background-color: white;
-  padding: 40rpx 30rpx;
+  padding: 30rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
 }
 
 .page-title {
   font-size: 48rpx;
   font-weight: bold;
   color: #333;
+  flex: 1;
+}
+
+.search-btn,
+.share-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 20rpx;
+  color: #666;
+}
+
+.search-btn:active,
+.share-btn:active {
+  color: #c41e3a;
+}
+
+/* 分类筛选 */
+.filter-scroll {
+  white-space: nowrap;
+}
+
+.filter-list {
+  display: flex;
+  padding: 10rpx 0;
+}
+
+.filter-item {
+  display: inline-block;
+  padding: 12rpx 28rpx;
+  margin-right: 20rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  background-color: #f0e6d2;
+  color: #8c6e44;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.filter-item.active {
+  background-color: #c41e3a;
+  color: white;
+}
+
+.filter-item:last-child {
+  margin-right: 0;
 }
 
 /* 区块样式 */
@@ -29,6 +87,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30rpx;
+}
+
+.section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
 }
 
 .section-title {
@@ -52,6 +116,11 @@
 .more-link {
   font-size: 28rpx;
   color: #c41e3a;
+}
+
+.section-count {
+  font-size: 24rpx;
+  color: #999;
 }
 
 /* 传承人网格 */
@@ -95,6 +164,28 @@
   margin-right: 16rpx;
 }
 
+.master-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.favorite-btn:active {
+  color: #c41e3a;
+}
+
 .master-level {
   font-size: 20rpx;
   background-color: rgba(196, 30, 58, 0.1);
@@ -124,12 +215,33 @@
 
 .master-footer {
   padding: 0 24rpx 24rpx;
+  display: flex;
+  gap: 16rpx;
 }
 
 .book-button {
-  width: 100%;
+  flex: 1;
   padding: 16rpx 0;
   font-size: 28rpx;
+}
+
+.share-master-btn {
+  padding: 16rpx 24rpx;
+  font-size: 26rpx;
+  white-space: nowrap;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #c41e3a;
+  border: 2rpx solid #c41e3a;
+  border-radius: 8rpx;
+  padding: 14rpx 24rpx;
+  font-size: 26rpx;
+}
+
+.btn-outline:active {
+  background-color: rgba(196, 30, 58, 0.1);
 }
 
 /* 技艺展示网格 */
@@ -307,7 +419,6 @@
   background: white;
   border-radius: 16rpx;
   padding: 24rpx;
-  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
   display: flex;
 }
 
@@ -394,6 +505,43 @@
 
 .icon-comment::before {
   content: '💬';
+}
+
+.icon-search::before {
+  content: '🔍';
+}
+
+.icon-share::before {
+  content: '📤';
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80rpx 0;
+  color: #999;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 120rpx 0;
+  color: #999;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
 }
 
 /* 响应式调整 */

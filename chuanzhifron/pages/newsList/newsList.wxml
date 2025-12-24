@@ -1,0 +1,32 @@
+<!--pages/newsList/newsList.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">非遗动态</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 新闻列表 -->
+  <view wx:else class="news-list">
+    <view class="news-card card card-hover" wx:for="{{newsList}}" wx:key="id" bindtap="onNewsTap" data-item="{{item}}">
+      <image src="{{item.image}}" class="news-img" mode="aspectFill"></image>
+      <view class="news-content">
+        <text class="news-title">{{item.title}}</text>
+        <text class="news-desc">{{item.description}}</text>
+        <view class="news-footer">
+          <text class="news-date">{{item.date}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && newsList.length === 0}}" class="empty-state">
+    <text>暂无新闻动态</text>
+  </view>
+</view>
+

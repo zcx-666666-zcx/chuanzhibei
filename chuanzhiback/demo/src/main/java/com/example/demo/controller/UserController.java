@@ -81,19 +81,4 @@ public class UserController {
         }
     }
     
-    // 个人中心模块 - 获取用户收藏
-    @GetMapping("/{id}/collections")
-    public ResponseEntity<Result<List<User>>> getUserCollections(@PathVariable Long id) {
-        // 这里应该返回用户的收藏列表，目前暂未实现完整的收藏功能
-        // 只是提供接口框架
-        return ResponseEntity.ok(Result.success("功能待实现", List.of()));
-    }
-    
-    // 个人中心模块 - 删除用户收藏
-    @DeleteMapping("/{id}/collections/{collectionId}")
-    public ResponseEntity<Result<String>> deleteUserCollection(@PathVariable Long id, @PathVariable Long collectionId) {
-        // 这里应该删除用户的指定收藏，目前暂未实现完整的收藏功能
-        // 只是提供接口框架
-        return ResponseEntity.ok(Result.success("功能待实现", ""));
-    }
 }

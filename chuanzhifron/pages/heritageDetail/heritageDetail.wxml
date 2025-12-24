@@ -1,7 +1,12 @@
 <view class="container">
   <!-- 头部标题与基础信息 -->
   <view class="header">
-    <text class="title">{{heritageDetail.name}}</text>
+    <view class="title-row">
+      <text class="title">{{heritageDetail.name}}</text>
+      <button class="favorite-btn" bindtap="toggleFavorite">
+        <text class="iconfont {{isFavorite ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+      </button>
+    </view>
     <view class="meta">
       <text class="tag level-tag">{{levelText}}</text>
       <text class="tag region-tag">{{heritageDetail.region}}</text>

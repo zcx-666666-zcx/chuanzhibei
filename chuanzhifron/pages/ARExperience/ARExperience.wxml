@@ -25,10 +25,7 @@
             <text class="feature-icon">📖</text>
             <text class="feature-text">聆听文物背后的历史与工艺故事</text>
           </view>
-          <view class="feature-item">
-            <text class="feature-icon">🔧</text>
-            <text class="feature-text">体验视频讲解而非复杂 3D 修复</text>
-          </view>
+
         </view>
       </view>
       <image src="https://s.coze.cn/image/PwCwmJk5298/" class="intro-image" mode="aspectFill"></image>

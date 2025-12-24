@@ -8,6 +8,8 @@ Page({
     allProvincialList: [], // 所有省级项目（原始数据）
     nationalList: [],      // 当前筛选后的国家级项目
     provincialList: [],    // 当前筛选后的省级项目
+    displayNationalList: [], // 首页显示的国家级项目（只显示4个）
+    displayProvincialList: [], // 首页显示的省级项目（只显示4个）
     loading: true
   },
 
@@ -86,9 +88,15 @@ Page({
       filteredProvincial = allProvincialList.filter(item => item.category === currentCategory);
     }
     
+    // 首页只显示前4个
+    const displayNational = filteredNational.slice(0, 4);
+    const displayProvincial = filteredProvincial.slice(0, 4);
+    
     this.setData({
       nationalList: filteredNational,
-      provincialList: filteredProvincial
+      provincialList: filteredProvincial,
+      displayNationalList: displayNational,
+      displayProvincialList: displayProvincial
     });
   },
 
@@ -101,33 +109,4 @@ Page({
     });
   },
 
-  // 收藏功能
-  onBookmarkTap: function(e) {
-    const item = e.currentTarget.dataset.item;
-    const { allNationalList, allProvincialList } = this.data;
-    
-    // 更新原始数据中的收藏状态
-    const nationalIndex = allNationalList.findIndex(heritage => heritage.id === item.id);
-    if (nationalIndex !== -1) {
-      allNationalList[nationalIndex].isBookmarked = !allNationalList[nationalIndex].isBookmarked;
-    }
-    
-    const provincialIndex = allProvincialList.findIndex(heritage => heritage.id === item.id);
-    if (provincialIndex !== -1) {
-      allProvincialList[provincialIndex].isBookmarked = !allProvincialList[provincialIndex].isBookmarked;
-    }
-    
-    // 重新执行筛选，确保展示列表同步更新
-    this.setData({
-      allNationalList: allNationalList,
-      allProvincialList: allProvincialList
-    }, () => {
-      this.filterHeritage();  // 重新筛选以更新展示列表
-    });
-    
-    wx.showToast({
-      title: !item.isBookmarked ? '已收藏' : '已取消收藏',
-      icon: 'none'
-    });
-  }
 })

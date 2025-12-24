@@ -37,11 +37,11 @@
     </view>
     <view class="collection-list">
       <view class="collection-item" wx:for="{{collections}}" wx:key="id" bindtap="onCollectionTap" data-item="{{item}}">
-        <image src="{{item.image}}" class="collection-image" mode="aspectFill"></image>
+        <image src="{{item.image || item.imageUrl}}" class="collection-image" mode="aspectFill"></image>
         <view class="collection-content">
-          <text class="collection-title">{{item.name}}</text>
-          <text class="collection-level">{{item.level}}</text>
-          <text class="collection-desc">{{item.description}}</text>
+          <text class="collection-title">{{item.name || item.heritageName}}</text>
+          <text class="collection-level">{{item.level || item.heritageLevel}}</text>
+          <text class="collection-desc">{{item.description || item.heritageDescription}}</text>
         </view>
         <button class="remove-btn" bindtap="removeCollection" data-item="{{item}}" catchtap="true">
           <text class="iconfont icon-close">✕</text>

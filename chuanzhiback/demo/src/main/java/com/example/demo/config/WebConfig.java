@@ -12,5 +12,9 @@ public class WebConfig implements WebMvcConfigurer {
         // 配置静态资源访问路径
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:uploads/");
+        
+        // 为传承人社区图片添加专门的映射
+        registry.addResourceHandler("/api/files/**")
+                .addResourceLocations("file:uploads/masters_InheritorCommunit/");
     }
 }

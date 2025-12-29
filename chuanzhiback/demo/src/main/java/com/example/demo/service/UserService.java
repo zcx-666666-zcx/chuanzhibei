@@ -33,6 +33,11 @@ public class UserService {
         return user.orElse(null);
     }
     
+    public User getUserByNickname(String nickname) {
+        Optional<User> user = userRepository.findByNickname(nickname);
+        return user.orElse(null);
+    }
+    
     public User saveUser(User user) {
         return userRepository.save(user);
     }

@@ -65,10 +65,11 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">热门AR体验项目</text>
+      <navigator url="/pages/ARProjectList/ARProjectList" class="more-link" wx:if="{{arProjects.length > 4}}">查看更多</navigator>
     </view>
     <view class="ar-grid">
       <view class="ar-card card card-hover" 
-            wx:for="{{arProjects}}" 
+            wx:for="{{displayArProjects}}" 
             wx:key="id" 
             bindtap="onARProjectTap" 
             data-item="{{item}}">

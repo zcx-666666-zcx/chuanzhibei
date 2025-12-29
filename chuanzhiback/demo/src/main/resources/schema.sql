@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     city VARCHAR(50),
     language VARCHAR(20),
     email VARCHAR(100),
+    signature VARCHAR(255),
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -80,4 +81,38 @@ CREATE TABLE IF NOT EXISTS `banner` (
     image_url VARCHAR(255),
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- User collections table
+CREATE TABLE IF NOT EXISTS `user_collections` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    heritage_id BIGINT,
+    heritage_name VARCHAR(255),
+    heritage_description TEXT,
+    heritage_level VARCHAR(50),
+    image_url VARCHAR(255),
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES `user`(id) ON DELETE CASCADE
+);
+
+-- User bookings table
+CREATE TABLE IF NOT EXISTS `user_bookings` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    booking_type VARCHAR(50) NOT NULL,
+    master_id BIGINT,
+    master_name VARCHAR(255),
+    skill VARCHAR(255),
+    master_avatar VARCHAR(255),
+    activity_id BIGINT,
+    activity_title VARCHAR(255),
+    booking_time VARCHAR(255),
+    location VARCHAR(255),
+    contact VARCHAR(255),
+    status VARCHAR(50) DEFAULT 'pending',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES `user`(id) ON DELETE CASCADE
 );

@@ -61,64 +61,117 @@ public class ARProjectController {
      */
     @PostMapping("/history")
     public Result<String> addHistory(@RequestBody Map<String, Object> payload) {
-        Object projectIdObj = payload.get("projectId");
-        Object durationObj = payload.get("duration");
-        if (projectIdObj == null) {
-            return Result.error("缺少 projectId");
+        try {
+            // 获取userId
+            Object userIdObj = payload.get("userId");
+            if (userIdObj == null) {
+                return Result.error("缺少 userId");
+            }
+            Long userId = Long.valueOf(userIdObj.toString());
+            
+            // 获取projectId
+            Object projectIdObj = payload.get("projectId");
+            if (projectIdObj == null) {
+                return Result.error("缺少 projectId");
+            }
+            Long projectId = Long.valueOf(projectIdObj.toString());
+            
+            // 获取duration
+            Integer duration = null;
+            Object durationObj = payload.get("duration");
+            if (durationObj != null) {
+                try {
+                    duration = Integer.valueOf(durationObj.toString());
+                } catch (NumberFormatException ignored) {}
+            }
+            
+            arProjectService.addHistory(userId, projectId, duration);
+            return Result.success("记录成功", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("记录失败: " + e.getMessage());
         }
-        Long projectId = Long.valueOf(projectIdObj.toString());
-        Integer duration = null;
-        if (durationObj != null) {
-            try {
-                duration = Integer.valueOf(durationObj.toString());
-            } catch (NumberFormatException ignored) {}
-        }
-        arProjectService.addHistory(projectId, duration);
-        return Result.success("记录成功", "");
     }
 
     /**
-     * 获取用户 AR 体验历史（当前为全局示例数据）
+     * 获取用户 AR 体验历史
      */
     @GetMapping("/history")
     public Result<Map<String, Object>> getHistory(
+            @RequestParam(value = "userId", required = true) Long userId,
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
+        try {
+            List<ARExperienceRecord> all = arProjectService.getHistoryByUserId(userId);
+            
+            int from = Math.max((page - 1) * size, 0);
+            int to = Math.min(from + size, all.size());
+            List<ARExperienceRecord> pageList = from < to ? all.subList(from, to) : List.of();
 
-        List<ARExperienceRecord> all = arProjectService.history();
-        // 只返回最近的4条记录
-        List<ARExperienceRecord> recentRecords = all.stream()
-                .limit(4) // 只取前4条记录
-                .collect(Collectors.toList());
-                
-        int from = Math.max((page - 1) * size, 0);
-        int to = Math.min(from + size, recentRecords.size());
-        List<ARExperienceRecord> pageList = from < to ? recentRecords.subList(from, to) : List.of();
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("list", pageList.stream().map(r -> {
-            Map<String, Object> m = new HashMap<>();
-            m.put("id", r.getId());
-            m.put("projectId", r.getProjectId());
-            m.put("projectName", r.getProjectName());
-            m.put("projectThumb", r.getProjectThumb());
-            m.put("startTime", r.getStartTime());
-            m.put("duration", r.getDuration());
-            return m;
-        }).collect(Collectors.toList()));
-        data.put("total", recentRecords.size());
-        data.put("page", page);
-        data.put("size", size);
-        data.put("hasNext", to < recentRecords.size());
-        return Result.success("获取成功", data);
+            Map<String, Object> data = new HashMap<>();
+            data.put("list", pageList.stream().map(r -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", r.getId());
+                m.put("projectId", r.getProjectId());
+                m.put("projectName", r.getProjectName());
+                m.put("projectThumb", r.getProjectThumb());
+                m.put("startTime", r.getStartTime());
+                m.put("duration", r.getDuration());
+                return m;
+            }).collect(Collectors.toList()));
+            data.put("total", all.size());
+            data.put("page", page);
+            data.put("size", size);
+            data.put("hasNext", to < all.size());
+            return Result.success("获取成功", data);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("获取体验记录失败: " + e.getMessage());
+        }
     }
 
     /**
      * 获取 AR 体验统计数据
      */
     @GetMapping("/statistics")
-    public Result<Map<String, Object>> getStatistics() {
-        Map<String, Object> stats = arProjectService.statistics();
-        return Result.success("获取成功", stats);
+    public Result<Map<String, Object>> getStatistics(
+            @RequestParam(value = "userId", required = true) Long userId) {
+        try {
+            Map<String, Object> stats = arProjectService.getStatisticsByUserId(userId);
+            return Result.success("获取成功", stats);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("获取统计数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除用户AR体验记录（保留最近的几条）
+     */
+    @DeleteMapping("/history/cleanup")
+    public Result<String> cleanupHistory(
+            @RequestParam(value = "userId", required = true) Long userId,
+            @RequestParam(value = "keepCount", required = false, defaultValue = "4") Integer keepCount) {
+        try {
+            arProjectService.deleteHistoryExceptRecent(userId, keepCount);
+            return Result.success("清理成功", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("清理失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除指定的AR体验记录
+     */
+    @DeleteMapping("/history/{id}")
+    public Result<String> deleteHistory(@PathVariable Long id) {
+        try {
+            arProjectService.deleteHistoryById(id);
+            return Result.success("删除成功", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("删除失败: " + e.getMessage());
+        }
     }
 }

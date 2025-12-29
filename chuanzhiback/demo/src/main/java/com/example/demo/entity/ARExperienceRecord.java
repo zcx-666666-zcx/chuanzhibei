@@ -1,23 +1,41 @@
 package com.example.demo.entity;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 
 /**
- * 文物 AR 体验历史记录（简单 POJO，不持久化）
+ * 文物 AR 体验历史记录（持久化实体）
  */
-public class ARExperienceRecord {
-    private Long id;
+@Entity
+@Table(name = "ar_experience_records")
+public class ARExperienceRecord extends BaseEntity {
+    
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+    
+    @Column(name = "project_id")
     private Long projectId;
+    
+    @Column(name = "project_name")
     private String projectName;
+    
+    @Column(name = "project_thumb")
     private String projectThumb;
-    private LocalDateTime startTime;
+    
+    @Column(name = "start_time")
+    private java.time.LocalDateTime startTime;
+    
+    @Column(name = "duration")
     private Integer duration; // 秒
 
-    public ARExperienceRecord() {}
+    public ARExperienceRecord() {
+        super();
+    }
 
-    public ARExperienceRecord(Long id, Long projectId, String projectName, String projectThumb,
-                              LocalDateTime startTime, Integer duration) {
-        this.id = id;
+    public ARExperienceRecord(User user, Long projectId, String projectName, String projectThumb,
+                              java.time.LocalDateTime startTime, Integer duration) {
+        super();
+        this.user = user;
         this.projectId = projectId;
         this.projectName = projectName;
         this.projectThumb = projectThumb;
@@ -25,22 +43,52 @@ public class ARExperienceRecord {
         this.duration = duration;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public User getUser() {
+        return user;
+    }
 
-    public Long getProjectId() { return projectId; }
-    public void setProjectId(Long projectId) { this.projectId = projectId; }
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-    public String getProjectName() { return projectName; }
-    public void setProjectName(String projectName) { this.projectName = projectName; }
+    public Long getProjectId() {
+        return projectId;
+    }
 
-    public String getProjectThumb() { return projectThumb; }
-    public void setProjectThumb(String projectThumb) { this.projectThumb = projectThumb; }
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public String getProjectName() {
+        return projectName;
+    }
 
-    public Integer getDuration() { return duration; }
-    public void setDuration(Integer duration) { this.duration = duration; }
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String getProjectThumb() {
+        return projectThumb;
+    }
+
+    public void setProjectThumb(String projectThumb) {
+        this.projectThumb = projectThumb;
+    }
+
+    public java.time.LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(java.time.LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public Integer getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Integer duration) {
+        this.duration = duration;
+    }
 }
 

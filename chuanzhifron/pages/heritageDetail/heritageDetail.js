@@ -1,5 +1,5 @@
 import { request } from '../../utils/util.js'
-import { getCurrentUser } from '../../utils/auth.js'
+import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
 
 Page({
   data: {
@@ -9,7 +9,9 @@ Page({
     levelText: '',
     categoryText: '',
     isFavorite: false,
-    heritageId: null
+    heritageId: null,
+    fromCollection: false,
+    collectionData: null
   },
 
   onLoad(options) {
@@ -21,19 +23,61 @@ Page({
       })
       return
     }
+    
+    // 检查是否从收藏页面跳转过来
+    const fromCollection = options.fromCollection === 'true';
+    let collectionData = null;
+    if (fromCollection) {
+      try {
+        // 从临时存储中获取收藏数据
+        collectionData = wx.getStorageSync('tempCollectionData');
+        // 使用后清除临时数据
+        if (collectionData) {
+          wx.removeStorageSync('tempCollectionData');
+        }
+      } catch (e) {
+        console.error('获取收藏数据失败:', e);
+      }
+    }
+    
+    this.setData({
+      fromCollection: fromCollection,
+      collectionData: collectionData
+    });
+    
     this.loadHeritageDetail(id)
   },
 
   // 加载非遗项目详情（图文内容从后端获取）
   loadHeritageDetail(id) {
+    // 确保id是数字类型
+    const heritageId = parseInt(id);
+    if (!heritageId || isNaN(heritageId)) {
+      wx.showModal({
+        title: '错误',
+        content: '非遗项目ID无效',
+        showCancel: false,
+        confirmText: '确定',
+        success: () => {
+          wx.navigateBack();
+        }
+      });
+      return;
+    }
+    
     request({
-      url: `/heritage/detail/${id}`
+      url: `/heritage/detail/${heritageId}`
     }).then(res => {
       if (!res.success) {
         throw new Error(res.message || '获取非遗详情失败')
       }
 
       const data = res.data || {}
+      
+      // 如果数据为空，说明项目不存在
+      if (!data || !data.id) {
+        throw new Error('非遗项目不存在')
+      }
 
       // 处理图片：后端存的是相对路径，前面补服务器地址
       let imageUrl = ''
@@ -95,11 +139,80 @@ Page({
       this.checkFavoriteStatus(data.id);
     }).catch(err => {
       console.error('获取非遗详情失败:', err)
-      wx.showToast({
-        title: '加载详情失败',
-        icon: 'none'
-      })
+      const errorMsg = err.message || '加载详情失败';
+      
+      // 如果是从收藏页面跳转过来的，且项目不存在，使用收藏数据来显示
+      if (this.data.fromCollection && this.data.collectionData && errorMsg.includes('不存在')) {
+        this.loadFromCollectionData();
+        return;
+      }
+      
+      wx.showModal({
+        title: '加载失败',
+        content: errorMsg.includes('不存在') ? '该非遗项目不存在或已被删除' : errorMsg,
+        showCancel: false,
+        confirmText: '返回',
+        success: () => {
+          wx.navigateBack();
+        }
+      });
     })
+  },
+
+  // 从收藏数据加载详情（当非遗项目不存在时使用）
+  loadFromCollectionData: function() {
+    const collectionData = this.data.collectionData;
+    if (!collectionData) {
+      wx.showModal({
+        title: '加载失败',
+        content: '该非遗项目不存在或已被删除',
+        showCancel: false,
+        confirmText: '返回',
+        success: () => {
+          wx.navigateBack();
+        }
+      });
+      return;
+    }
+    
+    // 处理图片
+    let imageUrl = collectionData.imageUrl || '';
+    if (imageUrl && !imageUrl.startsWith('http')) {
+      imageUrl = 'http://localhost:8001' + imageUrl;
+    }
+    if (!imageUrl) {
+      // 使用默认图片
+      imageUrl = 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg';
+    }
+    
+    // 处理描述
+    const desc = (collectionData.description || '').trim();
+    const descriptionParagraphs = desc
+      ? desc.split('\n').map(p => p.trim()).filter(p => p)
+      : ['该非遗项目的详细信息暂不可用。'];
+    
+    // 处理级别
+    const levelText = collectionData.level || '非物质文化遗产项目';
+    
+    this.setData({
+      heritageDetail: {
+        name: collectionData.name || '未知项目',
+        description: collectionData.description || '',
+        level: collectionData.level || ''
+      },
+      imageUrl: imageUrl,
+      descriptionParagraphs: descriptionParagraphs,
+      levelText: levelText,
+      categoryText: '非遗门类',
+      heritageId: this.data.heritageId,
+      isFavorite: true // 从收藏来的，默认已收藏
+    });
+    
+    wx.showToast({
+      title: '提示：该项目可能已不存在',
+      icon: 'none',
+      duration: 2000
+    });
   },
 
   // 根据项目名称生成一段富有文化感的介绍性文字（自由发挥）
@@ -117,6 +230,14 @@ Page({
 
   // 检查收藏状态
   checkFavoriteStatus: function(heritageId) {
+    // 先检查是否登录
+    if (!isLoggedIn()) {
+      this.setData({
+        isFavorite: false
+      });
+      return;
+    }
+    
     const user = getCurrentUser();
     if (!user) {
       this.setData({
@@ -125,7 +246,14 @@ Page({
       return;
     }
     
-    const userId = user.id || user.userId || 1;
+    // 获取用户ID
+    const userId = user.id || user.userId;
+    if (!userId) {
+      this.setData({
+        isFavorite: false
+      });
+      return;
+    }
     
     request({
       url: `/user/collections/${userId}/check/${heritageId}`
@@ -134,46 +262,112 @@ Page({
         this.setData({
           isFavorite: res.data || false
         });
+      } else {
+        this.setData({
+          isFavorite: false
+        });
       }
     }).catch(err => {
       console.error('检查收藏状态失败:', err);
-      // 如果接口失败，从本地存储检查
-      this.checkFavoriteFromLocal(heritageId);
-    });
-  },
-
-  // 从本地存储检查收藏状态
-  checkFavoriteFromLocal: function(heritageId) {
-    try {
-      const collections = wx.getStorageSync('userCollections') || [];
-      const isFavorite = collections.some(item => {
-        return (item.heritageId || item.id) === heritageId;
-      });
-      this.setData({
-        isFavorite: isFavorite
-      });
-    } catch (e) {
-      console.error('从本地检查收藏状态失败:', e);
       this.setData({
         isFavorite: false
       });
-    }
+    });
   },
 
   // 切换收藏状态
   toggleFavorite: function() {
-    const user = getCurrentUser();
-    if (!user) {
+    // 检查token
+    const token = wx.getStorageSync('token');
+    console.log('Token:', token);
+    
+    // 使用isLoggedIn检查登录状态
+    if (!isLoggedIn() || !token) {
+      console.log('未登录，token为空');
       wx.showModal({
         title: '提示',
         content: '请先登录',
-        showCancel: false,
-        confirmText: '确定'
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
       });
       return;
     }
     
-    const userId = user.id || user.userId || 1;
+    const user = getCurrentUser();
+    console.log('用户信息:', user);
+    console.log('用户信息类型:', typeof user);
+    
+    if (!user) {
+      console.log('用户信息为空');
+      wx.showModal({
+        title: '提示',
+        content: '用户信息获取失败，请重新登录',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
+      });
+      return;
+    }
+    
+    // 获取用户ID - 尝试多种方式
+    let userId = null;
+    if (user && typeof user === 'object') {
+      // 直接获取id（最常见的情况）
+      userId = user.id;
+      
+      // 如果id不存在，尝试其他可能的字段名
+      if (!userId) {
+        userId = user.userId || user.user_id || user.ID;
+      }
+      
+      // 如果还是不存在，尝试从嵌套对象中获取
+      if (!userId && user.data && user.data.id) {
+        userId = user.data.id;
+      }
+      if (!userId && user.user && user.user.id) {
+        userId = user.user.id;
+      }
+    }
+    
+    console.log('最终获取到的用户ID:', userId);
+    
+    if (!userId) {
+      console.error('无法获取用户ID');
+      console.error('用户信息完整内容:', JSON.stringify(user, null, 2));
+      console.error('用户信息类型:', typeof user);
+      console.error('用户信息是否为对象:', user instanceof Object);
+      
+      wx.showModal({
+        title: '提示',
+        content: '无法获取用户ID，请重新登录。如果问题持续，请联系客服。',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
+      });
+      return;
+    }
     const { heritageId, heritageDetail, imageUrl, isFavorite } = this.data;
     
     if (isFavorite) {
@@ -187,9 +381,6 @@ Page({
             isFavorite: false
           });
           
-          // 更新本地存储
-          this.removeFromLocalCollections(heritageId);
-          
           wx.showToast({
             title: '已取消收藏',
             icon: 'success'
@@ -202,14 +393,9 @@ Page({
         }
       }).catch(err => {
         console.error('取消收藏失败:', err);
-        // 即使接口失败，也更新本地状态
-        this.setData({
-          isFavorite: false
-        });
-        this.removeFromLocalCollections(heritageId);
         wx.showToast({
-          title: '已取消收藏',
-          icon: 'success'
+          title: err.message || '取消收藏失败，请重试',
+          icon: 'none'
         });
       });
     } else {
@@ -237,9 +423,6 @@ Page({
             isFavorite: true
           });
           
-          // 保存到本地存储
-          this.saveToLocalCollections(collectionData);
-          
           wx.showToast({
             title: '收藏成功',
             icon: 'success'
@@ -252,52 +435,14 @@ Page({
         }
       }).catch(err => {
         console.error('收藏失败:', err);
-        // 即使接口失败，也保存到本地
-        this.setData({
-          isFavorite: true
-        });
-        this.saveToLocalCollections(collectionData);
         wx.showToast({
-          title: '收藏成功（已保存到本地）',
-          icon: 'success'
+          title: err.message || '收藏失败，请重试',
+          icon: 'none'
         });
       });
     }
   },
 
-  // 保存到本地收藏
-  saveToLocalCollections: function(collectionData) {
-    try {
-      let collections = wx.getStorageSync('userCollections') || [];
-      // 检查是否已存在
-      const exists = collections.some(item => {
-        return (item.heritageId || item.id) === collectionData.heritageId;
-      });
-      
-      if (!exists) {
-        collections.push({
-          id: Date.now(), // 生成临时ID
-          ...collectionData
-        });
-        wx.setStorageSync('userCollections', collections);
-      }
-    } catch (e) {
-      console.error('保存收藏到本地失败:', e);
-    }
-  },
-
-  // 从本地收藏中移除
-  removeFromLocalCollections: function(heritageId) {
-    try {
-      let collections = wx.getStorageSync('userCollections') || [];
-      collections = collections.filter(item => {
-        return (item.heritageId || item.id) !== heritageId;
-      });
-      wx.setStorageSync('userCollections', collections);
-    } catch (e) {
-      console.error('从本地移除收藏失败:', e);
-    }
-  }
 })
 
 

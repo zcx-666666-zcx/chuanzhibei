@@ -1,0 +1,40 @@
+<!--pages/ARProjectList/ARProjectList.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">热门AR体验项目</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- AR项目列表 -->
+  <view wx:else class="ar-grid">
+    <view class="ar-card card card-hover" 
+          wx:for="{{arProjects}}" 
+          wx:key="id" 
+          bindtap="onARProjectTap" 
+          data-item="{{item}}">
+      <view class="ar-image-container">
+        <image src="{{item.coverImage || 'http://localhost:8001/uploads/photo_ARExperinece/deomphoto.jpg'}}" class="ar-image" mode="aspectFill"></image>
+        <view wx:if="{{item.isHot}}" class="hot-badge">热门</view>
+      </view>
+      <view class="ar-content">
+        <text class="ar-title">{{item.name}}</text>
+        <text class="ar-desc">{{item.description}}</text>
+        <button class="btn-primary ar-button" bindtap="startARExperience" data-item="{{item}}" catchtap="true">
+          <text class="iconfont icon-cube"></text>
+          <text>开始体验</text>
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && arProjects.length === 0}}" class="empty-state">
+    <text>暂无AR体验项目</text>
+  </view>
+</view>
+

@@ -1,0 +1,35 @@
+<!--pages/collectionList/collectionList.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">我的收藏</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view wx:else class="collection-list">
+    <view class="collection-item card card-hover" 
+          wx:for="{{collections}}" 
+          wx:key="id" 
+          bindtap="onCollectionTap" 
+          data-item="{{item}}">
+      <image src="{{item.image || item.imageUrl}}" class="collection-image" mode="aspectFill"></image>
+      <view class="collection-content">
+        <text class="collection-title">{{item.name || item.heritageName}}</text>
+        <text class="collection-level">{{item.level || item.heritageLevel}}</text>
+        <text class="collection-desc">{{item.description || item.heritageDescription}}</text>
+      </view>
+      
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && collections.length === 0}}" class="empty-state">
+    <text>暂无收藏</text>
+  </view>
+</view>
+

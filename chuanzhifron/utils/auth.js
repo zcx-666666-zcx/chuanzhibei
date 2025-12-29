@@ -42,8 +42,19 @@ const loginWithUsername = (loginData) => {
       success(res) {
         if (res.statusCode === 200 && res.data.success) {
           // 存储token和用户信息
-          wx.setStorageSync('token', res.data.token);
-          wx.setStorageSync('userInfo', res.data.user);
+          const token = res.data.data?.token || res.data.token;
+          const user = res.data.data?.user || res.data.user;
+          
+          console.log('登录成功，存储token:', token);
+          console.log('登录成功，存储用户信息:', user);
+          console.log('用户ID:', user?.id);
+          
+          if (token) {
+            wx.setStorageSync('token', token);
+          }
+          if (user) {
+            wx.setStorageSync('userInfo', user);
+          }
           resolve(res.data);
         } else {
           reject(res.data);
@@ -81,8 +92,19 @@ const loginToBackend = (userInfo) => {
       success(res) {
         if (res.statusCode === 200 && res.data.success) {
           // 存储token和用户信息
-          wx.setStorageSync('token', res.data.token);
-          wx.setStorageSync('userInfo', res.data.user);
+          const token = res.data.data?.token || res.data.token;
+          const user = res.data.data?.user || res.data.user;
+          
+          console.log('登录成功，存储token:', token);
+          console.log('登录成功，存储用户信息:', user);
+          console.log('用户ID:', user?.id);
+          
+          if (token) {
+            wx.setStorageSync('token', token);
+          }
+          if (user) {
+            wx.setStorageSync('userInfo', user);
+          }
           resolve(res.data);
         } else {
           reject(res.data);
@@ -115,8 +137,19 @@ const registerUser = (registerData) => {
       success(res) {
         if (res.statusCode === 200 && res.data.success) {
           // 存储token和用户信息
-          wx.setStorageSync('token', res.data.token);
-          wx.setStorageSync('userInfo', res.data.user);
+          const token = res.data.data?.token || res.data.token;
+          const user = res.data.data?.user || res.data.user;
+          
+          console.log('登录成功，存储token:', token);
+          console.log('登录成功，存储用户信息:', user);
+          console.log('用户ID:', user?.id);
+          
+          if (token) {
+            wx.setStorageSync('token', token);
+          }
+          if (user) {
+            wx.setStorageSync('userInfo', user);
+          }
           resolve(res.data);
         } else {
           reject(res.data);
@@ -141,14 +174,27 @@ const logout = () => {
  * 检查是否已登录
  */
 const isLoggedIn = () => {
-  return !!wx.getStorageSync('token');
+  const token = wx.getStorageSync('token');
+  const userInfo = wx.getStorageSync('userInfo');
+  // 同时检查token和userInfo是否存在
+  return !!(token && userInfo);
 };
 
 /**
  * 获取当前用户信息
  */
 const getCurrentUser = () => {
-  return wx.getStorageSync('userInfo');
+  const userInfo = wx.getStorageSync('userInfo');
+  // 如果userInfo是字符串，尝试解析
+  if (typeof userInfo === 'string') {
+    try {
+      return JSON.parse(userInfo);
+    } catch (e) {
+      console.error('解析用户信息失败:', e);
+      return null;
+    }
+  }
+  return userInfo;
 };
 
 module.exports = {

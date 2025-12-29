@@ -61,7 +61,12 @@
       <view class="heritage-content">
         <view class="heritage-header">
           <text class="heritage-title">{{item.name}}</text>
-          <view class="heritage-level national">国家级</view>
+          <view class="heritage-header-right">
+            <view class="heritage-level national">国家级</view>
+            <button class="favorite-btn" bindtap="toggleFavorite" data-item="{{item}}" catchtap="true">
+              <text class="iconfont {{item.isFavorite ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+            </button>
+          </view>
         </view>
         <text class="heritage-desc">{{item.description}}</text>
         <view class="heritage-footer">

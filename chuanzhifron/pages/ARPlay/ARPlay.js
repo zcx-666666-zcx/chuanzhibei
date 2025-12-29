@@ -1,4 +1,5 @@
 import { request } from '../../utils/util.js'
+import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
 
 Page({
   data: {
@@ -111,7 +112,19 @@ Page({
   
   onUnload() {
     // 页面卸载时记录体验历史
-    if (this.experienceStartTime) {
+    if (this.experienceStartTime && this.data.project.id) {
+      // 检查登录状态
+      if (!isLoggedIn()) {
+        console.log('用户未登录，跳过保存体验记录');
+        return;
+      }
+      
+      const user = getCurrentUser();
+      if (!user || !user.id) {
+        console.warn('无法获取用户ID，跳过保存体验记录');
+        return;
+      }
+      
       const duration = Math.round((Date.now() - this.experienceStartTime) / 1000); // 持续时间（秒）
       
       // 发送体验记录到后端
@@ -119,6 +132,7 @@ Page({
         url: '/ar/history',
         method: 'POST',
         data: {
+          userId: user.id,
           projectId: this.data.project.id,
           duration: duration
         }

@@ -1,11 +1,13 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.UserCollection;
-import com.example.demo.repository.UserCollectionRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.example.demo.entity.UserCollection;
+import com.example.demo.repository.UserCollectionRepository;
 
 @Service
 public class UserCollectionService {
@@ -21,13 +23,12 @@ public class UserCollectionService {
         return userCollectionRepository.save(userCollection);
     }
     
+    @Transactional
     public void deleteUserCollection(Long userId, Long heritageId) {
         userCollectionRepository.deleteByUserIdAndHeritageId(userId, heritageId);
     }
     
     public boolean isHeritageCollected(Long userId, Long heritageId) {
-        List<UserCollection> collections = userCollectionRepository.findByUserId(userId);
-        return collections.stream()
-                .anyMatch(collection -> collection.getHeritageId().equals(heritageId));
+        return userCollectionRepository.existsByUserIdAndHeritageId(userId, heritageId);
     }
 }

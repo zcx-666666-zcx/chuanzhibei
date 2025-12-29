@@ -1,5 +1,7 @@
 {
   "pages": [
+    "pages/login/login",
+    "pages/register/register",
     "pages/index/index",
     "pages/Heritage/Heritage",
     "pages/ARExperience/ARExperience",
@@ -13,7 +15,14 @@
     "pages/newsList/newsList",
     "pages/nationalHeritageList/nationalHeritageList",
     "pages/provincialHeritageList/provincialHeritageList",
-    "pages/masterList/masterList"
+    "pages/masterList/masterList",
+    "pages/skillVideoList/skillVideoList",
+    "pages/activityList/activityList",
+    "pages/communityPostList/communityPostList",
+    "pages/ARProjectList/ARProjectList",
+    "pages/collectionList/collectionList",
+    "pages/creationList/creationList",
+    "pages/bookingList/bookingList"
   ],
   "window": {
     "navigationBarTextStyle": "black",

@@ -12,6 +12,22 @@
   border-radius: 20rpx;
   padding: 40rpx;
   box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.user-card:active {
+  background-color: #fafafa;
+  transform: scale(0.98);
+  transition: all 0.2s;
+}
+
+.user-card::after {
+  content: '✏️';
+  position: absolute;
+  top: 40rpx;
+  right: 40rpx;
+  font-size: 32rpx;
+  opacity: 0.5;
 }
 
 .user-header {
@@ -97,6 +113,12 @@
   margin-bottom: 30rpx;
 }
 
+.section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
 .section-title {
   font-size: 36rpx;
   font-weight: bold;
@@ -113,6 +135,11 @@
   width: 60rpx;
   height: 4rpx;
   background-color: #c41e3a;
+}
+
+.section-count {
+  font-size: 24rpx;
+  color: #999;
 }
 
 .more-link {
@@ -203,6 +230,30 @@
   aspect-ratio: 1;
 }
 
+.creation-delete-btn {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 56rpx;
+  height: 56rpx;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 36rpx;
+  font-weight: bold;
+  z-index: 100;
+  line-height: 1;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+}
+
+.creation-delete-btn:active {
+  background: rgba(196, 30, 58, 0.9);
+  transform: scale(0.95);
+}
+
 .creation-image {
   width: 100%;
   height: 100%;
@@ -266,6 +317,21 @@
   height: 80rpx;
   border-radius: 50%;
   margin-right: 24rpx;
+}
+
+.master-avatar-placeholder {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+  background-color: #f0e6d2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-placeholder-icon {
+  font-size: 36rpx;
 }
 
 .booking-content {
@@ -359,6 +425,237 @@
 
 .icon-close::before {
   content: '✕';
+}
+
+/* 修改个人信息弹窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 40rpx;
+  flex: 1;
+}
+
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #333;
+  display: block;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 24rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333;
+  background-color: #fafafa;
+}
+
+.form-input:focus {
+  border-color: #c41e3a;
+  background-color: white;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  padding: 24rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333;
+  background-color: #fafafa;
+}
+
+.form-textarea:focus {
+  border-color: #c41e3a;
+  background-color: white;
+}
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.avatar-preview {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 2rpx solid #e0e0e0;
+}
+
+.btn-upload {
+  padding: 20rpx 32rpx;
+  font-size: 26rpx;
+  background-color: #f5f5f5;
+  color: #333;
+  border-radius: 12rpx;
+  border: none;
+}
+
+.btn-upload:active {
+  background-color: #e0e0e0;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 20rpx;
+  padding: 40rpx;
+  border-top: 2rpx solid #f5f5f5;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  padding: 24rpx;
+  font-size: 28rpx;
+  border-radius: 12rpx;
+  border: none;
+}
+
+.btn-cancel {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:active {
+  background-color: #e0e0e0;
+}
+
+.btn-confirm {
+  background-color: #c41e3a;
+  color: white;
+}
+
+.btn-confirm:active {
+  background-color: #a01a2e;
+}
+
+/* 发布帖子弹窗样式 */
+.post-modal-content {
+  max-height: 90vh;
+}
+
+.post-textarea {
+  min-height: 200rpx;
+  line-height: 1.6;
+}
+
+.post-images-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.post-image-item {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.post-image-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.post-image-delete {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 48rpx;
+  height: 48rpx;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.post-image-add {
+  width: 200rpx;
+  height: 200rpx;
+  border: 2rpx dashed #ddd;
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafafa;
+}
+
+.add-image-icon {
+  font-size: 48rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.add-image-text {
+  font-size: 24rpx;
+  color: #999;
 }
 
 /* 响应式调整 */

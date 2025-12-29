@@ -1,5 +1,6 @@
 // pages/masterList/masterList.js
 import { request } from '../../utils/util.js'
+import { getCurrentUser } from '../../utils/auth.js'
 
 Page({
   data: {
@@ -199,6 +200,19 @@ Page({
       confirmText: '确定预约',
       success: (res) => {
         if (res.confirm) {
+          // 保存预约信息到本地存储
+          this.saveBooking({
+            type: 'experience', // 预约类型：体验
+            masterId: item.id,
+            masterName: item.name,
+            skill: item.skill,
+            masterAvatar: item.avatar || item.image || '',
+            time: this.formatBookingTime(), // 生成预约时间
+            location: '待确认',
+            status: 'pending',
+            statusText: '待确认'
+          });
+          
           wx.showToast({
             title: '预约成功',
             icon: 'success'
@@ -206,6 +220,84 @@ Page({
         }
       }
     });
+  },
+
+  // 保存预约信息到后端
+  saveBooking: function(bookingData) {
+    const user = getCurrentUser();
+    if (!user) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    const userId = user.id || user.userId;
+    if (!userId) {
+      wx.showToast({
+        title: '无法获取用户信息',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    // 准备发送到后端的数据
+    const bookingRequest = {
+      userId: userId,
+      type: bookingData.type,
+      status: bookingData.status || 'pending',
+      time: bookingData.time || '待确认',
+      location: bookingData.location || '待确认',
+      contact: bookingData.contact || '待确认'
+    };
+    
+    // 根据类型添加不同的字段
+    if (bookingData.type === 'experience') {
+      bookingRequest.masterId = bookingData.masterId;
+      bookingRequest.masterName = bookingData.masterName;
+      bookingRequest.skill = bookingData.skill;
+      bookingRequest.masterAvatar = bookingData.masterAvatar || '';
+    } else if (bookingData.type === 'activity' || bookingData.type === 'watch') {
+      bookingRequest.activityId = bookingData.activityId;
+      bookingRequest.activityTitle = bookingData.activityTitle;
+    }
+    
+    // 调用后端API保存预约
+    request({
+      url: '/user/bookings',
+      method: 'POST',
+      data: bookingRequest
+    }).then(res => {
+      if (res.success) {
+        console.log('预约信息已保存到后端:', res.data);
+      } else {
+        throw new Error(res.message || '保存预约失败');
+      }
+    }).catch(err => {
+      console.error('保存预约信息失败:', err);
+      wx.showToast({
+        title: err.message || '保存失败，请重试',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 格式化预约时间（生成未来7-14天的随机时间）
+  formatBookingTime: function() {
+    const now = new Date();
+    const daysLater = Math.floor(Math.random() * 7) + 7; // 7-14天后
+    const bookingDate = new Date(now.getTime() + daysLater * 24 * 60 * 60 * 1000);
+    
+    const year = bookingDate.getFullYear();
+    const month = String(bookingDate.getMonth() + 1).padStart(2, '0');
+    const day = String(bookingDate.getDate()).padStart(2, '0');
+    
+    // 随机选择时间段
+    const timeSlots = ['10:00-12:00', '14:00-16:00', '15:00-17:00'];
+    const timeSlot = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+    
+    return `${year}-${month}-${day} ${timeSlot}`;
   },
 
   // 切换收藏状态

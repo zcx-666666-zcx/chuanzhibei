@@ -1,0 +1,182 @@
+/* pages/creationList/creationList.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f8f5f2;
+  padding: 0 30rpx 40rpx;
+}
+
+.page-header {
+  padding: 30rpx 0;
+  background-color: #fff;
+  margin: 0 -30rpx 30rpx -30rpx;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  position: relative;
+  padding-bottom: 16rpx;
+}
+
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80rpx;
+  height: 6rpx;
+  background-color: #c41e3a;
+}
+
+.add-btn {
+  background-color: #c41e3a;
+  color: white;
+  border: none;
+  padding: 16rpx 32rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #999;
+  font-size: 28rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40rpx;
+}
+
+/* 创作列表 */
+.creation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.creation-item {
+  background: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.creation-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  position: relative;
+}
+
+.user-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.create-time {
+  font-size: 22rpx;
+  color: #999;
+  display: block;
+}
+
+.creation-content {
+  margin-bottom: 20rpx;
+}
+
+.creation-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.creation-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+}
+
+.creation-image {
+  width: 100%;
+  height: 200rpx;
+  border-radius: 12rpx;
+}
+
+.creation-footer {
+  display: flex;
+  align-items: center;
+  gap: 40rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx solid #f5f5f5;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.iconfont {
+  font-size: 32rpx;
+}
+
+.icon-like.liked {
+  color: #c41e3a;
+}
+
+.action-count {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.creation-delete-btn {
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  margin-left: auto;
+}
+
+.creation-delete-btn:active {
+  background-color: #cc0000;
+}
+
+/* 响应式调整 */
+@media (max-width: 750rpx) {
+  .creation-images {
+    grid-template-columns: 1fr;
+  }
+}
+

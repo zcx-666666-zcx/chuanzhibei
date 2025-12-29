@@ -56,7 +56,13 @@ public class AuthController {
         } 
         // 如果提供了用户名和密码，使用传统登录方式
         else if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+            // 先尝试用username登录
             user = userService.getUserByUsername(username);
+            
+            // 如果username找不到，尝试用nickname登录
+            if (user == null) {
+                user = userService.getUserByNickname(username);
+            }
             
             // 检查用户是否存在以及密码是否正确
             if (user == null || !passwordEncoder.matches(password, user.getPassword())) {

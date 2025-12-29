@@ -18,6 +18,7 @@ public class User extends BaseEntity {
     private String city;
     private String language;
     private String email;
+    private String signature; // 个人签名
     
     // Constructors
     public User() {
@@ -119,5 +120,13 @@ public class User extends BaseEntity {
     
     public void setEmail(String email) {
         this.email = email;
+    }
+    
+    public String getSignature() {
+        return signature;
+    }
+    
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 }

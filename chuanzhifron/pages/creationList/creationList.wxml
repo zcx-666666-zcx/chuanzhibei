@@ -1,0 +1,59 @@
+<!--pages/creationList/creationList.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">我的创作</text>
+    <button class="add-btn" bindtap="addCreation">+ 添加创作</button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 创作列表 -->
+  <view wx:else class="creation-list">
+    <view class="creation-item card card-hover" 
+          wx:for="{{creations}}" 
+          wx:key="id" 
+          bindtap="onCreationTap" 
+          data-item="{{item}}">
+      <view class="creation-header">
+        <image src="{{item.userAvatar}}" class="user-avatar" mode="aspectFill"></image>
+        <view class="user-info">
+          <text class="user-name">{{item.userName}}</text>
+          <text class="create-time">{{item.createTime}}</text>
+        </view>
+        <view class="creation-delete-btn" bindtap="deleteCreation" data-item="{{item}}" catchtap="true">删除</view>
+      </view>
+      <view class="creation-content">
+        <text class="creation-text">{{item.content}}</text>
+        <view class="creation-images" wx:if="{{item.images.length > 0}}">
+          <image wx:for="{{item.images}}" 
+                 wx:for-item="img" 
+                 wx:key="*this" 
+                 src="{{img}}" 
+                 class="creation-image" 
+                 mode="aspectFill"></image>
+        </view>
+      </view>
+      <view class="creation-footer">
+        <view class="action-item">
+          <text class="iconfont icon-like {{item.isLiked ? 'liked' : ''}}">❤️</text>
+          <text class="action-count">{{item.likesCount}}</text>
+        </view>
+        <view class="action-item">
+          <text class="iconfont icon-comment">💬</text>
+          <text class="action-count">{{item.commentsCount}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && creations.length === 0}}" class="empty-state">
+    <text>暂无创作</text>
+    <button class="add-btn" bindtap="addCreation">+ 添加创作</button>
+  </view>
+</view>
+

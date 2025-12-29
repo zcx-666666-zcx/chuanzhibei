@@ -1,5 +1,6 @@
 // InheritorCommunity.js
 import { request } from '../../utils/util.js'
+import { getCurrentUser } from '../../utils/auth.js'
 
 Page({
   data: {
@@ -7,8 +8,14 @@ Page({
     allMasterList: [], // 保存所有传承人数据用于筛选
     displayMasterList: [], // 首页显示的传承人列表（只显示4个）
     skillVideos: [],
+    allSkillVideos: [], // 保存所有视频数据
+    displaySkillVideos: [], // 首页显示的视频列表（只显示4个）
     activities: [],
+    allActivities: [], // 保存所有活动数据
+    displayActivities: [], // 首页显示的活动列表（只显示3个）
     communityPosts: [],
+    allCommunityPosts: [], // 保存所有社区动态数据
+    displayCommunityPosts: [], // 首页显示的社区动态列表（只显示3个）
     currentCategory: 'all', // 当前筛选的分类
     showFilters: true, // 是否显示筛选器
     loading: true
@@ -296,21 +303,34 @@ Page({
         throw new Error(res.message || '获取视频失败');
       }
       const list = res.data?.list || res.data || [];
-      const skillVideos = list.map(item => ({
+      const allSkillVideos = list.map(item => ({
         ...item,
         thumbnail: item.thumbnail && item.thumbnail.startsWith('http')
           ? item.thumbnail
           : ('http://localhost:8001' + (item.thumbnail || '')),
         views: item.views ? (item.views >= 10000 ? (item.views / 10000).toFixed(1) + '万' : item.views) : '0'
       }));
+      
+      // 如果后端数据为空，使用默认数据
+      const skillVideos = allSkillVideos.length > 0 ? allSkillVideos : this.getDefaultSkillVideos();
+      
+      // 首页只显示前4个
+      const displaySkillVideos = skillVideos.slice(0, 4);
+      
       this.setData({
-        skillVideos: skillVideos.length > 0 ? skillVideos : this.getDefaultSkillVideos()
+        allSkillVideos: skillVideos,
+        skillVideos: skillVideos,
+        displaySkillVideos: displaySkillVideos
       });
     }).catch(err => {
       console.error('获取视频失败:', err);
       // 使用默认数据
+      const defaultVideos = this.getDefaultSkillVideos();
+      const displaySkillVideos = defaultVideos.slice(0, 4);
       this.setData({
-        skillVideos: this.getDefaultSkillVideos()
+        allSkillVideos: defaultVideos,
+        skillVideos: defaultVideos,
+        displaySkillVideos: displaySkillVideos
       });
     });
   },
@@ -413,74 +433,23 @@ Page({
         };
       });
       
-      // 如果后端数据为空，使用默认数据
-      if (communityPosts.length === 0) {
-        this.setData({
-          communityPosts: this.getDefaultCommunityPosts()
-        });
-      } else {
-        this.setData({
-          communityPosts
-        });
-      }
+      // 首页只显示前3个
+      const displayCommunityPosts = communityPosts.slice(0, 3);
+      
+      this.setData({
+        allCommunityPosts: communityPosts,
+        communityPosts: communityPosts,
+        displayCommunityPosts: displayCommunityPosts
+      });
     }).catch(err => {
       console.error('获取社区帖子失败:', err);
-      // 使用默认数据
+      // 如果接口失败，显示空列表
       this.setData({
-        communityPosts: this.getDefaultCommunityPosts()
+        allCommunityPosts: [],
+        communityPosts: [],
+        displayCommunityPosts: []
       });
     });
-  },
-
-  // 获取默认社区动态数据
-  getDefaultCommunityPosts: function() {
-    const baseUrl = 'http://localhost:8001/uploads/masters_InheritorCommunit/';
-    return [
-      {
-        id: 1,
-        userName: '剪纸达人',
-        avatar: baseUrl + 'master_jianzhi.jpg',
-        time: '2小时前',
-        content: '今天完成了新的剪纸作品《龙凤呈祥》，融合了传统纹样和现代设计元素，希望大家喜欢！',
-        images: [],
-        likes: 128,
-        comments: 23,
-        isLiked: false
-      },
-      {
-        id: 2,
-        userName: '苏绣传承人',
-        avatar: baseUrl + 'master_suxiu.jpg',
-        time: '5小时前',
-        content: '分享一个苏绣作品的制作过程，从设计到完成，每一步都需要细心和耐心。传统技艺的传承需要我们每一个人的努力。',
-        images: [],
-        likes: 256,
-        comments: 45,
-        isLiked: true
-      },
-      {
-        id: 3,
-        userName: '景泰蓝爱好者',
-        avatar: baseUrl + 'master_jingtai.jpg',
-        time: '1天前',
-        content: '参观了景泰蓝制作工坊，亲眼见证了掐丝珐琅的精妙工艺，深感传统手工艺人的匠心独运！',
-        images: [],
-        likes: 189,
-        comments: 32,
-        isLiked: false
-      },
-      {
-        id: 4,
-        userName: '京剧票友',
-        avatar: baseUrl + 'master_jingjumei.jpg',
-        time: '2天前',
-        content: '参加了梅派艺术传承讲座，学到了很多关于京剧表演的技巧。传统文化的魅力在于它的深厚底蕴和不断创新。',
-        images: [],
-        likes: 312,
-        comments: 67,
-        isLiked: true
-      }
-    ];
   },
 
   // 格式化时间显示
@@ -569,6 +538,19 @@ Page({
       confirmText: '确定预约',
       success: (res) => {
         if (res.confirm) {
+          // 保存预约信息到本地存储
+          this.saveBooking({
+            type: 'experience', // 预约类型：体验
+            masterId: item.id,
+            masterName: item.name,
+            skill: item.skill,
+            masterAvatar: item.avatar || item.image || '',
+            time: this.formatBookingTime(), // 生成预约时间
+            location: '待确认',
+            status: 'pending',
+            statusText: '待确认'
+          });
+          
           wx.showToast({
             title: '预约成功',
             icon: 'success'
@@ -576,6 +558,84 @@ Page({
         }
       }
     });
+  },
+
+  // 保存预约信息到后端
+  saveBooking: function(bookingData) {
+    const user = getCurrentUser();
+    if (!user) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    const userId = user.id || user.userId;
+    if (!userId) {
+      wx.showToast({
+        title: '无法获取用户信息',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    // 准备发送到后端的数据
+    const bookingRequest = {
+      userId: userId,
+      type: bookingData.type,
+      status: bookingData.status || 'pending',
+      time: bookingData.time || '待确认',
+      location: bookingData.location || '待确认',
+      contact: bookingData.contact || '待确认'
+    };
+    
+    // 根据类型添加不同的字段
+    if (bookingData.type === 'experience') {
+      bookingRequest.masterId = bookingData.masterId;
+      bookingRequest.masterName = bookingData.masterName;
+      bookingRequest.skill = bookingData.skill;
+      bookingRequest.masterAvatar = bookingData.masterAvatar || '';
+    } else if (bookingData.type === 'activity' || bookingData.type === 'watch') {
+      bookingRequest.activityId = bookingData.activityId;
+      bookingRequest.activityTitle = bookingData.activityTitle;
+    }
+    
+    // 调用后端API保存预约
+    request({
+      url: '/user/bookings',
+      method: 'POST',
+      data: bookingRequest
+    }).then(res => {
+      if (res.success) {
+        console.log('预约信息已保存到后端:', res.data);
+      } else {
+        throw new Error(res.message || '保存预约失败');
+      }
+    }).catch(err => {
+      console.error('保存预约信息失败:', err);
+      wx.showToast({
+        title: err.message || '保存失败，请重试',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 格式化预约时间（生成未来7-14天的随机时间）
+  formatBookingTime: function() {
+    const now = new Date();
+    const daysLater = Math.floor(Math.random() * 7) + 7; // 7-14天后
+    const bookingDate = new Date(now.getTime() + daysLater * 24 * 60 * 60 * 1000);
+    
+    const year = bookingDate.getFullYear();
+    const month = String(bookingDate.getMonth() + 1).padStart(2, '0');
+    const day = String(bookingDate.getDate()).padStart(2, '0');
+    
+    // 随机选择时间段
+    const timeSlots = ['10:00-12:00', '14:00-16:00', '15:00-17:00'];
+    const timeSlot = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+    
+    return `${year}-${month}-${day} ${timeSlot}`;
   },
 
   // 视频点击
@@ -626,6 +686,19 @@ Page({
             }
           }).then(response => {
             if (response && response.success) {
+              // 保存预约信息到本地存储
+              const bookingType = item.buttonText === '报名参加' ? 'activity' : 'watch';
+              this.saveBooking({
+                type: bookingType, // 预约类型：活动报名或预约观看
+                activityId: item.id,
+                activityTitle: item.title,
+                time: item.time || '待确认',
+                location: item.location || '待确认',
+                description: item.description || '',
+                status: 'pending',
+                statusText: '待确认'
+              });
+              
               wx.showToast({
                 title: item.buttonText === '报名参加' ? '报名成功' : '预约成功',
                 icon: 'success'
@@ -640,9 +713,22 @@ Page({
             }
           }).catch(err => {
             console.error('参加活动失败:', err);
+            // 即使接口失败，也保存到本地存储（离线支持）
+            const bookingType = item.buttonText === '报名参加' ? 'activity' : 'watch';
+            this.saveBooking({
+              type: bookingType,
+              activityId: item.id,
+              activityTitle: item.title,
+              time: item.time || '待确认',
+              location: item.location || '待确认',
+              description: item.description || '',
+              status: 'pending',
+              statusText: '待确认'
+            });
+            
             wx.showToast({
-              title: '操作失败，请重试',
-              icon: 'none'
+              title: item.buttonText === '报名参加' ? '报名成功' : '预约成功',
+              icon: 'success'
             });
           });
         }
@@ -778,20 +864,25 @@ Page({
       });
       
       // 如果后端数据为空，使用默认数据
-      if (activities.length === 0) {
-        this.setData({
-          activities: this.getDefaultActivities()
-        });
-      } else {
-        this.setData({
-          activities
-        });
-      }
+      const allActivities = activities.length > 0 ? activities : this.getDefaultActivities();
+      
+      // 首页只显示前3个
+      const displayActivities = allActivities.slice(0, 3);
+      
+      this.setData({
+        allActivities: allActivities,
+        activities: allActivities,
+        displayActivities: displayActivities
+      });
     }).catch(err => {
       console.error('获取活动失败:', err);
       // 使用默认数据
+      const defaultActivities = this.getDefaultActivities();
+      const displayActivities = defaultActivities.slice(0, 3);
       this.setData({
-        activities: this.getDefaultActivities()
+        allActivities: defaultActivities,
+        activities: defaultActivities,
+        displayActivities: displayActivities
       });
     });
   },

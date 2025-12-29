@@ -1,4 +1,6 @@
 // pages/register/register.js
+const { registerUser } = require('../../utils/auth.js');
+
 Page({
   data: {
     username: '',
@@ -65,44 +67,28 @@ Page({
     }
     
     // 发送注册请求到后端
-    wx.request({
-      url: 'http://localhost:8080/api/auth/register',
-      method: 'POST',
-      data: {
-        username: username,
-        password: password,
-        email: email
-      },
-      header: {
-        'content-type': 'application/json'
-      },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data.success) {
-          wx.showToast({
-            title: '注册成功',
-            icon: 'success'
-          });
-          
-          // 延迟跳转到登录页
-          setTimeout(() => {
-            wx.redirectTo({
-              url: '../login/login'
-            });
-          }, 1500);
-        } else {
-          wx.showToast({
-            title: res.data.error || '注册失败',
-            icon: 'none'
-          });
-        }
-      },
-      fail: (err) => {
-        console.error('注册请求失败', err);
-        wx.showToast({
-          title: '注册失败，请检查网络',
-          icon: 'none'
+    registerUser({
+      username: username,
+      password: password,
+      email: email
+    }).then((res) => {
+      wx.showToast({
+        title: '注册成功',
+        icon: 'success'
+      });
+      
+      // 延迟跳转到登录页
+      setTimeout(() => {
+        wx.redirectTo({
+          url: '../login/login'
         });
-      }
+      }, 1500);
+    }).catch((err) => {
+      console.error('注册请求失败', err);
+      wx.showToast({
+        title: err.error || err.message || '注册失败，请检查网络',
+        icon: 'none'
+      });
     });
   }
 });

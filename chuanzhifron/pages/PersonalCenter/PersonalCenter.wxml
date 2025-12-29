@@ -1,16 +1,13 @@
 <!--PersonalCenter.wxml-->
 <view class="container">
   <!-- 用户信息卡片 -->
-  <view class="user-card">
+  <view class="user-card" bindtap="onUserCardTap">
     <view class="user-header">
-      <image src="{{userInfo.avatar}}" class="user-avatar" mode="aspectFill"></image>
+      <image src="{{userInfo.avatar || 'http://localhost:8001/uploads/login-bg.png.png'}}" class="user-avatar" mode="aspectFill" binderror="onAvatarError"></image>
       <view class="user-info">
-        <text class="user-name">{{userInfo.name}}</text>
-        <text class="user-title">{{userInfo.title}}</text>
+        <text class="user-name">{{userInfo.name || '访客'}}</text>
+        <text class="user-title">{{userInfo.title || '非遗文化爱好者'}}</text>
       </view>
-      <button class="settings-btn" bindtap="onSettings">
-        <text class="iconfont icon-settings">⚙️</text>
-      </button>
     </view>
     
     <view class="user-stats">
@@ -33,19 +30,20 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">我的收藏</text>
-      <text class="more-link" bindtap="viewAllCollections">查看全部</text>
+      <view class="section-header-right" wx:if="{{collections.length > 3}}">
+        <text class="section-count">{{collections.length}}项</text>
+        <navigator url="/pages/collectionList/collectionList" class="more-link">查看更多</navigator>
+      </view>
     </view>
     <view class="collection-list">
-      <view class="collection-item" wx:for="{{collections}}" wx:key="id" bindtap="onCollectionTap" data-item="{{item}}">
+      <view class="collection-item" wx:for="{{displayCollections}}" wx:key="id" bindtap="onCollectionTap" data-item="{{item}}">
         <image src="{{item.image || item.imageUrl}}" class="collection-image" mode="aspectFill"></image>
         <view class="collection-content">
           <text class="collection-title">{{item.name || item.heritageName}}</text>
           <text class="collection-level">{{item.level || item.heritageLevel}}</text>
           <text class="collection-desc">{{item.description || item.heritageDescription}}</text>
         </view>
-        <button class="remove-btn" bindtap="removeCollection" data-item="{{item}}" catchtap="true">
-          <text class="iconfont icon-close">✕</text>
-        </button>
+        
       </view>
     </view>
   </view>
@@ -54,14 +52,15 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">我的创作</text>
-      <text class="more-link" bindtap="viewAllCreations">查看全部</text>
+      <text class="more-link" bindtap="viewAllCreations" wx:if="{{creations.length > 4}}">查看全部</text>
     </view>
     <view class="creation-grid">
-      <view class="creation-item" wx:for="{{creations}}" wx:key="id" bindtap="onCreationTap" data-item="{{item}}">
-        <image src="{{item.image}}" class="creation-image" mode="aspectFill"></image>
+      <view class="creation-item" wx:for="{{displayCreations}}" wx:key="id">
+        <image src="{{item.image}}" class="creation-image" mode="aspectFill" bindtap="onCreationTap" data-item="{{item}}"></image>
         <view class="creation-overlay">
           <text class="creation-title">{{item.title}}</text>
         </view>
+        <view class="creation-delete-btn" catchtap="deleteCreation" data-item="{{item}}">×</view>
       </view>
       <view class="add-creation" bindtap="addCreation">
         <text class="add-icon">+</text>
@@ -78,13 +77,16 @@
     </view>
     <view class="booking-list">
       <view class="booking-item" wx:for="{{bookings}}" wx:key="id">
-        <image src="{{item.masterAvatar}}" class="master-avatar" mode="aspectFill"></image>
+        <image wx:if="{{item.masterAvatar}}" src="{{item.masterAvatar}}" class="master-avatar" mode="aspectFill"></image>
+        <view wx:else class="master-avatar-placeholder">
+          <text class="avatar-placeholder-icon">{{item.type === 'activity' ? '📅' : (item.type === 'watch' ? '👁' : '👤')}}</text>
+        </view>
         <view class="booking-content">
-          <text class="booking-title">{{item.masterName}} - {{item.skill}}</text>
+          <text class="booking-title">{{item.masterName}}{{item.skill ? ' - ' + item.skill : ''}}</text>
           <text class="booking-time">{{item.time}}</text>
           <text class="booking-status {{item.status}}">{{item.statusText}}</text>
         </view>
-        <button wx:if="{{item.status === 'pending'}}" class="btn-secondary cancel-btn" bindtap="cancelBooking" data-item="{{item}}">
+        <button wx:if="{{item.status === 'pending' || item.status === 'confirmed'}}" class="btn-secondary cancel-btn" bindtap="cancelBooking" data-item="{{item}}">
           取消预约
         </button>
       </view>
@@ -92,26 +94,78 @@
   </view>
 
   <!-- 功能菜单 -->
-  <view class="menu-section">
-    <view class="menu-item" bindtap="onMenuTap" data-type="profile">
-      <text class="menu-icon">👤</text>
-      <text class="menu-text">个人资料</text>
-      <text class="menu-arrow">></text>
+  
+  <!-- 修改个人信息弹窗 -->
+  <view class="modal-overlay" wx:if="{{showEditModal}}" bindtap="closeEditModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">修改个人信息</text>
+        <text class="modal-close" bindtap="closeEditModal">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 头像选择 -->
+        <view class="form-item">
+          <text class="form-label">头像</text>
+          <view class="avatar-upload">
+            <image src="{{editForm.avatar || userInfo.avatar || 'http://localhost:8001/uploads/login-bg.png.png'}}" class="avatar-preview" mode="aspectFill"></image>
+            <button class="btn-upload" bindtap="chooseAvatar">选择头像</button>
+          </view>
+        </view>
+        
+        <!-- 用户名称 -->
+        <view class="form-item">
+          <text class="form-label">用户名称</text>
+          <input class="form-input" placeholder="请输入用户名称" value="{{editForm.name}}" bindinput="onNameInput" />
+        </view>
+        
+        <!-- 个人签名 -->
+        <view class="form-item">
+          <text class="form-label">个人签名</text>
+          <textarea class="form-textarea" placeholder="请输入个人签名" value="{{editForm.signature}}" bindinput="onSignatureInput" maxlength="50"></textarea>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="closeEditModal">取消</button>
+        <button class="btn-confirm" bindtap="saveUserInfo">保存</button>
+      </view>
     </view>
-    <view class="menu-item" bindtap="onMenuTap" data-type="settings">
-      <text class="menu-icon">⚙️</text>
-      <text class="menu-text">设置</text>
-      <text class="menu-arrow">></text>
-    </view>
-    <view class="menu-item" bindtap="onMenuTap" data-type="help">
-      <text class="menu-icon">❓</text>
-      <text class="menu-text">帮助与反馈</text>
-      <text class="menu-arrow">></text>
-    </view>
-    <view class="menu-item" bindtap="onMenuTap" data-type="about">
-      <text class="menu-icon">ℹ️</text>
-      <text class="menu-text">关于我们</text>
-      <text class="menu-arrow">></text>
+  </view>
+
+  <!-- 发布帖子弹窗 -->
+  <view class="modal-overlay" wx:if="{{showPostModal}}" bindtap="closePostModal">
+    <view class="modal-content post-modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">发布帖子</text>
+        <text class="modal-close" bindtap="closePostModal">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 帖子内容 -->
+        <view class="form-item">
+          <textarea class="form-textarea post-textarea" placeholder="分享你的非遗体验和创作..." value="{{postForm.content}}" bindinput="onPostContentInput" maxlength="500"></textarea>
+        </view>
+        
+        <!-- 图片选择 -->
+        <view class="form-item">
+          <view class="post-images-container">
+            <view class="post-image-item" wx:for="{{postForm.images}}" wx:key="*this" wx:for-item="img">
+              <image src="{{img}}" class="post-image-preview" mode="aspectFill"></image>
+              <view class="post-image-delete" bindtap="removePostImage" data-index="{{index}}">×</view>
+            </view>
+            <view class="post-image-add" wx:if="{{postForm.images.length < 9}}" bindtap="choosePostImages">
+              <text class="add-image-icon">+</text>
+              <text class="add-image-text">添加图片</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="closePostModal">取消</button>
+        <button class="btn-confirm" bindtap="publishPost">发布</button>
+      </view>
     </view>
   </view>
 </view>

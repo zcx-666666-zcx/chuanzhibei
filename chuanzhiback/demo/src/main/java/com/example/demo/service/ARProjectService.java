@@ -2,20 +2,27 @@ package com.example.demo.service;
 
 import com.example.demo.entity.ARExperienceRecord;
 import com.example.demo.entity.ARProject;
+import com.example.demo.entity.User;
+import com.example.demo.repository.ARExperienceRecordRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
 public class ARProjectService {
 
+    @Autowired
+    private ARExperienceRecordRepository recordRepository;
+    
+    @Autowired
+    private UserService userService;
+
     private final List<ARProject> projectList = new ArrayList<>();
-    private final List<ARExperienceRecord> historyList = new ArrayList<>();
-    private final AtomicLong recordIdGen = new AtomicLong(1);
 
     /**
      * 初始化示例数据（非持久化）
@@ -23,8 +30,6 @@ public class ARProjectService {
     @PostConstruct
     public void initData() {
         projectList.clear();
-        historyList.clear();
-        recordIdGen.set(1);
 
         // 使用用户上传的示例图片和视频
         projectList.add(new ARProject(
@@ -97,47 +102,64 @@ public class ARProjectService {
         return projectList.stream().filter(p -> p.getId().equals(id)).findFirst().orElse(null);
     }
 
-    public void addHistory(Long projectId, Integer duration) {
-        ARProject project = findById(projectId);
-        if (project == null) return;
+    @Transactional
+    public ARExperienceRecord addHistory(Long userId, Long projectId, Integer duration) {
+        // 获取用户
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
         
-        // 添加新的体验记录
-        historyList.add(new ARExperienceRecord(
-                recordIdGen.getAndIncrement(),
+        // 获取项目
+        ARProject project = findById(projectId);
+        if (project == null) {
+            throw new RuntimeException("AR项目不存在");
+        }
+        
+        // 创建并保存体验记录
+        ARExperienceRecord record = new ARExperienceRecord(
+                user,
                 projectId,
                 project.getName(),
                 project.getCoverImage(), // 使用项目封面作为历史记录缩略图
                 LocalDateTime.now(),
                 duration != null ? duration : 0
-        ));
+        );
         
-        // 限制历史记录只保留最近的20条，以保证性能
-        if (historyList.size() > 20) {
-            // 保留最近的20条记录
-            List<ARExperienceRecord> recentRecords = historyList.stream()
-                    .sorted(Comparator.comparing(ARExperienceRecord::getStartTime).reversed())
-                    .limit(20)
-                    .collect(Collectors.toList());
-            
-            historyList.clear();
-            historyList.addAll(recentRecords);
+        return recordRepository.save(record);
+    }
+
+    public List<ARExperienceRecord> getHistoryByUserId(Long userId) {
+        // 按时间倒序排列，最近的在前
+        return recordRepository.findByUserId(userId);
+    }
+
+    @Transactional
+    public void deleteHistoryExceptRecent(Long userId, int keepCount) {
+        List<ARExperienceRecord> allRecords = recordRepository.findByUserId(userId);
+        if (allRecords.size() > keepCount) {
+            // 保留最近的keepCount条记录，删除其余的
+            List<ARExperienceRecord> toDelete = allRecords.subList(keepCount, allRecords.size());
+            recordRepository.deleteAll(toDelete);
         }
     }
 
-    public List<ARExperienceRecord> history() {
-        // 按时间倒序排列，最近的在前
-        return historyList.stream()
-                .sorted(Comparator.comparing(ARExperienceRecord::getStartTime).reversed())
-                .collect(Collectors.toList());
+    @Transactional
+    public void deleteHistoryById(Long recordId) {
+        recordRepository.deleteById(recordId);
     }
 
-    public Map<String, Object> statistics() {
+    public Map<String, Object> getStatisticsByUserId(Long userId) {
+        List<ARExperienceRecord> records = recordRepository.findByUserId(userId);
+        
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalExperiences", historyList.size());
-        int totalDuration = historyList.stream().mapToInt(r -> r.getDuration() != null ? r.getDuration() : 0).sum();
+        stats.put("totalExperiences", records.size());
+        int totalDuration = records.stream()
+                .mapToInt(r -> r.getDuration() != null ? r.getDuration() : 0)
+                .sum();
         stats.put("totalDuration", totalDuration);
 
-        Map<Long, Long> countByProject = historyList.stream()
+        Map<Long, Long> countByProject = records.stream()
                 .collect(Collectors.groupingBy(ARExperienceRecord::getProjectId, Collectors.counting()));
 
         if (!countByProject.isEmpty()) {

@@ -75,9 +75,7 @@
           <button class="btn-secondary book-button" bindtap="bookExperience" data-item="{{item}}" catchtap="true">
             预约体验
           </button>
-          <button class="btn-outline share-master-btn" bindtap="shareMaster" data-item="{{item}}" catchtap="true">
-            分享
-          </button>
+
         </view>
       </view>
     </view>
@@ -90,10 +88,14 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">技艺展示</text>
+      <view class="section-header-right">
+        <text class="section-count" wx:if="{{skillVideos.length > 0}}">{{skillVideos.length}}个</text>
+        <navigator url="/pages/skillVideoList/skillVideoList" class="more-link" wx:if="{{skillVideos.length > 4}}">查看更多</navigator>
+      </view>
     </view>
-    <view class="skill-grid" wx:if="{{skillVideos.length > 0}}">
+    <view class="skill-grid" wx:if="{{displaySkillVideos.length > 0}}">
       <view class="skill-card card card-hover" 
-            wx:for="{{skillVideos}}" 
+            wx:for="{{displaySkillVideos}}" 
             wx:key="id" 
             bindtap="onVideoTap" 
             data-item="{{item}}">
@@ -114,7 +116,7 @@
         </view>
       </view>
     </view>
-    <view wx:if="{{skillVideos.length === 0 && !loading}}" class="empty">
+    <view wx:if="{{displaySkillVideos.length === 0 && !loading}}" class="empty">
       <text class="empty-text">暂无视频内容</text>
     </view>
   </view>
@@ -123,9 +125,13 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">近期活动</text>
+      <view class="section-header-right">
+        <text class="section-count" wx:if="{{activities.length > 0}}">{{activities.length}}个</text>
+        <navigator url="/pages/activityList/activityList" class="more-link" wx:if="{{activities.length > 3}}">查看更多</navigator>
+      </view>
     </view>
-    <view class="activity-list" wx:if="{{activities.length > 0}}">
-      <view class="activity-item" wx:for="{{activities}}" wx:key="id">
+    <view class="activity-list" wx:if="{{displayActivities.length > 0}}">
+      <view class="activity-item" wx:for="{{displayActivities}}" wx:key="id">
         <view class="activity-date">
           <text class="date-day">{{item.day}}</text>
           <text class="date-month">{{item.month}}</text>
@@ -140,7 +146,7 @@
         </button>
       </view>
     </view>
-    <view wx:if="{{activities.length === 0 && !loading}}" class="empty">
+    <view wx:if="{{displayActivities.length === 0 && !loading}}" class="empty">
       <text class="empty-text">暂无活动信息</text>
     </view>
   </view>
@@ -149,10 +155,13 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">社区动态</text>
-      <text class="more-link" bindtap="viewMorePosts">查看更多</text>
+      <view class="section-header-right">
+        <text class="section-count" wx:if="{{communityPosts.length > 0}}">{{communityPosts.length}}条</text>
+        <navigator url="/pages/communityPostList/communityPostList" class="more-link" wx:if="{{communityPosts.length > 3}}">查看更多</navigator>
+      </view>
     </view>
-    <view class="community-list" wx:if="{{communityPosts.length > 0}}">
-      <view class="community-item card card-hover" wx:for="{{communityPosts}}" wx:key="id">
+    <view class="community-list" wx:if="{{displayCommunityPosts.length > 0}}">
+      <view class="community-item card card-hover" wx:for="{{displayCommunityPosts}}" wx:key="id">
         <image src="{{item.avatar}}" class="user-avatar" mode="aspectFill"></image>
         <view class="post-content">
           <view class="post-header">
@@ -165,19 +174,16 @@
                    src="{{img}}" class="post-image" mode="aspectFill"></image>
           </view>
           <view class="post-footer">
-            <button class="action-btn" bindtap="likePost" data-item="{{item}}" catchtap="true">
-              <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
-              <text>{{item.likes}}</text>
-            </button>
+            
             <button class="action-btn" bindtap="commentPost" data-item="{{item}}" catchtap="true">
-              <text class="iconfont icon-comment">💬</text>
-              <text>{{item.comments}}</text>
+              
+              
             </button>
           </view>
         </view>
       </view>
     </view>
-    <view wx:if="{{communityPosts.length === 0 && !loading}}" class="empty">
+    <view wx:if="{{displayCommunityPosts.length === 0 && !loading}}" class="empty">
       <text class="empty-text">暂无社区动态</text>
     </view>
   </view>

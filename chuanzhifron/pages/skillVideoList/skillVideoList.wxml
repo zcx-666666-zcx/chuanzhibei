@@ -1,0 +1,43 @@
+<!--pages/skillVideoList/skillVideoList.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">技艺展示</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 视频列表 -->
+  <view wx:else class="skill-grid">
+    <view class="skill-card card card-hover" 
+          wx:for="{{skillVideos}}" 
+          wx:key="id" 
+          bindtap="onVideoTap" 
+          data-item="{{item}}">
+      <view class="video-container">
+        <image src="{{item.thumbnail}}" class="video-thumbnail" mode="aspectFill"></image>
+        <view class="play-overlay">
+          <text class="play-icon">▶</text>
+        </view>
+        <view class="video-duration">{{item.duration}}</view>
+      </view>
+      <view class="skill-content">
+        <text class="skill-title">{{item.title}}</text>
+        <text class="skill-desc">{{item.description}}</text>
+        <view class="skill-footer">
+          <text class="skill-date">{{item.date}}</text>
+          <text class="skill-views">{{item.views}}次观看</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && skillVideos.length === 0}}" class="empty">
+    <text class="empty-text">暂无视频内容</text>
+  </view>
+</view>
+

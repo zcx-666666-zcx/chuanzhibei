@@ -1,8 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.CommunityPost;
 import com.example.demo.entity.Inheritor;
-import com.example.demo.service.CommunityPostService;
 import com.example.demo.service.InheritorService;
 import com.example.demo.common.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,22 +18,12 @@ public class InheritorCommunityController {
 
     @Autowired
     private InheritorService inheritorService;
-    
-    @Autowired
-    private CommunityPostService communityPostService;
 
     // 获取传承人列表（用于传承人社区页面）
     @GetMapping("/inheritors")
     public ResponseEntity<Result<List<Inheritor>>> getInheritorList() {
         List<Inheritor> inheritors = inheritorService.getAllInheritors();
         return ResponseEntity.ok(Result.success(inheritors));
-    }
-
-    // 获取社区帖子列表（用于传承人社区页面）
-    @GetMapping("/posts")
-    public ResponseEntity<Result<List<CommunityPost>>> getCommunityPosts() {
-        List<CommunityPost> posts = communityPostService.getAllCommunityPosts();
-        return ResponseEntity.ok(Result.success(posts));
     }
     
     // 获取热门传承人（用于传承人社区页面）
@@ -59,35 +47,6 @@ public class InheritorCommunityController {
         );
         
         return ResponseEntity.ok(Result.success(activities));
-    }
-    
-    // 点赞社区帖子
-    @PostMapping("/posts/{id}/like")
-    public ResponseEntity<Result<CommunityPost>> likeCommunityPost(@PathVariable Long id) {
-        CommunityPost post = communityPostService.getCommunityPostById(id);
-        if (post != null) {
-            boolean isLiked = !post.getIsLiked();
-            post.setIsLiked(isLiked);
-            post.setLikesCount(post.getLikesCount() + (isLiked ? 1 : -1));
-            CommunityPost updatedPost = communityPostService.saveCommunityPost(post);
-            return ResponseEntity.ok(Result.success(isLiked ? "点赞成功" : "取消点赞", updatedPost));
-        } else {
-            return ResponseEntity.ok(Result.error("帖子不存在"));
-        }
-    }
-    
-    // 取消点赞社区帖子
-    @DeleteMapping("/posts/{id}/like")
-    public ResponseEntity<Result<String>> unlikeCommunityPost(@PathVariable Long id) {
-        CommunityPost post = communityPostService.getCommunityPostById(id);
-        if (post != null && post.getIsLiked()) {
-            post.setIsLiked(false);
-            post.setLikesCount(Math.max(0, post.getLikesCount() - 1));
-            communityPostService.saveCommunityPost(post);
-            return ResponseEntity.ok(Result.success("取消点赞成功"));
-        } else {
-            return ResponseEntity.ok(Result.error("帖子不存在"));
-        }
     }
     
     // 创建活动数据的辅助方法

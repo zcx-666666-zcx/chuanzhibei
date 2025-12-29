@@ -216,85 +216,6 @@
   color: #c41e3a;
 }
 
-/* 创作网格 */
-.creation-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20rpx;
-}
-
-.creation-item {
-  position: relative;
-  border-radius: 16rpx;
-  overflow: hidden;
-  aspect-ratio: 1;
-}
-
-.creation-delete-btn {
-  position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  width: 56rpx;
-  height: 56rpx;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 36rpx;
-  font-weight: bold;
-  z-index: 100;
-  line-height: 1;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
-}
-
-.creation-delete-btn:active {
-  background: rgba(196, 30, 58, 0.9);
-  transform: scale(0.95);
-}
-
-.creation-image {
-  width: 100%;
-  height: 100%;
-}
-
-.creation-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-  padding: 20rpx;
-}
-
-.creation-title {
-  color: white;
-  font-size: 24rpx;
-  font-weight: 500;
-}
-
-.add-creation {
-  background: #f5f5f5;
-  border-radius: 16rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1;
-  border: 2rpx dashed #ddd;
-}
-
-.add-icon {
-  font-size: 48rpx;
-  color: #999;
-  margin-bottom: 12rpx;
-}
-
-.add-text {
-  font-size: 24rpx;
-  color: #999;
-}
 
 /* 预约列表 */
 .booking-list {
@@ -589,81 +510,9 @@
   background-color: #a01a2e;
 }
 
-/* 发布帖子弹窗样式 */
-.post-modal-content {
-  max-height: 90vh;
-}
-
-.post-textarea {
-  min-height: 200rpx;
-  line-height: 1.6;
-}
-
-.post-images-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
-  margin-top: 20rpx;
-}
-
-.post-image-item {
-  position: relative;
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: 12rpx;
-  overflow: hidden;
-}
-
-.post-image-preview {
-  width: 100%;
-  height: 100%;
-}
-
-.post-image-delete {
-  position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  width: 48rpx;
-  height: 48rpx;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 32rpx;
-  line-height: 1;
-}
-
-.post-image-add {
-  width: 200rpx;
-  height: 200rpx;
-  border: 2rpx dashed #ddd;
-  border-radius: 12rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #fafafa;
-}
-
-.add-image-icon {
-  font-size: 48rpx;
-  color: #999;
-  margin-bottom: 8rpx;
-}
-
-.add-image-text {
-  font-size: 24rpx;
-  color: #999;
-}
 
 /* 响应式调整 */
 @media (max-width: 750rpx) {
-  .creation-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .collection-item {
     flex-direction: column;
     align-items: flex-start;

@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
+import com.example.demo.service.AvatarService;
 import com.example.demo.common.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,9 @@ public class AuthController {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private AvatarService avatarService;
 
     @PostMapping("/login")
     public ResponseEntity<Result<Map<String, Object>>> login(@RequestBody Map<String, String> loginData) {
@@ -42,8 +46,18 @@ public class AuthController {
             if (user == null) {
                 user = new User();
                 user.setOpenid(openid);
-                user.setNickname(loginData.getOrDefault("nickname", "默认用户"));
-                user.setAvatarUrl(loginData.getOrDefault("avatarUrl", ""));
+                String nickname = loginData.getOrDefault("nickname", "默认用户");
+                user.setNickname(nickname);
+                // 如果提供了头像URL，使用提供的；否则生成新头像
+                String providedAvatarUrl = loginData.getOrDefault("avatarUrl", "");
+                String avatarUrl = "";
+                if (providedAvatarUrl != null && !providedAvatarUrl.isEmpty()) {
+                    avatarUrl = providedAvatarUrl;
+                } else {
+                    // 使用 openid 或 nickname 作为种子生成头像
+                    avatarUrl = avatarService.generateAndSaveAvatar(openid + nickname);
+                }
+                user.setAvatarUrl(avatarUrl);
                 user.setGender(loginData.getOrDefault("gender", ""));
                 user.setCountry(loginData.getOrDefault("country", ""));
                 user.setProvince(loginData.getOrDefault("province", ""));
@@ -109,11 +123,22 @@ public class AuthController {
         
         // 创建新用户
         User newUser = new User();
+        String avatarUrl = "";
+        
         if (openid != null && !openid.isEmpty()) {
             // 微信登录注册
             newUser.setOpenid(openid);
-            newUser.setNickname(registerData.getOrDefault("nickname", "默认用户"));
-            newUser.setAvatarUrl(registerData.getOrDefault("avatarUrl", ""));
+            String nickname = registerData.getOrDefault("nickname", "默认用户");
+            newUser.setNickname(nickname);
+            // 如果提供了头像URL，使用提供的；否则生成新头像
+            String providedAvatarUrl = registerData.getOrDefault("avatarUrl", "");
+            if (providedAvatarUrl != null && !providedAvatarUrl.isEmpty()) {
+                avatarUrl = providedAvatarUrl;
+            } else {
+                // 使用 openid 或 nickname 作为种子生成头像
+                avatarUrl = avatarService.generateAndSaveAvatar(openid + nickname);
+            }
+            newUser.setAvatarUrl(avatarUrl);
             newUser.setGender(registerData.getOrDefault("gender", ""));
             newUser.setCountry(registerData.getOrDefault("country", ""));
             newUser.setProvince(registerData.getOrDefault("province", ""));
@@ -125,6 +150,9 @@ public class AuthController {
             // 使用BCrypt加密密码
             newUser.setPassword(passwordEncoder.encode(password));
             newUser.setNickname(username); // 默认使用用户名作为昵称
+            // 使用用户名作为种子生成头像
+            avatarUrl = avatarService.generateAndSaveAvatar(username);
+            newUser.setAvatarUrl(avatarUrl);
         }
         newUser.setEmail(email);
         newUser.setCreateTime(LocalDateTime.now());

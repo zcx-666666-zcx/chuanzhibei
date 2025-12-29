@@ -5,10 +5,10 @@
     <view class="header-top">
       <text class="page-title">传承人社区</text>
       <button class="search-btn" bindtap="onSearch" style="width: 249rpx; display: flex; box-sizing: border-box; left: 0rpx; top: 0rpx">
-        <text class="iconfont icon-search">🔍</text>
+        <text class="iconfont icon-search"></text>
       </button>
       <button class="share-btn" bindtap="onShare" style="width: 172rpx; display: flex; box-sizing: border-box; left: 0rpx; top: 0rpx">
-        <text class="iconfont icon-share">📤</text>
+        <text class="iconfont icon-share"></text>
       </button>
     </view>
     <!-- 分类筛选 -->
@@ -148,43 +148,6 @@
     </view>
     <view wx:if="{{displayActivities.length === 0 && !loading}}" class="empty">
       <text class="empty-text">暂无活动信息</text>
-    </view>
-  </view>
-
-  <!-- 社区动态 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">社区动态</text>
-      <view class="section-header-right">
-        <text class="section-count" wx:if="{{communityPosts.length > 0}}">{{communityPosts.length}}条</text>
-        <navigator url="/pages/communityPostList/communityPostList" class="more-link" wx:if="{{communityPosts.length > 3}}">查看更多</navigator>
-      </view>
-    </view>
-    <view class="community-list" wx:if="{{displayCommunityPosts.length > 0}}">
-      <view class="community-item card card-hover" wx:for="{{displayCommunityPosts}}" wx:key="id">
-        <image src="{{item.avatar}}" class="user-avatar" mode="aspectFill"></image>
-        <view class="post-content">
-          <view class="post-header">
-            <text class="user-name">{{item.userName}}</text>
-            <text class="post-time">{{item.time}}</text>
-          </view>
-          <text class="post-text">{{item.content}}</text>
-          <view wx:if="{{item.images.length > 0}}" class="post-images">
-            <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" 
-                   src="{{img}}" class="post-image" mode="aspectFill"></image>
-          </view>
-          <view class="post-footer">
-            
-            <button class="action-btn" bindtap="commentPost" data-item="{{item}}" catchtap="true">
-              
-              
-            </button>
-          </view>
-        </view>
-      </view>
-    </view>
-    <view wx:if="{{displayCommunityPosts.length === 0 && !loading}}" class="empty">
-      <text class="empty-text">暂无社区动态</text>
     </view>
   </view>
 

@@ -16,10 +16,6 @@
         <text class="stat-label">我的收藏</text>
       </view>
       <view class="stat-item">
-        <text class="stat-number">{{userStats.creations}}</text>
-        <text class="stat-label">我的创作</text>
-      </view>
-      <view class="stat-item">
         <text class="stat-number">{{userStats.bookings}}</text>
         <text class="stat-label">预约体验</text>
       </view>
@@ -44,27 +40,6 @@
           <text class="collection-desc">{{item.description || item.heritageDescription}}</text>
         </view>
         
-      </view>
-    </view>
-  </view>
-
-  <!-- 我的创作 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">我的创作</text>
-      <text class="more-link" bindtap="viewAllCreations" wx:if="{{creations.length > 4}}">查看全部</text>
-    </view>
-    <view class="creation-grid">
-      <view class="creation-item" wx:for="{{displayCreations}}" wx:key="id">
-        <image src="{{item.image}}" class="creation-image" mode="aspectFill" bindtap="onCreationTap" data-item="{{item}}"></image>
-        <view class="creation-overlay">
-          <text class="creation-title">{{item.title}}</text>
-        </view>
-        <view class="creation-delete-btn" catchtap="deleteCreation" data-item="{{item}}">×</view>
-      </view>
-      <view class="add-creation" bindtap="addCreation">
-        <text class="add-icon">+</text>
-        <text class="add-text">添加创作</text>
       </view>
     </view>
   </view>
@@ -133,39 +108,4 @@
     </view>
   </view>
 
-  <!-- 发布帖子弹窗 -->
-  <view class="modal-overlay" wx:if="{{showPostModal}}" bindtap="closePostModal">
-    <view class="modal-content post-modal-content" catchtap="stopPropagation">
-      <view class="modal-header">
-        <text class="modal-title">发布帖子</text>
-        <text class="modal-close" bindtap="closePostModal">×</text>
-      </view>
-      
-      <view class="modal-body">
-        <!-- 帖子内容 -->
-        <view class="form-item">
-          <textarea class="form-textarea post-textarea" placeholder="分享你的非遗体验和创作..." value="{{postForm.content}}" bindinput="onPostContentInput" maxlength="500"></textarea>
-        </view>
-        
-        <!-- 图片选择 -->
-        <view class="form-item">
-          <view class="post-images-container">
-            <view class="post-image-item" wx:for="{{postForm.images}}" wx:key="*this" wx:for-item="img">
-              <image src="{{img}}" class="post-image-preview" mode="aspectFill"></image>
-              <view class="post-image-delete" bindtap="removePostImage" data-index="{{index}}">×</view>
-            </view>
-            <view class="post-image-add" wx:if="{{postForm.images.length < 9}}" bindtap="choosePostImages">
-              <text class="add-image-icon">+</text>
-              <text class="add-image-text">添加图片</text>
-            </view>
-          </view>
-        </view>
-      </view>
-      
-      <view class="modal-footer">
-        <button class="btn-cancel" bindtap="closePostModal">取消</button>
-        <button class="btn-confirm" bindtap="publishPost">发布</button>
-      </view>
-    </view>
-  </view>
 </view>

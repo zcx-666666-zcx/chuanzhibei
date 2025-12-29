@@ -18,10 +18,8 @@
     "pages/masterList/masterList",
     "pages/skillVideoList/skillVideoList",
     "pages/activityList/activityList",
-    "pages/communityPostList/communityPostList",
     "pages/ARProjectList/ARProjectList",
     "pages/collectionList/collectionList",
-    "pages/creationList/creationList",
     "pages/bookingList/bookingList"
   ],
   "window": {

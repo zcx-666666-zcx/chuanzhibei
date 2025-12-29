@@ -11,13 +11,10 @@ Page({
     },
     userStats: {
       collections: 0,
-      creations: 0,
       bookings: 0
     },
     collections: [],
     displayCollections: [], // 首页显示的收藏列表（只显示前几条）
-    creations: [],
-    displayCreations: [], // 首页显示的创作列表（只显示前几条）
     bookings: [],
     loading: true,
     showEditModal: false,
@@ -25,11 +22,6 @@ Page({
       name: '',
       signature: '',
       avatar: ''
-    },
-    showPostModal: false,
-    postForm: {
-      content: '',
-      images: []
     }
   },
 
@@ -58,7 +50,6 @@ Page({
     }
     
     this.loadCollections();
-    this.loadCreations();
     this.loadBookings();
   },
 
@@ -89,7 +80,6 @@ Page({
     
     // 刷新所有数据
     this.loadCollections();
-    this.loadCreations();
     this.loadBookings();
   },
   
@@ -182,99 +172,6 @@ Page({
     });
   },
 
-  
-  // 加载创作数据（从社区动态中加载用户发布的帖子）
-  loadCreations: function() {
-    // 检查登录状态
-    if (!isLoggedIn()) {
-      this.setData({
-        creations: [],
-        displayCreations: [],
-        'userStats.creations': 0
-      });
-      return;
-    }
-    
-    const user = getCurrentUser();
-    if (!user) {
-      this.setData({
-        creations: [],
-        displayCreations: [],
-        'userStats.creations': 0
-      });
-      return;
-    }
-    
-    const userId = user.id || user.userId;
-    if (!userId) {
-      this.setData({
-        creations: [],
-        displayCreations: [],
-        'userStats.creations': 0
-      });
-      return;
-    }
-    
-    // 从后端API加载用户的社区帖子
-    request({
-      url: `/community/posts/${userId}`
-    }).then(res => {
-      if (!res.success) {
-        throw new Error(res.message || '获取创作失败');
-      }
-      
-      const list = res.data || [];
-      
-      // 处理创作数据，转换为创作格式
-      const creations = list.map(item => {
-        // 处理图片
-        let images = [];
-        if (item.imageUrls) {
-          const urlList = typeof item.imageUrls === 'string' ? item.imageUrls.split(',') : item.imageUrls;
-          images = urlList.map(url => {
-            const trimmedUrl = url.trim();
-            return trimmedUrl.startsWith('http') ? trimmedUrl : 'http://localhost:8001' + trimmedUrl;
-          }).filter(url => url);
-        }
-        
-        // 处理头像
-        let avatar = item.userAvatar || '';
-        if (avatar && !avatar.startsWith('http')) {
-          avatar = 'http://localhost:8001' + avatar;
-        }
-        
-        return {
-          id: item.id,
-          title: (item.content || '').substring(0, 30) + ((item.content || '').length > 30 ? '...' : ''),
-          content: item.content || '',
-          image: images.length > 0 ? images[0] : '',
-          images: images,
-          likesCount: item.likesCount || 0,
-          commentsCount: item.commentsCount || 0,
-          isLiked: item.isLiked || false,
-          createTime: item.createTime,
-          userName: item.userName || user.username || user.nickname || '我',
-          userAvatar: avatar
-        };
-      });
-      
-      // 首页只显示前4条创作
-      const displayCreations = creations.slice(0, 4);
-      
-      this.setData({
-        creations: creations,
-        displayCreations: displayCreations,
-        'userStats.creations': creations.length
-      });
-    }).catch(err => {
-      console.error('获取创作失败:', err);
-      this.setData({
-        creations: [],
-        displayCreations: [],
-        'userStats.creations': 0
-      });
-    });
-  },
 
   // 加载预约数据
   loadBookings: function() {
@@ -718,136 +615,6 @@ Page({
     });
   },
 
-  // 创作点击
-  onCreationTap: function(e) {
-    const item = e.currentTarget.dataset.item;
-    // 跳转到社区动态列表页面
-    wx.navigateTo({
-      url: '/pages/communityPostList/communityPostList'
-    });
-  },
-
-  // 删除创作
-  deleteCreation: function(e) {
-    // 阻止事件冒泡
-    e.stopPropagation && e.stopPropagation();
-    
-    const item = e.currentTarget.dataset.item;
-    console.log('删除创作，item:', item);
-    
-    if (!item || !item.id) {
-      console.error('删除创作失败：item或id不存在', item);
-      wx.showToast({
-        title: '创作信息不完整',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    const that = this;
-    const postId = item.id;
-    
-    wx.showModal({
-      title: '删除创作',
-      content: '确定要删除这条创作吗？',
-      showCancel: true,
-      cancelText: '取消',
-      confirmText: '删除',
-      success: (res) => {
-        if (res.confirm) {
-          const user = getCurrentUser();
-          if (!user) {
-            wx.showToast({
-              title: '请先登录',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          const userId = user.id || user.userId;
-          if (!userId) {
-            wx.showToast({
-              title: '无法获取用户信息',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          // 显示加载提示
-          wx.showLoading({
-            title: '删除中...',
-            mask: true
-          });
-          
-          // 调用后端接口删除帖子
-          request({
-            url: `/community/posts/${postId}?userId=${userId}`,
-            method: 'DELETE'
-          }).then(response => {
-            wx.hideLoading();
-            
-            console.log('删除响应:', response);
-            
-            if (response && response.success) {
-              // 重新加载创作列表
-              that.loadCreations();
-              
-              wx.showToast({
-                title: '删除成功',
-                icon: 'success',
-                duration: 2000
-              });
-            } else {
-              wx.showToast({
-                title: response?.message || '删除失败',
-                icon: 'none',
-                duration: 2000
-              });
-            }
-          }).catch(err => {
-            wx.hideLoading();
-            console.error('删除创作失败:', err);
-            wx.showToast({
-              title: '删除失败，请重试',
-              icon: 'none',
-              duration: 2000
-            });
-          });
-        }
-      }
-    });
-  },
-
-  // 添加创作（发布帖子到社区动态）
-  addCreation: function() {
-    // 检查登录状态
-    if (!isLoggedIn()) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
-    }
-    
-    // 显示发布帖子弹窗
-    this.setData({
-      showPostModal: true,
-      postForm: {
-        content: '',
-        images: []
-      }
-    });
-  },
 
   // 取消预约
   cancelBooking: function(e) {
@@ -946,32 +713,6 @@ Page({
     });
   },
 
-  // 查看全部创作
-  viewAllCreations: function() {
-    // 检查登录状态
-    if (!isLoggedIn()) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
-    }
-    
-    // 跳转到创作列表页面
-    wx.navigateTo({
-      url: '/pages/creationList/creationList'
-    });
-  },
 
   // 查看全部预约
   viewAllBookings: function() {
@@ -1060,7 +801,6 @@ Page({
     
     // 重新加载数据
     this.loadCollections();
-    this.loadCreations();
     this.loadBookings();
     
     setTimeout(() => {
@@ -1072,198 +812,4 @@ Page({
     }, 1000);
   },
 
-  // 关闭发布帖子弹窗
-  closePostModal: function() {
-    this.setData({
-      showPostModal: false,
-      postForm: {
-        content: '',
-        images: []
-      }
-    });
-  },
-
-  // 帖子内容输入
-  onPostContentInput: function(e) {
-    this.setData({
-      'postForm.content': e.detail.value
-    });
-  },
-
-  // 选择帖子图片
-  choosePostImages: function() {
-    const that = this;
-    const maxCount = 9 - this.data.postForm.images.length;
-    
-    wx.chooseImage({
-      count: maxCount,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: function(res) {
-        const tempFilePaths = res.tempFilePaths;
-        const currentImages = that.data.postForm.images || [];
-        
-        // 上传所有选中的图片
-        let uploadPromises = tempFilePaths.map(tempFilePath => {
-          return new Promise((resolve, reject) => {
-            wx.uploadFile({
-              url: 'http://localhost:8001/api/files/upload-image',
-              filePath: tempFilePath,
-              name: 'file',
-              formData: {
-                'type': 'post'
-              },
-              success: function(uploadRes) {
-                try {
-                  let data;
-                  if (typeof uploadRes.data === 'string') {
-                    data = JSON.parse(uploadRes.data);
-                  } else {
-                    data = uploadRes.data;
-                  }
-                  
-                  if (data && data.success && data.data) {
-                    let imageUrl = data.data.url || data.data;
-                    if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = 'http://localhost:8001' + imageUrl;
-                    }
-                    resolve(imageUrl);
-                  } else {
-                    reject(new Error(data?.message || data?.error || '上传失败'));
-                  }
-                } catch (e) {
-                  reject(e);
-                }
-              },
-              fail: function(err) {
-                reject(err);
-              }
-            });
-          });
-        });
-        
-        // 等待所有图片上传完成
-        Promise.all(uploadPromises).then(imageUrls => {
-          const newImages = [...currentImages, ...imageUrls];
-          that.setData({
-            'postForm.images': newImages
-          });
-          wx.showToast({
-            title: '图片上传成功',
-            icon: 'success'
-          });
-        }).catch(err => {
-          console.error('上传图片失败:', err);
-          wx.showToast({
-            title: '部分图片上传失败',
-            icon: 'none'
-          });
-        });
-      },
-      fail: function(err) {
-        console.error('选择图片失败:', err);
-        wx.showToast({
-          title: '选择图片失败',
-          icon: 'none'
-        });
-      }
-    });
-  },
-
-  // 移除帖子图片
-  removePostImage: function(e) {
-    const index = e.currentTarget.dataset.index;
-    const images = this.data.postForm.images || [];
-    images.splice(index, 1);
-    this.setData({
-      'postForm.images': images
-    });
-  },
-
-  // 发布帖子
-  publishPost: function() {
-    const user = getCurrentUser();
-    if (!user) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    const userId = user.id || user.userId;
-    if (!userId) {
-      wx.showToast({
-        title: '无法获取用户信息',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    const postForm = this.data.postForm;
-    const content = (postForm.content || '').trim();
-    
-    if (!content) {
-      wx.showToast({
-        title: '请输入帖子内容',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    // 准备发布数据
-    const postData = {
-      userId: userId,
-      userName: user.nickname || user.nickName || user.username || user.name || '用户',
-      userAvatar: user.avatarUrl || user.avatar || '',
-      content: content,
-      imageUrls: postForm.images ? postForm.images.join(',') : ''
-    };
-    
-    // 显示加载提示
-    wx.showLoading({
-      title: '发布中...',
-      mask: true
-    });
-    
-    // 调用后端API发布帖子
-    request({
-      url: '/community/posts',
-      method: 'POST',
-      data: postData
-    }).then(res => {
-      wx.hideLoading();
-      
-      if (res.success) {
-        wx.showToast({
-          title: '发布成功',
-          icon: 'success'
-        });
-        
-        // 关闭弹窗并重置表单
-        this.setData({
-          showPostModal: false,
-          postForm: {
-            content: '',
-            images: []
-          }
-        });
-        
-        // 重新加载创作列表
-        this.loadCreations();
-      } else {
-        wx.showToast({
-          title: res.message || '发布失败',
-          icon: 'none'
-        });
-      }
-    }).catch(err => {
-      wx.hideLoading();
-      console.error('发布帖子失败:', err);
-      wx.showToast({
-        title: '发布失败，请重试',
-        icon: 'none'
-      });
-    });
-  }
 })

@@ -22,38 +22,7 @@ Page({
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     newsList: [],
     displayNewsList: [], // 首页显示的新闻列表（只显示3条）
-    bannerList: [
-      {
-        id: 1,
-        title: '2024年全国非遗文化节',
-        description: '传承经典，弘扬中华文化',
-        image: buildStaticUrl('/uploads/banners_index/banner_1.jpg')
-      },
-      {
-        id: 2,
-        title: '陶瓷技艺入选世界非遗名录',
-        description: '景德镇陶瓷烧制技艺列入人类非遗代表作名录',
-        image: buildStaticUrl('/uploads/banners_index/banner_2.jpg')
-      },
-      {
-        id: 3,
-        title: '剪纸艺术进校园活动',
-        description: '全国范围内开展剪纸艺术进校园系列活动',
-        image: buildStaticUrl('/uploads/banners_index/banner_3.png')
-      },
-      {
-        id: 4,
-        title: '传统工艺创新大赛',
-        description: '展现新时代工匠精神',
-        image: buildStaticUrl('/uploads/banners_index/banner_4.jpg')
-      },
-      {
-        id: 5,
-        title: '非遗文化宣传周',
-        description: '让更多人了解和热爱传统文化',
-        image: buildStaticUrl('/uploads/banners_index/banner_5.jpg')
-      }
-    ],
+    bannerList: [],
     logoUrl: buildStaticUrl('/uploads/login-bg.png.png'),
     fallbackImage: DEFAULT_IMAGE_DATA_URI,
     // 推荐非遗项目列表（从后端获取）
@@ -91,6 +60,7 @@ Page({
 
   onLoad: function () {
     // 加载新闻数据与推荐非遗项目
+    this.loadBannerData();
     this.loadNewsData();
     this.loadRecommendHeritage();
     
@@ -120,6 +90,35 @@ Page({
         }
       })
     }
+  },
+
+  // 加载首页轮播图数据（从 banner 表获取）
+  loadBannerData: function() {
+    request({
+      url: '/banners'
+    }).then(res => {
+      if (!res.success) {
+        throw new Error(res.message || '获取轮播图失败');
+      }
+
+      const list = Array.isArray(res.data) ? res.data : [];
+      const bannerList = list.map(b => ({
+        id: b.id,
+        title: b.title,
+        description: b.description,
+        image: b.imageUrl
+          ? (b.imageUrl.startsWith('http') ? b.imageUrl : buildStaticUrl(b.imageUrl))
+          : ''
+      }));
+
+      this.setData({ bannerList });
+    }).catch(err => {
+      console.error('获取轮播图失败:', err);
+      wx.showToast({
+        title: '加载轮播图失败',
+        icon: 'none'
+      });
+    });
   },
 
   getUserInfo: function (e) {
@@ -199,28 +198,12 @@ Page({
         };
       });
       
-      // 更新轮播图数据：沿用原有图片，只同步标题与描述，并保证 ID 与新闻匹配
-      const originalBannerList = this.data.bannerList;
-      // 注意：如果新闻列表接口返回空（或字段结构不匹配导致 normalizeList 结果为空），
-      // 直接用 newsList.slice(...).map(...) 会把 bannerList 覆盖成空数组，从而导致 swiper 不显示。
-      // 这里以原始 banner 的长度为准，按 index 尝试从新闻里补充 title/description/id。
-      const bannerList = (originalBannerList || []).map((origBanner, index) => {
-        const news = newsList[index];
-        return {
-          id: news?.id ?? origBanner.id,
-          title: news?.title ?? origBanner.title,
-          description: news?.description ?? origBanner.description,
-          image: origBanner.image || buildStaticUrl(`/uploads/banners_index/banner_${index + 1}.jpg`)
-        };
-      });
-      
       // 首页只显示前3条新闻
       const displayNewsList = newsList.slice(0, 3);
       
       this.setData({
         newsList,
         displayNewsList,
-        bannerList,
         loading: false
       });
     }).catch(err => {
@@ -328,9 +311,8 @@ Page({
   onBannerTap: function(e) {
     const item = e.currentTarget.dataset.item
     console.log('点击轮播图:', item)
-    wx.navigateTo({
-      url: `/pages/newsDetail/newsDetail?id=${item.id}`
-    })
+    // banner 表目前只有 title/description/imageUrl，没有关联跳转字段
+    // 这里先不做页面跳转，避免跳到错误详情页。
   },
 
   // 跳转到AR体验页面

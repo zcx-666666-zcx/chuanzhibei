@@ -25,7 +25,7 @@ public class HeritageController {
         return ResponseEntity.ok(Result.success(heritages));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<Result<Heritage>> getHeritageById(@PathVariable Long id) {
         Heritage heritage = heritageService.getHeritageById(id);
         if (heritage != null) {

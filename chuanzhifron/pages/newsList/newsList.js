@@ -1,20 +1,25 @@
 // pages/newsList/newsList.js
 import { request } from '../../utils/util.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
     newsList: [],
-    loading: true
+    loading: true,
+    keyword: ''
   },
 
-  onLoad: function () {
-    this.loadNewsData();
+  onLoad: function (options) {
+    const keyword = (options.keyword || '').trim();
+    this.setData({ keyword });
+    this.loadNewsData(keyword);
   },
 
   // 加载新闻数据
-  loadNewsData: function() {
+  loadNewsData: function(keyword = '') {
+    const url = keyword ? `/news/search?keyword=${encodeURIComponent(keyword)}` : '/news/recent';
     request({
-      url: '/news/recent'
+      url
     }).then(res => {
       // 与后端 Result<T> 结构对齐：{ success, message, data }
       if (!res.success) {
@@ -31,9 +36,9 @@ Page({
           const first = item.imageUrls.split(',')[0].trim();
           image = first.startsWith('http')
             ? first
-            : 'http://localhost:8001' + first;
+            : buildStaticUrl(first);
         } else if (item.id != null) {
-          image = `http://localhost:8001/uploads/news_index/news_${item.id}.jpg`;
+          image = buildStaticUrl(`/uploads/news_index/news_${item.id}.jpg`);
         }
 
         // 处理发布日期，转换为字符串，供界面展示

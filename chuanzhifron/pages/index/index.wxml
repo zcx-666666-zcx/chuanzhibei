@@ -4,7 +4,7 @@
   <view class="header">
     <view class="header-content">
       <view class="logo">
-        <image src="http://localhost:8001/uploads/login-bg.png.png" class="logo-img"></image>
+        <image src="{{logoUrl}}" class="logo-img" binderror="onLogoError"></image>
         <text class="logo-text">非遗传承</text>
       </view>
       <view class="header-icons">
@@ -24,7 +24,7 @@
     <swiper indicator-dots="{{true}}" autoplay="{{true}}" interval="5000" duration="1000" class="swiper" circular="{{true}}">
       <block wx:for="{{bannerList}}" wx:key="id">
         <swiper-item bindtap="onBannerTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="swiper-img" mode="aspectFill"></image>
+          <image src="{{item.image}}" class="swiper-img" mode="aspectFill" binderror="onBannerImageError" data-index="{{index}}"></image>
           <view class="swiper-text">
             <text class="swiper-title">{{item.title}}</text>
             <text class="swiper-desc">{{item.description}}</text>
@@ -41,7 +41,7 @@
       </view>
       <view class="news-list">
         <view class="news-card card card-hover" wx:for="{{displayNewsList}}" wx:key="id" bindtap="onNewsTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="news-img" mode="aspectFill"></image>
+          <image src="{{item.image}}" class="news-img" mode="aspectFill" binderror="onNewsImageError" data-index="{{index}}"></image>
           <view class="news-content">
             <text class="news-title">{{item.title}}</text>
             <text class="news-desc">{{item.description}}</text>
@@ -60,7 +60,7 @@
       </view>
       <view class="recommend-grid">
         <view class="recommend-item" wx:for="{{recommendList}}" wx:key="id" bindtap="onRecommendTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="recommend-img" mode="aspectFill"></image>
+          <image src="{{item.image}}" class="recommend-img" mode="aspectFill" binderror="onRecommendImageError" data-index="{{index}}"></image>
           <text class="recommend-text">{{item.name}}</text>
         </view>
       </view>

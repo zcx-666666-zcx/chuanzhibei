@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/users")
@@ -55,14 +57,8 @@ public class UserController {
                 // 删除旧头像文件（如果存在且不是默认头像）
                 if (oldAvatarUrl != null && !oldAvatarUrl.isEmpty() && !oldAvatarUrl.equals(newAvatarUrl)) {
                     try {
-                        // 从URL中提取文件路径
-                        String filePath = oldAvatarUrl;
-                        if (filePath.startsWith("http://localhost:8001")) {
-                            filePath = filePath.substring("http://localhost:8001".length());
-                        } else if (filePath.startsWith("http://")) {
-                            // 如果是其他域名，跳过删除
-                            filePath = null;
-                        }
+                        // 从 URL 或相对路径中提取资源路径，避免依赖固定域名/端口
+                        String filePath = extractPath(oldAvatarUrl);
                         
                         // 检查是否是avatars目录下的文件
                         if (filePath != null && filePath.startsWith("/uploads/avatars/")) {
@@ -76,10 +72,9 @@ public class UserController {
                                 System.out.println("已删除旧头像文件: " + oldFilePath);
                             }
                         }
-                    } catch (Exception e) {
+                    } catch (IOException e) {
                         // 删除失败不影响更新操作，只记录日志
                         System.err.println("删除旧头像文件失败: " + e.getMessage());
-                        e.printStackTrace();
                     }
                 }
                 
@@ -139,6 +134,21 @@ public class UserController {
         } else {
             return ResponseEntity.ok(Result.error("用户不存在"));
         }
+    }
+    
+    private String extractPath(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(value);
+            if (uri.isAbsolute()) {
+                return uri.getPath();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // value 可能是相对路径，继续按原值处理
+        }
+        return value.startsWith("/") ? value : "/" + value;
     }
     
 }

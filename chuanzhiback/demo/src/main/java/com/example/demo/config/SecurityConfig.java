@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,10 +13,15 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.cors.allowed-origin-patterns:*}")
+    private String allowedOriginPatterns;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,7 +48,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        List<String> originPatterns = Arrays.stream(allowedOriginPatterns.split(","))
+                .map(String::trim)
+                .filter(item -> !item.isEmpty())
+                .collect(Collectors.toList());
+        configuration.setAllowedOriginPatterns(originPatterns.isEmpty() ? Arrays.asList("*") : originPatterns);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

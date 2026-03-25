@@ -3,12 +3,11 @@ package com.example.demo.service;
 import com.example.demo.entity.News;
 import com.example.demo.repository.NewsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -18,22 +17,30 @@ public class NewsService {
     
     @Autowired
     private NewsRepository newsRepository;
+
+    @Value("${app.data.init-sample:false}")
+    private boolean initSampleData;
     
     /**
      * 初始化示例新闻数据
      */
     @PostConstruct
     public void initSampleNews() {
+        if (!initSampleData) {
+            System.out.println("跳过新闻示例数据初始化，使用数据库真实数据");
+            return;
+        }
+
         System.out.println("开始初始化新闻数据...");
         try {
             // 检查是否已有数据，如果有则删除
             long count = newsRepository.count();
             System.out.println("当前新闻数量: " + count);
-            
-            // 清空现有数据并重新插入示例数据（开发阶段这样做是为了确保数据一致性）
+
+            // 仅在数据为空时插入示例数据，避免覆盖真实业务数据
             if (count > 0) {
-                System.out.println("清空现有新闻数据...");
-                newsRepository.deleteAll();
+                System.out.println("新闻表已有数据，跳过示例数据写入");
+                return;
             }
             
             System.out.println("开始插入示例数据...");
@@ -98,7 +105,6 @@ public class NewsService {
             }
         } catch (Exception e) {
             System.err.println("初始化新闻数据时发生错误: " + e.getMessage());
-            e.printStackTrace();
         }
     }
     
@@ -133,7 +139,6 @@ public class NewsService {
                     .orElse(null);
         } catch (Exception e) {
             System.out.println("查找新闻时发生异常: " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }
@@ -149,7 +154,6 @@ public class NewsService {
             return newsList;
         } catch (Exception e) {
             System.out.println("获取所有新闻时发生异常: " + e.getMessage());
-            e.printStackTrace();
             return new ArrayList<>();
         }
     }
@@ -160,14 +164,31 @@ public class NewsService {
      * @return 匹配的新闻列表
      */
     public List<News> searchByKeyword(String keyword) {
-        // 简单实现，实际应该使用JPA查询
-        List<News> allNews = getAllNews();
-        List<News> result = new ArrayList<>();
-        for (News news : allNews) {
-            if (news.getTitle().contains(keyword) || news.getDescription().contains(keyword)) {
-                result.add(news);
-            }
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllNews();
         }
-        return result;
+        String normalized = keyword.trim();
+        try {
+            List<News> dbResult = newsRepository.findByKeyword(normalized);
+            if (dbResult != null && !dbResult.isEmpty()) {
+                return dbResult;
+            }
+        } catch (Exception ignored) {
+            // 回退到内存过滤，保证本地调试可用
+        }
+
+        List<News> allNews = getAllNews();
+        return allNews.stream()
+                .filter(news -> containsIgnoreCase(news.getTitle(), normalized)
+                        || containsIgnoreCase(news.getDescription(), normalized)
+                        || containsIgnoreCase(news.getContent(), normalized))
+                .collect(Collectors.toList());
+    }
+
+    private boolean containsIgnoreCase(String source, String keyword) {
+        if (source == null || keyword == null) {
+            return false;
+        }
+        return source.toLowerCase().contains(keyword.toLowerCase());
     }
 }

@@ -74,7 +74,7 @@
             bindtap="onARProjectTap" 
             data-item="{{item}}">
         <view class="ar-image-container">
-          <image src="{{item.coverImage || 'http://localhost:8001/uploads/photo_ARExperinece/deomphoto.jpg'}}" class="ar-image" mode="aspectFill"></image>
+          <image src="{{item.coverImage || defaultArImage}}" class="ar-image" mode="aspectFill"></image>
           <view wx:if="{{item.isHot}}" class="hot-badge">热门</view>
         </view>
         <view class="ar-content">
@@ -101,7 +101,7 @@
             wx:key="id" 
             wx:if="{{experienceRecords.length > 0}}">
         <view class="ar-image-container">
-          <image src="{{item.image || 'http://localhost:8001/uploads/photo_ARExperinece/deomphoto.jpg'}}" class="ar-image" mode="aspectFill"></image>
+          <image src="{{item.image || defaultArImage}}" class="ar-image" mode="aspectFill"></image>
         </view>
         <view class="ar-content">
           <text class="ar-title">{{item.name}}</text>

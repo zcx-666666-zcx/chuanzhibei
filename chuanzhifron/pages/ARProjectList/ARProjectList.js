@@ -1,10 +1,12 @@
 // pages/ARProjectList/ARProjectList.js
 import { request } from '../../utils/util.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
     arProjects: [],
-    loading: true
+    loading: true,
+    defaultArImage: buildStaticUrl('/uploads/photo_ARExperinece/deomphoto.jpg')
   },
 
   onLoad: function() {
@@ -25,10 +27,10 @@ Page({
         ...item,
         coverImage: item.coverImage && item.coverImage.startsWith('http') 
           ? item.coverImage 
-          : ('http://localhost:8001' + (item.coverImage || '')),
+          : buildStaticUrl(item.coverImage || '/uploads/photo_ARExperinece/deomphoto.jpg'),
         markerImage: item.markerImage && item.markerImage.startsWith('http') 
           ? item.markerImage 
-          : ('http://localhost:8001' + (item.markerImage || ''))
+          : buildStaticUrl(item.markerImage || '')
       }));
       this.setData({
         arProjects: processedList,

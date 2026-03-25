@@ -1,13 +1,15 @@
 // ARExperience.js
 import { request } from '../../utils/util.js'
 import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
     arProjects: [],
     displayArProjects: [], // 首页显示的AR项目列表（只显示4个）
     experienceRecords: [],
-    loading: true
+    loading: true,
+    defaultArImage: buildStaticUrl('/uploads/photo_ARExperinece/deomphoto.jpg')
   },
 
   onLoad: function() {
@@ -33,10 +35,10 @@ Page({
         ...item,
         coverImage: item.coverImage && item.coverImage.startsWith('http') 
           ? item.coverImage 
-          : ('http://localhost:8001' + (item.coverImage || '')),
+          : buildStaticUrl(item.coverImage || '/uploads/photo_ARExperinece/deomphoto.jpg'),
         markerImage: item.markerImage && item.markerImage.startsWith('http') 
           ? item.markerImage 
-          : ('http://localhost:8001' + (item.markerImage || ''))
+          : buildStaticUrl(item.markerImage || '')
       }));
       // 首页只显示前4个AR项目
       const displayArProjects = processedList.slice(0, 4);
@@ -96,7 +98,7 @@ Page({
             name: item.projectName,
             image: item.projectThumb && item.projectThumb.startsWith('http')
               ? item.projectThumb
-              : ('http://localhost:8001' + (item.projectThumb || '')),
+              : buildStaticUrl(item.projectThumb || '/uploads/photo_ARExperinece/deomphoto.jpg'),
             time: this.formatTime(item.startTime),
             duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
           }));
@@ -111,7 +113,7 @@ Page({
             name: item.projectName,
             image: item.projectThumb && item.projectThumb.startsWith('http')
               ? item.projectThumb
-              : ('http://localhost:8001' + (item.projectThumb || '')),
+              : buildStaticUrl(item.projectThumb || '/uploads/photo_ARExperinece/deomphoto.jpg'),
             time: this.formatTime(item.startTime),
             duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
           }));
@@ -125,7 +127,7 @@ Page({
           name: item.projectName,
           image: item.projectThumb && item.projectThumb.startsWith('http')
             ? item.projectThumb
-            : ('http://localhost:8001' + (item.projectThumb || '')),
+            : buildStaticUrl(item.projectThumb || '/uploads/photo_ARExperinece/deomphoto.jpg'),
           time: this.formatTime(item.startTime),
           duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
         }));

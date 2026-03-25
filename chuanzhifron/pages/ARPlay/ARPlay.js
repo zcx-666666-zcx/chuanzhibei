@@ -1,5 +1,6 @@
 import { request } from '../../utils/util.js'
 import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -32,13 +33,13 @@ Page({
         ...data,
         coverImage: data.coverImage && data.coverImage.startsWith('http') 
           ? data.coverImage 
-          : ('http://localhost:8001' + (data.coverImage || '')),
+          : buildStaticUrl(data.coverImage || ''),
         markerImage: data.markerImage && data.markerImage.startsWith('http') 
           ? data.markerImage 
-          : ('http://localhost:8001' + (data.markerImage || '')),
+          : buildStaticUrl(data.markerImage || ''),
         videoUrl: data.videoUrl && data.videoUrl.startsWith('http') 
           ? data.videoUrl 
-          : ('http://localhost:8001' + (data.videoUrl || ''))
+          : buildStaticUrl(data.videoUrl || '')
       };
       const instructionLines = (data.instruction || '').split('\n').filter(l => l.trim());
       this.setData({

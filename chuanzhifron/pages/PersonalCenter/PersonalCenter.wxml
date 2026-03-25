@@ -3,7 +3,7 @@
   <!-- 用户信息卡片 -->
   <view class="user-card" bindtap="onUserCardTap">
     <view class="user-header">
-      <image src="{{userInfo.avatar || 'http://localhost:8001/uploads/login-bg.png.png'}}" class="user-avatar" mode="aspectFill" binderror="onAvatarError"></image>
+      <image src="{{userInfo.avatar}}" class="user-avatar" mode="aspectFill" binderror="onAvatarError"></image>
       <view class="user-info">
         <text class="user-name">{{userInfo.name || '访客'}}</text>
         <text class="user-title">{{userInfo.title || '非遗文化爱好者'}}</text>
@@ -83,7 +83,7 @@
         <view class="form-item">
           <text class="form-label">头像</text>
           <view class="avatar-upload">
-            <image src="{{editForm.avatar || userInfo.avatar || 'http://localhost:8001/uploads/login-bg.png.png'}}" class="avatar-preview" mode="aspectFill"></image>
+            <image src="{{editForm.avatar || userInfo.avatar}}" class="avatar-preview" mode="aspectFill"></image>
             <button class="btn-upload" bindtap="chooseAvatar">选择头像</button>
           </view>
         </view>

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.Heritage;
@@ -16,6 +17,9 @@ public class HeritageService {
     
     @Autowired
     private HeritageRepository heritageRepository;
+
+    @Value("${app.data.init-sample:false}")
+    private boolean initSampleData;
     
     public List<Heritage> getAllHeritages() {
         return heritageRepository.findAll();
@@ -51,14 +55,19 @@ public class HeritageService {
      */
     @PostConstruct
     public void initSampleHeritages() {
+        if (!initSampleData) {
+            System.out.println("跳过 heritage 示例数据初始化，使用数据库真实数据");
+            return;
+        }
+
         try {
             long count = heritageRepository.count();
             System.out.println("当前 heritage 表记录数: " + count);
 
-            // 开发阶段：清空原数据，重新插入示例
+            // 仅在数据为空时写入示例，避免覆盖真实业务数据
             if (count > 0) {
-                System.out.println("清空现有 heritage 数据...");
-                heritageRepository.deleteAll();
+                System.out.println("heritage 表已有数据，跳过示例数据写入");
+                return;
             }
 
             List<Heritage> list = new ArrayList<>();
@@ -232,7 +241,6 @@ public class HeritageService {
             System.out.println("初始化 heritage 示例数据完成，数量: " + saved.size());
         } catch (Exception e) {
             System.err.println("初始化 heritage 示例数据时发生错误: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }

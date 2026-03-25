@@ -1,5 +1,6 @@
 // pages/register/register.js
 const { registerUser } = require('../../utils/auth.js');
+const { buildStaticUrl } = require('../../utils/config.js');
 
 Page({
   data: {
@@ -7,7 +8,7 @@ Page({
     password: '',
     confirmPassword: '',
     email: '',
-    logoUrl: 'http://localhost:8001/uploads/login-bg.png.png'
+    logoUrl: buildStaticUrl('/uploads/login-bg.png.png')
   },
 
   onUsernameInput: function(e) {

@@ -1,6 +1,7 @@
 // pages/collectionList/collectionList.js
 import { request } from '../../utils/util.js'
 import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -71,7 +72,7 @@ Page({
       const collections = list.map(item => {
         let imageUrl = item.imageUrl || '';
         if (imageUrl && !imageUrl.startsWith('http')) {
-          imageUrl = 'http://localhost:8001' + imageUrl;
+          imageUrl = buildStaticUrl(imageUrl);
         }
         
         return {

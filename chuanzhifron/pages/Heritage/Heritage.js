@@ -1,5 +1,6 @@
 // Heritage.js
 import { request } from '../../utils/util.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -35,7 +36,7 @@ Page({
         ...item,
         image: item.imageUrl && item.imageUrl.startsWith('http')
           ? item.imageUrl
-          : ('http://localhost:8001' + (item.imageUrl || '')),
+          : buildStaticUrl(item.imageUrl || ''),
         isBookmarked: false
       }));
       

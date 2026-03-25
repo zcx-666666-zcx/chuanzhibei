@@ -1,6 +1,7 @@
 // pages/provincialHeritageList/provincialHeritageList.js
 import { request } from '../../utils/util.js'
 import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -34,7 +35,7 @@ Page({
         ...item,
         image: item.imageUrl && item.imageUrl.startsWith('http')
           ? item.imageUrl
-          : ('http://localhost:8001' + (item.imageUrl || ''))
+          : buildStaticUrl(item.imageUrl || '')
       }));
       
       // 只获取省级项目（level === 2）

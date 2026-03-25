@@ -1,13 +1,14 @@
 // PersonalCenter.js
 import { request } from '../../utils/util.js'
 import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
+import { buildApiUrl, buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
     userInfo: {
       name: '访客',
       title: '非遗文化爱好者',
-      avatar: 'http://localhost:8001/uploads/login-bg.png.png'
+      avatar: buildStaticUrl('/uploads/login-bg.png.png')
     },
     userStats: {
       collections: 0,
@@ -29,7 +30,7 @@ Page({
     // 页面加载时的初始化
     // 检查用户登录状态
     const user = getCurrentUser();
-    const defaultAvatar = 'http://localhost:8001/uploads/login-bg.png.png';
+    const defaultAvatar = buildStaticUrl('/uploads/login-bg.png.png');
     
     if (user) {
       // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
@@ -56,7 +57,7 @@ Page({
   onShow: function() {
     // 页面显示时刷新用户信息，确保显示最新的用户名
     const user = getCurrentUser();
-    const defaultAvatar = 'http://localhost:8001/uploads/login-bg.png.png';
+    const defaultAvatar = buildStaticUrl('/uploads/login-bg.png.png');
     
     if (user) {
       // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
@@ -133,7 +134,7 @@ Page({
       const collections = list.map(item => {
         let imageUrl = item.imageUrl || '';
         if (imageUrl && !imageUrl.startsWith('http')) {
-          imageUrl = 'http://localhost:8001' + imageUrl;
+          imageUrl = buildStaticUrl(imageUrl);
         }
         
         return {
@@ -277,7 +278,7 @@ Page({
 
   // 头像加载失败时使用默认头像
   onAvatarError: function(e) {
-    const defaultAvatar = 'http://localhost:8001/uploads/login-bg.png.png';
+    const defaultAvatar = buildStaticUrl('/uploads/login-bg.png.png');
     this.setData({
       'userInfo.avatar': defaultAvatar
     });
@@ -362,7 +363,7 @@ Page({
         
         // 上传图片到服务器
         wx.uploadFile({
-          url: 'http://localhost:8001/api/files/upload-image',
+          url: buildApiUrl('/files/upload-image'),
           filePath: tempFilePath,
           name: 'file',
           formData: {
@@ -383,7 +384,7 @@ Page({
               if (data && data.success && data.data) {
                 let imageUrl = data.data.url || data.data;
                 if (imageUrl && !imageUrl.startsWith('http')) {
-                  imageUrl = 'http://localhost:8001' + imageUrl;
+                  imageUrl = buildStaticUrl(imageUrl);
                 }
                 that.setData({
                   'editForm.avatar': imageUrl
@@ -469,7 +470,7 @@ Page({
         
         // 更新页面显示 - 优先使用nickname（用户设置的昵称）
         const userName = updatedUser.nickname || updatedUser.nickName || updatedUser.username || updatedUser.name || '访客';
-        const userAvatar = updatedUser.avatarUrl || updatedUser.avatar || 'http://localhost:8001/uploads/login-bg.png.png';
+        const userAvatar = updatedUser.avatarUrl || updatedUser.avatar || buildStaticUrl('/uploads/login-bg.png.png');
         const userTitle = updatedUser.signature || '非遗文化爱好者';
         
         this.setData({
@@ -504,8 +505,15 @@ Page({
       itemList: ['编辑资料', '隐私设置', '通知设置'],
       success: (res) => {
         const actions = ['编辑资料', '隐私设置', '通知设置'];
+        if (res.tapIndex === 0) {
+          this.onUserCardTap();
+          return;
+        }
+        const key = res.tapIndex === 1 ? 'privacyEnabled' : 'notificationEnabled';
+        const enabled = wx.getStorageSync(key) !== false;
+        wx.setStorageSync(key, !enabled);
         wx.showToast({
-          title: `选择了：${actions[res.tapIndex]}`,
+          title: `${actions[res.tapIndex]}已${enabled ? '关闭' : '开启'}`,
           icon: 'none'
         });
       }
@@ -774,19 +782,38 @@ Page({
               }
             });
           } else {
-            wx.showModal({
-              title: menuMap[type],
-              content: `${['编辑资料', '隐私设置', '通知设置'][res.tapIndex]}功能开发中`,
-              showCancel: false,
-              confirmText: '知道了'
+            if (res.tapIndex === 0) {
+              this.onUserCardTap();
+              return;
+            }
+            const key = res.tapIndex === 1 ? 'privacyEnabled' : 'notificationEnabled';
+            const enabled = wx.getStorageSync(key) !== false;
+            wx.setStorageSync(key, !enabled);
+            wx.showToast({
+              title: `${['隐私设置', '通知设置'][res.tapIndex - 1]}已${enabled ? '关闭' : '开启'}`,
+              icon: 'none'
             });
           }
         }
       });
+    } else if (type === 'help') {
+      wx.showModal({
+        title: '帮助与反馈',
+        content: '本地调试建议：\n1. 先启动后端再打开小程序\n2. 登录后再进行收藏/预约操作\n3. 如遇网络异常请检查 apiBaseUrl 配置',
+        showCancel: false,
+        confirmText: '知道了'
+      });
+    } else if (type === 'about') {
+      wx.showModal({
+        title: '关于我们',
+        content: '非遗传承小程序（本地调试版）\n版本：v1.1.0-local\n技术栈：微信小程序 + Spring Boot',
+        showCancel: false,
+        confirmText: '知道了'
+      });
     } else {
       wx.showModal({
         title: menuMap[type],
-        content: `${menuMap[type]}功能开发中`,
+        content: '请点击头像卡片编辑个人资料',
         showCancel: false,
         confirmText: '知道了'
       });

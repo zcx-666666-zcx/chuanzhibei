@@ -1,5 +1,6 @@
 // pages/login/login.js
 import { loginToBackend, loginWithUsername } from '../../utils/auth.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -8,7 +9,7 @@ Page({
     password: '',
     canIUseGetUserProfile: false,
     tempLoginCode: '',
-    logoUrl: 'http://localhost:8001/uploads/login-bg.png.png' 
+    logoUrl: buildStaticUrl('/uploads/login-bg.png.png')
   },
 
   onLoad: function () {

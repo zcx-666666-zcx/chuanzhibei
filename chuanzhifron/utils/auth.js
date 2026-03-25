@@ -1,6 +1,7 @@
 /**
  * 用户认证工具函数
  */
+const { request } = require('./util')
 
 /**
  * 微信登录
@@ -28,22 +29,18 @@ const wxLogin = () => {
  * @param {Object} loginData 登录数据
  */
 const loginWithUsername = (loginData) => {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: 'http://localhost:8001/api/auth/login',
+  return request({
+      url: '/auth/login',
       method: 'POST',
       data: {
         username: loginData.username,
         password: loginData.password
-      },
-      header: {
-        'content-type': 'application/json'
-      },
-      success(res) {
-        if (res.statusCode === 200 && res.data.success) {
+      }
+    }).then(res => {
+        if (res.success) {
           // 存储token和用户信息
-          const token = res.data.data?.token || res.data.token;
-          const user = res.data.data?.user || res.data.user;
+          const token = res.data?.token || res.token;
+          const user = res.data?.user || res.user;
           
           console.log('登录成功，存储token:', token);
           console.log('登录成功，存储用户信息:', user);
@@ -55,16 +52,11 @@ const loginWithUsername = (loginData) => {
           if (user) {
             wx.setStorageSync('userInfo', user);
           }
-          resolve(res.data);
+          return res;
         } else {
-          reject(res.data);
+          throw res;
         }
-      },
-      fail(err) {
-        reject(err);
-      }
-    });
-  });
+      })
 };
 
 /**
@@ -72,9 +64,8 @@ const loginWithUsername = (loginData) => {
  * @param {Object} userInfo 用户信息
  */
 const loginToBackend = (userInfo) => {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: 'http://localhost:8001/api/auth/login',
+  return request({
+      url: '/auth/login',
       method: 'POST',
       data: {
         openid: userInfo.openid || '',
@@ -85,15 +76,12 @@ const loginToBackend = (userInfo) => {
         province: userInfo.province || '',
         city: userInfo.city || '',
         language: userInfo.language || ''
-      },
-      header: {
-        'content-type': 'application/json'
-      },
-      success(res) {
-        if (res.statusCode === 200 && res.data.success) {
+      }
+    }).then(res => {
+        if (res.success) {
           // 存储token和用户信息
-          const token = res.data.data?.token || res.data.token;
-          const user = res.data.data?.user || res.data.user;
+          const token = res.data?.token || res.token;
+          const user = res.data?.user || res.user;
           
           console.log('登录成功，存储token:', token);
           console.log('登录成功，存储用户信息:', user);
@@ -105,16 +93,11 @@ const loginToBackend = (userInfo) => {
           if (user) {
             wx.setStorageSync('userInfo', user);
           }
-          resolve(res.data);
+          return res;
         } else {
-          reject(res.data);
+          throw res;
         }
-      },
-      fail(err) {
-        reject(err);
-      }
-    });
-  });
+      })
 };
 
 /**
@@ -122,23 +105,19 @@ const loginToBackend = (userInfo) => {
  * @param {Object} registerData 注册数据
  */
 const registerUser = (registerData) => {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: 'http://localhost:8001/api/auth/register',
+  return request({
+      url: '/auth/register',
       method: 'POST',
       data: {
         username: registerData.username,
         password: registerData.password,
         email: registerData.email
-      },
-      header: {
-        'content-type': 'application/json'
-      },
-      success(res) {
-        if (res.statusCode === 200 && res.data.success) {
+      }
+    }).then(res => {
+        if (res.success) {
           // 存储token和用户信息
-          const token = res.data.data?.token || res.data.token;
-          const user = res.data.data?.user || res.data.user;
+          const token = res.data?.token || res.token;
+          const user = res.data?.user || res.user;
           
           console.log('登录成功，存储token:', token);
           console.log('登录成功，存储用户信息:', user);
@@ -150,16 +129,11 @@ const registerUser = (registerData) => {
           if (user) {
             wx.setStorageSync('userInfo', user);
           }
-          resolve(res.data);
+          return res;
         } else {
-          reject(res.data);
+          throw res;
         }
-      },
-      fail(err) {
-        reject(err);
-      }
-    });
-  });
+      })
 };
 
 /**

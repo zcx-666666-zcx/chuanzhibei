@@ -1,6 +1,7 @@
 // pages/masterList/masterList.js
 import { request } from '../../utils/util.js'
 import { getCurrentUser } from '../../utils/auth.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -37,11 +38,11 @@ Page({
           const imgUrl = item.avatar || item.imageUrl;
           avatar = imgUrl.startsWith('http')
             ? imgUrl
-            : 'http://localhost:8001' + imgUrl;
+            : buildStaticUrl(imgUrl);
         } else {
           const imageNames = ['master_jianzhi', 'master_jingjumei', 'master_jingtai', 'master_junci', 'master_suxiu'];
           const imgName = imageNames[index % imageNames.length];
-          avatar = `http://localhost:8001/uploads/masters_InheritorCommunit/${imgName}.jpg`;
+          avatar = buildStaticUrl(`/uploads/masters_InheritorCommunit/${imgName}.jpg`);
         }
 
         return {
@@ -117,7 +118,7 @@ Page({
 
   // 获取默认传承人数据
   getDefaultMasters: function() {
-    const baseUrl = 'http://localhost:8001/uploads/masters_InheritorCommunit/';
+    const baseUrl = buildStaticUrl('/uploads/masters_InheritorCommunit/');
     return [
       {
         id: 1,

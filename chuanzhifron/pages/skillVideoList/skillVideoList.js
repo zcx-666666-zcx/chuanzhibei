@@ -1,5 +1,6 @@
 // pages/skillVideoList/skillVideoList.js
 import { request } from '../../utils/util.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -24,7 +25,7 @@ Page({
         ...item,
         thumbnail: item.thumbnail && item.thumbnail.startsWith('http')
           ? item.thumbnail
-          : ('http://localhost:8001' + (item.thumbnail || '')),
+          : buildStaticUrl(item.thumbnail || ''),
         views: item.views ? (item.views >= 10000 ? (item.views / 10000).toFixed(1) + '万' : item.views) : '0'
       }));
       
@@ -59,7 +60,7 @@ Page({
         id: 1,
         title: '苏绣技艺展示',
         description: '国家级传承人姚建萍展示苏绣的精湛技艺和独特魅力，详细介绍平针、套针等传统针法',
-        thumbnail: 'http://localhost:8001/uploads/masters_InheritorCommunit/master_suxiu.jpg',
+        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_suxiu.jpg'),
         duration: '15:30',
         date: '2024-05-15',
         views: '3.2万'
@@ -68,7 +69,7 @@ Page({
         id: 2,
         title: '景泰蓝制作工艺',
         description: '工艺美术大师张同禄现场演示景泰蓝的掐丝、点蓝、烧制等关键工艺流程',
-        thumbnail: 'http://localhost:8001/uploads/masters_InheritorCommunit/master_jingtai.jpg',
+        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_jingtai.jpg'),
         duration: '18:45',
         date: '2024-05-12',
         views: '2.8万'
@@ -77,7 +78,7 @@ Page({
         id: 3,
         title: '剪纸艺术创作',
         description: '传承人高凤莲展示传统剪纸技法，从设计到剪裁，展现剪纸艺术的精妙',
-        thumbnail: 'http://localhost:8001/uploads/masters_InheritorCommunit/master_jianzhi.jpg',
+        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_jianzhi.jpg'),
         duration: '12:20',
         date: '2024-05-10',
         views: '1.9万'
@@ -86,7 +87,7 @@ Page({
         id: 4,
         title: '京剧身段表演',
         description: '梅派传人展示京剧表演的身段、唱腔和舞台艺术，传承经典剧目',
-        thumbnail: 'http://localhost:8001/uploads/masters_InheritorCommunit/master_jingjumei.jpg',
+        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_jingjumei.jpg'),
         duration: '20:15',
         date: '2024-05-08',
         views: '4.5万'
@@ -95,7 +96,7 @@ Page({
         id: 5,
         title: '钧瓷烧制技艺',
         description: '钧瓷烧制技艺传承人展示传统钧瓷工艺，包括选料、成型、施釉、烧制等完整流程',
-        thumbnail: 'http://localhost:8001/uploads/masters_InheritorCommunit/master_junci.jpg',
+        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_junci.jpg'),
         duration: '22:30',
         date: '2024-05-05',
         views: '2.1万'

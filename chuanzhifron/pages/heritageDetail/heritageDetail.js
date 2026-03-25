@@ -1,5 +1,6 @@
 import { request } from '../../utils/util.js'
 import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
+import { buildStaticUrl } from '../../utils/config.js'
 
 Page({
   data: {
@@ -84,20 +85,20 @@ Page({
       if (data.imageUrl) {
         imageUrl = data.imageUrl.startsWith('http')
           ? data.imageUrl
-          : 'http://localhost:8001' + data.imageUrl
+          : buildStaticUrl(data.imageUrl)
       } else {
         // 按你的说明使用 heritage_index 中的图片，书法、中医药等可以根据名称简单映射
         const name = (data.name || '').trim()
         if (name.includes('书法')) {
-          imageUrl = 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg'
+          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_shufa.jpg')
         } else if (name.includes('刺绣')) {
-          imageUrl = 'http://localhost:8001/uploads/heritage_index/recommend_heritage_cixiu.jpg'
+          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_cixiu.jpg')
         } else if (name.includes('中医') || name.includes('中医药')) {
-          imageUrl = 'http://localhost:8001/uploads/heritage_index/recommend_heritage_zhongyiyao.jpg'
+          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_zhongyiyao.jpg')
         } else if (name.includes('武术')) {
-          imageUrl = 'http://localhost:8001/uploads/heritage_index/recommend_heritage_wushu.jpg'
+          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_wushu.jpg')
         } else {
-          imageUrl = 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg'
+          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_shufa.jpg')
         }
       }
 
@@ -178,11 +179,11 @@ Page({
     // 处理图片
     let imageUrl = collectionData.imageUrl || '';
     if (imageUrl && !imageUrl.startsWith('http')) {
-      imageUrl = 'http://localhost:8001' + imageUrl;
+      imageUrl = buildStaticUrl(imageUrl);
     }
     if (!imageUrl) {
       // 使用默认图片
-      imageUrl = 'http://localhost:8001/uploads/heritage_index/recommend_heritage_shufa.jpg';
+      imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_shufa.jpg');
     }
     
     // 处理描述

@@ -24,39 +24,48 @@ const formatNumber = n => {
   return n[1] ? n : `0${n}`
 }
 
+const { buildApiUrl } = require('./config')
+
 /**
  * 网络请求工具函数
  * @param {Object} options 请求参数
  * @returns {Promise} 返回Promise对象
  */
 const request = (options) => {
-  // 从本地存储获取token
-  const token = wx.getStorageSync('token');
-  
+  const token = wx.getStorageSync('token')
+  const timeout = options.timeout || 15000
+
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `http://localhost:8001/api${options.url}`,
+      url: buildApiUrl(options.url),
       method: options.method || 'GET',
       data: options.data || {},
+      timeout,
       header: {
         'content-type': 'application/json',
         'Authorization': token ? `Bearer ${token}` : '',
         ...options.header
       },
       success(res) {
-        if (res.statusCode === 200) {
-          // 直接返回完整的响应数据
-          resolve(res.data);
-        } else {
-          reject(new Error(`HTTP ${res.statusCode}: ${res.errMsg}`));
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(res.data)
+          return
         }
+
+        if (res.statusCode === 401) {
+          wx.removeStorageSync('token')
+          wx.removeStorageSync('userInfo')
+        }
+
+        const message = (res.data && (res.data.message || res.data.error)) || res.errMsg || '请求失败'
+        reject(new Error(`HTTP ${res.statusCode}: ${message}`))
       },
       fail(err) {
-        reject(new Error(`网络请求失败: ${err.errMsg}`));
+        reject(new Error(`网络请求失败: ${err.errMsg}`))
       }
-    });
-  });
-};
+    })
+  })
+}
 
 module.exports = {
   formatTime,

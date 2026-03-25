@@ -22,7 +22,7 @@ public class NewsController {
      * @param id 新闻ID
      * @return 新闻详情
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public Result<Map<String, Object>> getNewsDetail(@PathVariable Long id) {
         System.out.println("请求新闻详情，ID: " + id);
         
@@ -48,7 +48,6 @@ public class NewsController {
             return Result.success(newsDetail);
         } catch (Exception e) {
             System.err.println("获取新闻详情时发生错误: " + e.getMessage());
-            e.printStackTrace();
             return Result.error("获取新闻详情时发生错误: " + e.getMessage());
         }
     }
@@ -84,8 +83,39 @@ public class NewsController {
             return Result.success(result);
         } catch (Exception e) {
             System.err.println("获取新闻列表时发生错误: " + e.getMessage());
-            e.printStackTrace();
             return Result.error("获取新闻列表时发生错误: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 按关键词搜索新闻（标题/描述/正文）
+     *
+     * @param keyword 关键词
+     * @return 匹配新闻
+     */
+    @GetMapping("/search")
+    public Result<List<Map<String, Object>>> searchNews(@RequestParam("keyword") String keyword) {
+        try {
+            String normalizedKeyword = keyword == null ? "" : keyword.trim();
+            if (normalizedKeyword.isEmpty()) {
+                return getRecentNews();
+            }
+
+            List<News> newsList = newsService.searchByKeyword(normalizedKeyword);
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (News news : newsList) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", news.getId());
+                item.put("title", news.getTitle());
+                item.put("description", news.getDescription());
+                item.put("imageUrls", news.getImageUrls());
+                item.put("publishTime", news.getPublishTime());
+                item.put("author", news.getAuthor());
+                result.add(item);
+            }
+            return Result.success(result);
+        } catch (Exception e) {
+            return Result.error("搜索新闻失败: " + e.getMessage());
         }
     }
 }

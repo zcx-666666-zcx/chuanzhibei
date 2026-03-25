@@ -1,8 +1,20 @@
 // index.js
 const app = getApp()
-import { request } from '../../utils/util.js'
+// NOTE: utils/config.js 和 utils/util.js 使用的是 CommonJS 的 module.exports，
+// 在小程序端用 require 引入更稳，避免 import 的命名导出兼容性问题。
+const { request } = require('../../utils/util.js')
+const { buildStaticUrl, DEFAULT_IMAGE_DATA_URI } = require('../../utils/config.js')
 
 Page({
+  normalizeList(data) {
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && Array.isArray(data.list)) {
+      return data.list;
+    }
+    return [];
+  },
   data: {
     motto: '非遗传承 - 智慧生活',
     userInfo: {},
@@ -15,36 +27,66 @@ Page({
         id: 1,
         title: '2024年全国非遗文化节',
         description: '传承经典，弘扬中华文化',
-        image: 'http://localhost:8001/uploads/banners_index/banner_1.jpg'
+        image: buildStaticUrl('/uploads/banners_index/banner_1.jpg')
       },
       {
         id: 2,
         title: '陶瓷技艺入选世界非遗名录',
         description: '景德镇陶瓷烧制技艺列入人类非遗代表作名录',
-        image: 'http://localhost:8001/uploads/banners_index/banner_2.jpg'
+        image: buildStaticUrl('/uploads/banners_index/banner_2.jpg')
       },
       {
         id: 3,
         title: '剪纸艺术进校园活动',
         description: '全国范围内开展剪纸艺术进校园系列活动',
-        image: 'http://localhost:8001/uploads/banners_index/banner_3.png'
+        image: buildStaticUrl('/uploads/banners_index/banner_3.png')
       },
       {
         id: 4,
         title: '传统工艺创新大赛',
         description: '展现新时代工匠精神',
-        image: 'http://localhost:8001/uploads/banners_index/banner_4.jpg'
+        image: buildStaticUrl('/uploads/banners_index/banner_4.jpg')
       },
       {
         id: 5,
         title: '非遗文化宣传周',
         description: '让更多人了解和热爱传统文化',
-        image: 'http://localhost:8001/uploads/banners_index/banner_5.jpg'
+        image: buildStaticUrl('/uploads/banners_index/banner_5.jpg')
       }
     ],
+    logoUrl: buildStaticUrl('/uploads/login-bg.png.png'),
+    fallbackImage: DEFAULT_IMAGE_DATA_URI,
     // 推荐非遗项目列表（从后端获取）
     recommendList: [],
     loading: true
+  },
+
+  onLogoError() {
+    this.setData({ logoUrl: this.data.fallbackImage });
+  },
+
+  onBannerImageError(e) {
+    const index = e.currentTarget.dataset.index;
+    if (index === undefined) return;
+    this.setData({
+      [`bannerList[${index}].image`]: this.data.fallbackImage
+    });
+  },
+
+  onNewsImageError(e) {
+    const index = e.currentTarget.dataset.index;
+    if (index === undefined) return;
+    this.setData({
+      [`displayNewsList[${index}].image`]: this.data.fallbackImage
+    });
+  },
+
+  onRecommendImageError(e) {
+    const index = e.currentTarget.dataset.index;
+    if (index === undefined) return;
+    this.setData({
+      [`recommendList[${index}].image`]: this.data.fallbackImage
+    });
   },
 
   onLoad: function () {
@@ -91,10 +133,20 @@ Page({
 
   // 搜索功能
   onSearch: function() {
-    wx.showToast({
-      title: '搜索功能开发中',
-      icon: 'none'
-    })
+    wx.showModal({
+      title: '搜索新闻',
+      editable: true,
+      placeholderText: '输入关键词，例如：剪纸',
+      success: (res) => {
+        if (!res.confirm) {
+          return;
+        }
+        const keyword = (res.content || '').trim();
+        wx.navigateTo({
+          url: `/pages/newsList/newsList?keyword=${encodeURIComponent(keyword)}`
+        });
+      }
+    });
   },
   
   // 加载新闻数据
@@ -107,7 +159,7 @@ Page({
         throw new Error(res.message || '获取新闻失败');
       }
 
-      const list = res.data || [];
+      const list = this.normalizeList(res.data);
 
       // 处理新闻数据：补充图片与日期字段，并增加收藏状态
       const newsList = list.map(item => {
@@ -117,9 +169,9 @@ Page({
           const first = item.imageUrls.split(',')[0].trim();
           image = first.startsWith('http')
             ? first
-            : 'http://localhost:8001' + first;
+            : buildStaticUrl(first);
         } else if (item.id != null) {
-          image = `http://localhost:8001/uploads/news_index/news_${item.id}.jpg`;
+          image = buildStaticUrl(`/uploads/news_index/news_${item.id}.jpg`);
         }
 
         // 处理发布日期，转换为字符串，供界面展示
@@ -149,12 +201,18 @@ Page({
       
       // 更新轮播图数据：沿用原有图片，只同步标题与描述，并保证 ID 与新闻匹配
       const originalBannerList = this.data.bannerList;
-      const bannerList = newsList.slice(0, 5).map((news, index) => ({
-        id: news.id,
-        title: news.title,
-        description: news.description,
-        image: originalBannerList[index]?.image || `http://localhost:8001/uploads/banners_index/banner_${index + 1}.jpg`
-      }));
+      // 注意：如果新闻列表接口返回空（或字段结构不匹配导致 normalizeList 结果为空），
+      // 直接用 newsList.slice(...).map(...) 会把 bannerList 覆盖成空数组，从而导致 swiper 不显示。
+      // 这里以原始 banner 的长度为准，按 index 尝试从新闻里补充 title/description/id。
+      const bannerList = (originalBannerList || []).map((origBanner, index) => {
+        const news = newsList[index];
+        return {
+          id: news?.id ?? origBanner.id,
+          title: news?.title ?? origBanner.title,
+          description: news?.description ?? origBanner.description,
+          image: origBanner.image || buildStaticUrl(`/uploads/banners_index/banner_${index + 1}.jpg`)
+        };
+      });
       
       // 首页只显示前3条新闻
       const displayNewsList = newsList.slice(0, 3);
@@ -185,13 +243,13 @@ Page({
       if (!res.success) {
         throw new Error(res.message || '获取推荐非遗项目失败');
       }
-      const list = res.data || [];
+      const list = this.normalizeList(res.data);
       const recommendList = list.map(item => ({
         id: item.id,
         name: item.name,
         image: item.imageUrl && item.imageUrl.startsWith('http')
           ? item.imageUrl
-          : ('http://localhost:8001' + (item.imageUrl || '')),
+          : buildStaticUrl(item.imageUrl || ''),
         region: item.region,
         category: item.category,
         level: item.level
@@ -201,15 +259,50 @@ Page({
       });
     }).catch(err => {
       console.error('获取推荐非遗项目失败:', err);
+      // 后端推荐接口异常时，回退到全量接口，保障首页稳定
+      request({
+        url: '/heritage'
+      }).then(allRes => {
+        if (!allRes.success) {
+          return;
+        }
+        const fallbackList = this.normalizeList(allRes.data).slice(0, 4);
+        const recommendList = fallbackList.map(item => ({
+          id: item.id,
+          name: item.name,
+          image: item.imageUrl && item.imageUrl.startsWith('http')
+            ? item.imageUrl
+            : buildStaticUrl(item.imageUrl || ''),
+          region: item.region,
+          category: item.category,
+          level: item.level
+        }));
+        this.setData({ recommendList });
+      }).catch(() => {});
     });
   },
 
   // 通知功能
   onNotification: function() {
-    wx.showToast({
-      title: '通知功能开发中',
-      icon: 'none'
-    })
+    request({
+      url: '/home/notifications'
+    }).then(res => {
+      if (!res.success || !(res.data || []).length) {
+        wx.showToast({ title: '暂无新通知', icon: 'none' });
+        return;
+      }
+      const latest = res.data[0];
+      wx.showModal({
+        title: latest.title || '系统通知',
+        content: latest.content || '暂无内容',
+        showCancel: false
+      });
+    }).catch(() => {
+      wx.showToast({
+        title: '获取通知失败',
+        icon: 'none'
+      });
+    });
   },
 
   // 新闻点击

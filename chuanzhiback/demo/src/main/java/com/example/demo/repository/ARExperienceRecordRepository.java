@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ARExperienceRecordRepository extends JpaRepository<ARExperienceRecord, Long> {
@@ -18,5 +19,8 @@ public interface ARExperienceRecordRepository extends JpaRepository<ARExperience
     // 通过User的id和projectId查询
     @Query("SELECT r FROM ARExperienceRecord r WHERE r.user.id = :userId AND r.projectId = :projectId ORDER BY r.startTime DESC")
     List<ARExperienceRecord> findByUserIdAndProjectId(@Param("userId") Long userId, @Param("projectId") Long projectId);
+
+    @Query("SELECT r FROM ARExperienceRecord r WHERE r.id = :id AND r.user.id = :userId")
+    Optional<ARExperienceRecord> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 }
 

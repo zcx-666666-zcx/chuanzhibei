@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.User;
+import com.example.demo.security.TokenService;
 import com.example.demo.service.UserService;
 import com.example.demo.service.AvatarService;
 import com.example.demo.common.Result;
@@ -9,12 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,11 +30,19 @@ public class AuthController {
     @Autowired
     private AvatarService avatarService;
 
+    @Autowired
+    private TokenService tokenService;
+
     @PostMapping("/login")
     public ResponseEntity<Result<Map<String, Object>>> login(@RequestBody Map<String, String> loginData) {
         String username = loginData.get("username");
         String password = loginData.get("password");
         String openid = loginData.get("openid");
+        String wxCode = loginData.get("wxCode");
+        if ((openid == null || openid.isEmpty()) && wxCode != null && !wxCode.isEmpty()) {
+            // 演示环境下以微信 code 构造稳定标识；生产应改为 code2session 获取真实 openid
+            openid = "wx_" + wxCode;
+        }
         
         User user = null;
         
@@ -80,16 +88,15 @@ public class AuthController {
             
             // 检查用户是否存在以及密码是否正确
             if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
-                return ResponseEntity.ok(Result.error("用户名或密码错误"));
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
             }
         } 
         // 如果既没有openid也没有用户名密码，则返回错误
         else {
-            return ResponseEntity.ok(Result.error("缺少必要的登录参数"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "缺少必要的登录参数");
         }
         
-        // 生成token（简化处理，实际项目中应使用JWT）
-        String token = UUID.randomUUID().toString();
+        String token = tokenService.generateToken(user.getId());
         
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("token", token);
@@ -104,12 +111,21 @@ public class AuthController {
         String password = registerData.get("password");
         String email = registerData.get("email");
         String openid = registerData.get("openid");
+
+        if ((openid == null || openid.isEmpty()) && (username == null || username.isEmpty())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "用户名不能为空");
+        }
+        if (openid == null || openid.isEmpty()) {
+            if (password == null || password.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "密码不能为空");
+            }
+        }
         
         // 检查用户名是否已存在
         if (username != null && !username.isEmpty()) {
             User existingUser = userService.getUserByUsername(username);
             if (existingUser != null) {
-                return ResponseEntity.ok(Result.error("用户名已存在"));
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "用户名已存在");
             }
         }
         
@@ -117,7 +133,7 @@ public class AuthController {
         if (openid != null && !openid.isEmpty()) {
             User existingUser = userService.getUserByOpenid(openid);
             if (existingUser != null) {
-                return ResponseEntity.ok(Result.error("用户已存在"));
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "用户已存在");
             }
         }
         
@@ -161,8 +177,7 @@ public class AuthController {
         // 保存用户
         User savedUser = userService.saveUser(newUser);
         
-        // 生成token
-        String token = UUID.randomUUID().toString();
+        String token = tokenService.generateToken(savedUser.getId());
         
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("token", token);

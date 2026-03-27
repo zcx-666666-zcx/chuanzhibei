@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.Activity;
 import com.example.demo.repository.ActivityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -14,6 +15,9 @@ public class ActivityService {
     
     @Autowired
     private ActivityRepository activityRepository;
+
+    @Value("${app.data.init-sample:false}")
+    private boolean initSampleData;
     
     public List<Activity> getAllActivities() {
         return activityRepository.findAll();
@@ -54,6 +58,9 @@ public class ActivityService {
     
     @PostConstruct
     public void initData() {
+        if (!initSampleData) {
+            return;
+        }
         // 如果数据库为空，初始化一些示例数据
         if (activityRepository.count() == 0) {
             Activity activity1 = new Activity(

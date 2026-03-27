@@ -1,7 +1,7 @@
 -- Create tables for the intangible heritage database
 
 -- Users table
-CREATE TABLE IF NOT EXISTS `user` (
+CREATE TABLE IF NOT EXISTS `users` (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE,
     password VARCHAR(255),
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `user_collections` (
     image_url VARCHAR(255),
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES `user`(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES `users`(id) ON DELETE CASCADE
 );
 
 -- User bookings table
@@ -114,5 +114,5 @@ CREATE TABLE IF NOT EXISTS `user_bookings` (
     status VARCHAR(50) DEFAULT 'pending',
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES `user`(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES `users`(id) ON DELETE CASCADE
 );

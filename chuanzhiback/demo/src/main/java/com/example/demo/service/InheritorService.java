@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.Inheritor;
 import com.example.demo.repository.InheritorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,9 @@ public class InheritorService {
     
     @Autowired
     private InheritorRepository inheritorRepository;
+
+    @Value("${app.data.init-sample:false}")
+    private boolean initSampleData;
     
     public List<Inheritor> getAllInheritors() {
         return inheritorRepository.findAll();
@@ -47,6 +51,9 @@ public class InheritorService {
     
     @PostConstruct
     public void initData() {
+        if (!initSampleData) {
+            return;
+        }
         // 如果数据库中没有传承人数据，则添加演示数据
         if (inheritorRepository.count() == 0) {
             // 添加传承人演示数据，使用正确的静态资源路径

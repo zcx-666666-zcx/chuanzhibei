@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.Video;
 import com.example.demo.repository.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -13,6 +14,9 @@ public class VideoService {
     
     @Autowired
     private VideoRepository videoRepository;
+
+    @Value("${app.data.init-sample:false}")
+    private boolean initSampleData;
     
     public List<Video> getAllVideos() {
         return videoRepository.findAll();
@@ -43,6 +47,9 @@ public class VideoService {
     
     @PostConstruct
     public void initData() {
+        if (!initSampleData) {
+            return;
+        }
         // 如果数据库为空，初始化一些示例数据
         if (videoRepository.count() == 0) {
             Video video1 = new Video();

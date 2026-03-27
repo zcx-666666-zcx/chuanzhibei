@@ -145,8 +145,13 @@ public class ARProjectService {
     }
 
     @Transactional
-    public void deleteHistoryById(Long recordId) {
-        recordRepository.deleteById(recordId);
+    public boolean deleteHistoryByIdForUser(Long recordId, Long userId) {
+        Optional<ARExperienceRecord> recordOpt = recordRepository.findByIdAndUserId(recordId, userId);
+        if (recordOpt.isEmpty()) {
+            return false;
+        }
+        recordRepository.delete(recordOpt.get());
+        return true;
     }
 
     public Map<String, Object> getStatisticsByUserId(Long userId) {

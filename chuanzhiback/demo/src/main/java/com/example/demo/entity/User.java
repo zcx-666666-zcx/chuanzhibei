@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -50,6 +51,7 @@ public class User extends BaseEntity {
         this.username = username;
     }
     
+    @JsonIgnore
     public String getPassword() {
         return password;
     }

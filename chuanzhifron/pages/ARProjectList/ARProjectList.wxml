@@ -18,7 +18,22 @@
           bindtap="onARProjectTap" 
           data-item="{{item}}">
       <view class="ar-image-container">
-        <image src="{{item.coverImage || defaultArImage}}" class="ar-image" mode="aspectFill"></image>
+        <video
+          id="project-preview-video-{{index}}"
+          class="ar-image"
+          src="{{item.videoUrl}}"
+          poster="{{item.coverImage || defaultArImage}}"
+          object-fit="cover"
+          controls="{{false}}"
+          show-center-play-btn="{{false}}"
+          show-play-btn="{{false}}"
+          show-fullscreen-btn="{{false}}"
+          enable-progress-gesture="{{false}}"
+          loop="{{false}}"
+          muted="{{true}}"
+          bindloadedmetadata="onProjectPreviewMetaLoaded"
+          data-index="{{index}}"
+        ></video>
         <view wx:if="{{item.isHot}}" class="hot-badge">热门</view>
       </view>
       <view class="ar-content">
@@ -33,8 +48,8 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:if="{{!loading && arProjects.length === 0}}" class="empty-state">
-    <text>暂无AR体验项目</text>
+  <view wx:if="{{!loading && arProjects.length === 0}}" class="empty">
+    <text class="empty-text">暂无AR体验项目</text>
   </view>
 </view>
 

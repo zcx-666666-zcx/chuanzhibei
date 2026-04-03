@@ -7,7 +7,23 @@
   <view class="card">
     <text class="card-title">识别提示</text>
     <text class="card-text">请对准下方"识别图"，保持手机稳定，识别成功后会在图像上叠加播放 AR 视频。</text>
-    <image wx:if="{{project.markerImage}}" src="{{project.markerImage}}" class="marker-img" mode="aspectFill"></image>
+    <video wx:if="{{project.videoUrl}}"
+           id="ar-play-preview-video"
+           src="{{project.videoUrl}}"
+           class="marker-img"
+           poster="{{project.markerImage || 'https://picsum.photos/seed/ar-marker/640/360'}}"
+           controls="{{false}}"
+           show-center-play-btn="{{false}}"
+           show-play-btn="{{false}}"
+           show-fullscreen-btn="{{false}}"
+           enable-progress-gesture="{{false}}"
+           loop="{{false}}"
+           muted="{{true}}"
+           object-fit="cover"
+           bindloadedmetadata="onPlayPreviewMetaLoaded">
+    </video>
+    <image wx:elif="{{project.markerImage}}" src="{{project.markerImage}}" class="marker-img" mode="aspectFill"></image>
+    <image wx:else src="https://picsum.photos/seed/ar-marker-fallback/640/360" class="marker-img" mode="aspectFill"></image>
   </view>
 
   <view class="card">
@@ -30,7 +46,7 @@
              controls 
              autoplay 
              class="video" 
-             poster="{{project.coverImage}}"
+             poster="{{project.markerImage || project.coverImage}}"
              show-center-play-btn="{{false}}"
              show-play-btn="{{false}}"
              enable-danmu="{{false}}"

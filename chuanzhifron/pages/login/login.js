@@ -80,7 +80,7 @@ Page({
       }, 1000)
     }).catch((err) => {
       wx.showToast({
-        title: err.error || '登录失败',
+        title: err.message || err.error || '登录失败',
         icon: 'none'
       })
     });
@@ -162,10 +162,10 @@ Page({
   },
 
   loginToServer: function (code, userInfo) {
-    // 添加openid到用户信息中
+    // 先传微信 code，后端可在正式环境中换取 openid
     const loginData = {
       ...userInfo,
-      openid: code // 在实际应用中，应该将code发送到自己的服务器换取openid
+      wxCode: code
     }
 
     // 登录到后端系统

@@ -1,83 +1,220 @@
-<!--index.wxml-->
-<view class="container">
-  <!-- 顶部导航栏 -->
-  <view class="header">
-    <view class="header-content">
-      <view class="logo">
-        <image src="{{logoUrl}}" class="logo-img" binderror="onLogoError"></image>
-        <text class="logo-text">非遗传承</text>
-      </view>
-      <view class="header-icons">
-        <button class="icon-btn" bindtap="onSearch">
-          <text class="iconfont icon-search"></text>
+<!--index.wxml · 首页：遗韵长卷-->
+<view class="page">
+  <view class="bg-layer" aria-hidden="true"></view>
+
+  <!-- 顶区：品牌 -->
+  <view class="hero">
+    <view class="hero-deco" aria-hidden="true"></view>
+    <view class="hero-inner">
+      <text class="hero-kicker">INTANGIBLE CULTURAL HERITAGE</text>
+      <text class="hero-title">遗韵</text>
+      <text class="hero-sub">墨香纸韵之间，以数字长卷走近非遗的温度与匠心</text>
+      <view class="hero-actions">
+        <button class="hero-pill" bindtap="onSearch">
+          <text class="hero-pill-ico">⌕</text>
+          <text>搜索资讯</text>
         </button>
-        <button class="icon-btn" bindtap="onNotification">
-          <text class="iconfont icon-bell"></text>
+        <button class="hero-pill ghost" bindtap="onNotification">
+          <text class="hero-pill-ico">◉</text>
+          <text>通知</text>
         </button>
       </view>
     </view>
   </view>
 
-  <!-- 主内容区域 -->
-  <view class="content">
-    <!-- 轮播图 -->
-    <swiper indicator-dots="{{true}}" autoplay="{{true}}" interval="5000" duration="1000" class="swiper" circular="{{true}}">
+  <!-- 寻迹导航 -->
+  <view class="sheet sheet-tight">
+    <view class="sheet-head">
+      <view class="sheet-head-left">
+        <text class="sheet-en">NAVIGATION</text>
+        <text class="sheet-cn">寻迹导航</text>
+      </view>
+      <text class="sheet-tip">轻点即可步入相应篇章</text>
+    </view>
+    <view class="diamond-grid">
+      <view class="diamond-item" bindtap="goNewsList">
+        <view class="diamond-icon bg-a">📰</view>
+        <text class="diamond-name">新闻列表</text>
+        <text class="diamond-sub">二级列表页</text>
+      </view>
+      <view class="diamond-item" bindtap="goNewsDetailDemo">
+        <view class="diamond-icon bg-b">📄</view>
+        <text class="diamond-name">新闻详情</text>
+        <text class="diamond-sub">示例资讯</text>
+      </view>
+      <!-- Tab 级别入口（探索 / AR / 我的）改用底部栏承载，这里不再重复 -->
+      <view class="diamond-item" bindtap="goNational">
+        <view class="diamond-icon bg-d">▣</view>
+        <text class="diamond-name">国家级名录</text>
+        <text class="diamond-sub">列表页</text>
+      </view>
+      <view class="diamond-item" bindtap="goProvincial">
+        <view class="diamond-icon bg-e">▤</view>
+        <text class="diamond-name">省级名录</text>
+        <text class="diamond-sub">列表页</text>
+      </view>
+      <view class="diamond-item" bindtap="goFlowDetailDirect">
+        <view class="diamond-icon bg-f">❖</view>
+        <text class="diamond-name">非遗详情</text>
+        <text class="diamond-sub">示例项目</text>
+      </view>
+      
+      <view class="diamond-item" bindtap="goCommunity">
+        <view class="diamond-icon bg-i">👤</view>
+        <text class="diamond-name">传承人社区</text>
+        <text class="diamond-sub">社区首页</text>
+      </view>
+      <view class="diamond-item" bindtap="goMasterList">
+        <view class="diamond-icon bg-j">✦</view>
+        <text class="diamond-name">传承人名录</text>
+        <text class="diamond-sub">大师列表</text>
+      </view>
+      <view class="diamond-item" bindtap="goSkillVideo">
+        <view class="diamond-icon bg-k">🎬</view>
+        <text class="diamond-name">技艺视频</text>
+        <text class="diamond-sub">视频列表</text>
+      </view>
+      <view class="diamond-item" bindtap="goActivity">
+        <view class="diamond-icon bg-l">📅</view>
+        <text class="diamond-name">活动列表</text>
+        <text class="diamond-sub">线下活动</text>
+      </view>
+      <view class="diamond-item" bindtap="goCollection">
+        <view class="diamond-icon bg-m">♡</view>
+        <text class="diamond-name">我的收藏</text>
+        <text class="diamond-sub">收藏列表</text>
+      </view>
+      <view class="diamond-item" bindtap="goBooking">
+        <view class="diamond-icon bg-n">☰</view>
+        <text class="diamond-name">我的预约</text>
+        <text class="diamond-sub">预约列表</text>
+      </view>
+      <view class="diamond-item" bindtap="goLearning">
+        <view class="diamond-icon bg-o">📖</view>
+        <text class="diamond-name">学习中心</text>
+        <text class="diamond-sub">研学模块</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 精选跳转路线（横向卡片） -->
+  <view class="sheet">
+    <view class="sheet-head">
+      <view class="sheet-head-left">
+        <text class="sheet-en">ROUTES</text>
+        <text class="sheet-cn">推荐跳转链</text>
+      </view>
+    </view>
+    <scroll-view class="route-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
+      <view class="route-track">
+        <view class="route-card r1" bindtap="goFlowNews">
+          <text class="route-tag">链 A</text>
+          <text class="route-name">资讯深度阅读</text>
+          <text class="route-path">首页 → 新闻列表 → 详情</text>
+        </view>
+        <view class="route-card r2" bindtap="goFlowHeritage">
+          <text class="route-tag">链 B</text>
+          <text class="route-name">名录与筛选</text>
+          <text class="route-path">首页 → 探索 → 详情</text>
+        </view>
+        <view class="route-card r3" bindtap="goFlowDetailDirect">
+          <text class="route-tag">链 C</text>
+          <text class="route-name">直达非遗详情</text>
+          <text class="route-path">单步进入详情页</text>
+        </view>
+        <view class="route-card r4" bindtap="goFlowAR">
+          <text class="route-tag">链 D</text>
+          <text class="route-name">AR 沉浸</text>
+          <text class="route-path">首页 → AR → 相机页</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 轮播 -->
+  <view class="sheet sheet-flush">
+    <swiper
+      indicator-dots="{{true}}"
+      autoplay="{{true}}"
+      interval="5200"
+      duration="550"
+      class="hero-swiper"
+      circular="{{true}}"
+      indicator-color="rgba(255,255,255,.35)"
+      indicator-active-color="#f5e6c8"
+    >
       <block wx:for="{{bannerList}}" wx:key="id">
         <swiper-item bindtap="onBannerTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="swiper-img" mode="aspectFill" binderror="onBannerImageError" data-index="{{index}}"></image>
-          <view class="swiper-text">
-            <text class="swiper-title">{{item.title}}</text>
-            <text class="swiper-desc">{{item.description}}</text>
+          <view class="swiper-card">
+            <image src="{{item.image}}" class="swiper-img" mode="aspectFill" binderror="onBannerImageError" data-index="{{index}}"></image>
+            <view class="swiper-mask"></view>
+            <view class="swiper-copy">
+              <text class="swiper-title">{{item.title}}</text>
+              <text class="swiper-desc">{{item.description}}</text>
+            </view>
           </view>
         </swiper-item>
       </block>
     </swiper>
+  </view>
 
-    <!-- 非遗动态 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title">非遗动态</text>
-        <navigator url="/pages/newsList/newsList" class="more-link">查看更多</navigator>
+  <!-- 文化热点：左图右文 -->
+  <view class="sheet">
+    <view class="sheet-head row-between">
+      <view class="sheet-head-left">
+        <text class="sheet-en">STORIES</text>
+        <text class="sheet-cn">文化热点</text>
       </view>
-      <view class="news-list">
-        <view class="news-card card card-hover" wx:for="{{displayNewsList}}" wx:key="id" bindtap="onNewsTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="news-img" mode="aspectFill" binderror="onNewsImageError" data-index="{{index}}"></image>
-          <view class="news-content">
-            <text class="news-title">{{item.title}}</text>
-            <text class="news-desc">{{item.description}}</text>
-            <view class="news-footer">
-              <text class="news-date">{{item.date}}</text>
-            </view>
+      <navigator url="/pages/newsList/newsList" class="sheet-more" hover-class="sheet-more-hover">全部</navigator>
+    </view>
+    <view class="article-list">
+      <view class="article-row" wx:for="{{displayNewsList}}" wx:key="id" bindtap="onNewsTap" data-item="{{item}}">
+        <image src="{{item.image}}" class="article-cover" mode="aspectFill" binderror="onNewsImageError" data-index="{{index}}"></image>
+        <view class="article-main">
+          <text class="article-title">{{item.title}}</text>
+          <text class="article-lead">{{item.description}}</text>
+          <view class="article-meta">
+            <text class="article-date">{{item.date}}</text>
+            <text class="article-go">阅读全文 →</text>
           </view>
         </view>
       </view>
     </view>
+  </view>
 
-    <!-- 推荐非遗项目 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title">推荐非遗项目</text>
-      </view>
-      <view class="recommend-grid">
-        <view class="recommend-item" wx:for="{{recommendList}}" wx:key="id" bindtap="onRecommendTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="recommend-img" mode="aspectFill" binderror="onRecommendImageError" data-index="{{index}}"></image>
-          <text class="recommend-text">{{item.name}}</text>
-        </view>
+  <!-- 精选非遗：横向滚动 -->
+  <view class="sheet">
+    <view class="sheet-head row-between">
+      <view class="sheet-head-left">
+        <text class="sheet-en">PICKS</text>
+        <text class="sheet-cn">精选非遗</text>
       </view>
     </view>
-
-    <!-- AR体验入口 -->
-    <view class="ar-section">
-      <view class="ar-content">
-        <view class="ar-text">
-          <text class="ar-title">AR文物复原体验</text>
-          <text class="ar-desc">通过AR技术，让文物"活"起来，感受传统文化的魅力</text>
+    <scroll-view class="pick-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
+      <view class="pick-track">
+        <view class="pick-card" wx:for="{{recommendList}}" wx:key="id" bindtap="onRecommendTap" data-item="{{item}}">
+          <image src="{{item.image}}" class="pick-img" mode="aspectFill" binderror="onRecommendImageError" data-index="{{index}}"></image>
+          <view class="pick-body">
+            <text class="pick-name">{{item.name}}</text>
+            <text class="pick-region">{{item.region}}</text>
+          </view>
         </view>
-        <button class="btn-primary ar-button" bindtap="navigateToARExperience">
-          <text class="iconfont icon-cube"></text>
-          <text>立即体验</text>
-        </button>
       </view>
+    </scroll-view>
+  </view>
+
+  <!-- AR 通栏 -->
+  <view class="ar-cta" bindtap="navigateToARExperience">
+    <view class="ar-cta-bg" aria-hidden="true"></view>
+    <view class="ar-cta-inner">
+      <view class="ar-cta-text">
+        <text class="ar-cta-kicker">IMMERSIVE</text>
+        <text class="ar-cta-title">AR 文物复原体验</text>
+        <text class="ar-cta-desc">进入项目列表后选择场景，将跳转相机体验页</text>
+      </view>
+      <view class="ar-cta-btn">立即体验</view>
     </view>
   </view>
+
+  <view class="footer-space"></view>
 </view>

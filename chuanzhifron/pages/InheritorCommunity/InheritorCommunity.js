@@ -14,6 +14,7 @@ Page({
     activities: [],
     allActivities: [], // 保存所有活动数据
     displayActivities: [], // 首页显示的活动列表（只显示3个）
+    posts: [], // 传承人社区动态（本地缓存）
     currentCategory: 'all', // 当前筛选的分类
     showFilters: true, // 是否显示筛选器
     loading: true
@@ -24,6 +25,12 @@ Page({
     this.loadMasterList();
     this.loadSkillVideos();
     this.loadActivities();
+    this.loadPosts();
+  },
+
+  onShow: function() {
+    // 返回社区时刷新一下本地发帖数据
+    this.loadPosts();
   },
   
   // 加载传承人列表
@@ -40,7 +47,14 @@ Page({
 
       // 处理传承人数据：补充图片与日期字段
       const masterList = list.map((item, index) => {
-        // 处理头像：如果不是完整URL，拼接基础路径
+        // 统一使用在线占位头像，确保演示环境不会出现空白/加载失败
+        const placeholderAvatars = [
+          'https://picsum.photos/seed/master-1/480/320',
+          'https://picsum.photos/seed/master-2/480/320',
+          'https://picsum.photos/seed/master-3/480/320',
+          'https://picsum.photos/seed/master-4/480/320',
+          'https://picsum.photos/seed/master-5/480/320'
+        ];
         let avatar = '';
         if (item.avatar || item.imageUrl) {
           const imgUrl = item.avatar || item.imageUrl;
@@ -48,10 +62,7 @@ Page({
             ? imgUrl
             : buildStaticUrl(imgUrl);
         } else {
-          // 如果没有图片URL，使用默认路径（基于5张图片循环使用）
-          const imageNames = ['master_jianzhi', 'master_jingjumei', 'master_jingtai', 'master_junci', 'master_suxiu'];
-          const imgName = imageNames[index % imageNames.length];
-          avatar = buildStaticUrl(`/uploads/masters_InheritorCommunit/${imgName}.jpg`);
+          avatar = placeholderAvatars[index % placeholderAvatars.length];
         }
 
         return {
@@ -175,6 +186,23 @@ Page({
     });
   },
 
+  // 加载本地传承人动态（不依赖后端）
+  loadPosts: function() {
+    try {
+      const raw = wx.getStorageSync('inheritorPosts');
+      if (!raw) {
+        this.setData({ posts: [] });
+        return;
+      }
+      const list = Array.isArray(raw) ? raw : [];
+      // 最新的在前
+      this.setData({ posts: list.slice().reverse() });
+    } catch (e) {
+      console.error('加载传承人动态失败:', e);
+      this.setData({ posts: [] });
+    }
+  },
+
   // 分享功能
   onShare: function() {
     wx.showShareMenu({
@@ -236,7 +264,7 @@ Page({
 
   // 获取默认传承人数据
   getDefaultMasters: function() {
-    const baseUrl = buildStaticUrl('/uploads/masters_InheritorCommunit/');
+    // 默认数据直接使用在线图片作为头像，避免本地静态资源缺失
     return [
       {
         id: 1,
@@ -244,7 +272,7 @@ Page({
         skill: '景泰蓝制作技艺',
         title: '中国工艺美术大师',
         introduction: '景泰蓝制作技艺国家级传承人，从业50余年，擅长掐丝珐琅工艺，作品多次获得国内外大奖。',
-        avatar: baseUrl + 'master_jingtai.jpg',
+        avatar: 'https://picsum.photos/seed/master-jingtai/480/320',
         isFavorite: false,
         category: 'jingtai'
       },
@@ -254,7 +282,7 @@ Page({
         skill: '苏绣',
         title: '江苏省工艺美术大师',
         introduction: '苏绣技艺传承人，创新了多种刺绣技法，将传统苏绣与现代艺术相结合，作品风格独特。',
-        avatar: baseUrl + 'master_suxiu.jpg',
+        avatar: 'https://picsum.photos/seed/master-suxiu/480/320',
         isFavorite: false,
         category: 'suxiu'
       },
@@ -264,7 +292,7 @@ Page({
         skill: '剪纸',
         title: '国家级传承人',
         introduction: '陕北剪纸艺术传承人，擅长传统民间剪纸技艺，作品充满浓厚的乡土气息和民族特色。',
-        avatar: baseUrl + 'master_jianzhi.jpg',
+        avatar: 'https://picsum.photos/seed/master-jianzhi/480/320',
         isFavorite: false,
         category: 'jianzhi'
       },
@@ -274,7 +302,7 @@ Page({
         skill: '京剧',
         title: '京剧表演艺术家',
         introduction: '京剧大师梅兰芳之子，继承并发扬梅派艺术，在京剧表演和传承方面做出卓越贡献。',
-        avatar: baseUrl + 'master_jingjumei.jpg',
+        avatar: 'https://picsum.photos/seed/master-jingjumei/480/320',
         isFavorite: false,
         category: 'jingju'
       },
@@ -284,7 +312,7 @@ Page({
         skill: '钧瓷烧制技艺',
         title: '中国工艺美术大师',
         introduction: '钧瓷烧制技艺传承人，在传统钧瓷工艺基础上不断创新，作品具有很高的艺术价值和收藏价值。',
-        avatar: baseUrl + 'master_junci.jpg',
+        avatar: 'https://picsum.photos/seed/master-junci/480/320',
         isFavorite: false,
         category: 'junci'
       }
@@ -339,7 +367,7 @@ Page({
         id: 1,
         title: '苏绣技艺展示',
         description: '国家级传承人姚建萍展示苏绣的精湛技艺和独特魅力，详细介绍平针、套针等传统针法',
-        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_suxiu.jpg'),
+        thumbnail: 'https://picsum.photos/seed/skill-suxiu/480/320',
         duration: '15:30',
         date: '2024-05-15',
         views: '3.2万'
@@ -347,8 +375,8 @@ Page({
       {
         id: 2,
         title: '景泰蓝制作工艺',
-        description: '工艺美术大师张同禄现场演示景泰蓝的掐丝、点蓝、烧制等关键工艺流程',
-        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_jingtai.jpg'),
+        description: '工艺美术大师张同禄现场呈现景泰蓝的掐丝、点蓝、烧制等关键工艺流程',
+        thumbnail: 'https://picsum.photos/seed/skill-jingtai/480/320',
         duration: '18:45',
         date: '2024-05-12',
         views: '2.8万'
@@ -357,7 +385,7 @@ Page({
         id: 3,
         title: '剪纸艺术创作',
         description: '传承人高凤莲展示传统剪纸技法，从设计到剪裁，展现剪纸艺术的精妙',
-        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_jianzhi.jpg'),
+        thumbnail: 'https://picsum.photos/seed/skill-jianzhi/480/320',
         duration: '12:20',
         date: '2024-05-10',
         views: '1.9万'
@@ -366,7 +394,7 @@ Page({
         id: 4,
         title: '京剧身段表演',
         description: '梅派传人展示京剧表演的身段、唱腔和舞台艺术，传承经典剧目',
-        thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_jingjumei.jpg'),
+        thumbnail: 'https://picsum.photos/seed/skill-jingjumei/480/320',
         duration: '20:15',
         date: '2024-05-08',
         views: '4.5万'

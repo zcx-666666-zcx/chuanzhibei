@@ -1,21 +1,30 @@
 /* Heritage.wxss */
 .container {
   min-height: 100vh;
-  background-color: #f8f5f2;
+  background-color: #f4efe8;
   padding-bottom: 160rpx;
 }
 
 /* 页面标题 */
 .page-header {
-  background-color: white;
-  padding: 40rpx 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #fffdfb 0%, #f0e8de 100%);
+  padding: 36rpx 30rpx 32rpx;
+  box-shadow: 0 8rpx 24rpx rgba(42, 34, 28, 0.06);
 }
 
 .page-title {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: bold;
-  color: #333;
+  color: #2a221c;
+  display: block;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #8a827a;
+  line-height: 1.4;
 }
 
 /* 分类筛选 */
@@ -47,7 +56,7 @@
 }
 
 .filter-item.active {
-  background-color: #c41e3a;
+  background-color: #b83232;
   color: white;
 }
 

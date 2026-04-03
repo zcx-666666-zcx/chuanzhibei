@@ -257,7 +257,7 @@ Page({
     }
     
     request({
-      url: `/user/collections/${userId}/check/${heritageId}`
+      url: `/user/collections/me/check/${heritageId}`
     }).then(res => {
       if (res.success) {
         this.setData({
@@ -374,7 +374,7 @@ Page({
     if (isFavorite) {
       // 取消收藏
       request({
-        url: `/user/collections/${userId}/heritage/${heritageId}`,
+        url: `/user/collections/me/heritage/${heritageId}`,
         method: 'DELETE'
       }).then(res => {
         if (res.success) {

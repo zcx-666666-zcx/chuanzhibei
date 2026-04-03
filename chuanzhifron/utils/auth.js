@@ -64,11 +64,13 @@ const loginWithUsername = (loginData) => {
  * @param {Object} userInfo 用户信息
  */
 const loginToBackend = (userInfo) => {
+  const loginOpenid = userInfo.openid || (userInfo.wxCode ? `wx_${userInfo.wxCode}` : '');
   return request({
       url: '/auth/login',
       method: 'POST',
       data: {
-        openid: userInfo.openid || '',
+        openid: loginOpenid,
+        wxCode: userInfo.wxCode || '',
         nickname: userInfo.nickName || '',
         avatarUrl: userInfo.avatarUrl || '',
         gender: userInfo.gender || '',

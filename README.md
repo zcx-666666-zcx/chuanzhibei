@@ -69,6 +69,14 @@ cd chuanzhiback/demo
 ./mvnw spring-boot:run
 ```
 
+### 健康检查
+
+- `GET /actuator/health`
+- `GET /actuator/health/liveness`
+- `GET /actuator/health/readiness`
+
+生产环境部署细节请参考：`生产部署指南.md`
+
 ## 前端
 
 1. 微信开发者工具打开 `chuanzhifron`
@@ -77,6 +85,23 @@ cd chuanzhiback/demo
 ```js
 wx.setStorageSync('apiBaseUrl', 'http://你的局域网IP:8001')
 ```
+
+### 前端页面结构与传承人社区
+
+- 一级 Tab 页：
+  - 首页：`pages/index/index`（遗韵长卷 · 寻迹导航 · 文化热点与精选非遗）
+  - 探索：`pages/Heritage/Heritage`（国家级 / 省级非遗名录 + 分类筛选）
+  - AR：`pages/ARExperience/ARExperience`（AR 项目列表 + 体验记录）
+  - 我的：`pages/PersonalCenter/PersonalCenter`（收藏、预约、传承人认证入口）
+
+- 传承人社区链路（本地数据模式下可先离线体验）：
+  1. 用户在「我的」页点击「申请成为非遗传承人」（本地 `isInheritor` 标记，用于呈现完整流程）
+  2. 认证后，可：
+     - 进入 `pages/InheritorCommunity/InheritorCommunity` 查看传承人、技艺视频、活动
+     - 进入 `pages/inheritorPost/inheritorPost` 发布「传承人动态」（文章 + 可选视频链接）
+  3. 发布的动态缓存在本地存储中，并在传承人社区页的「传承人动态」分区统一展示，形成「我的 → 认证 → 社区 → 发布 → 社区展示」闭环
+
+> 说明：`app.js` 中 `globalData.localDataMode` 为 `true` 时，请求由 `utils/mockApi.js` 本地适配；接入真实后端后将其设为 `false` 即可。
 
 ## 联调稳定性检查清单
 

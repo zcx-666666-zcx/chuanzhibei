@@ -25,8 +25,8 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:if="{{!loading && newsList.length === 0}}" class="empty-state">
-    <text>暂无新闻动态</text>
+  <view wx:if="{{!loading && newsList.length === 0}}" class="empty">
+    <text class="empty-text">暂无新闻动态</text>
   </view>
 </view>
 

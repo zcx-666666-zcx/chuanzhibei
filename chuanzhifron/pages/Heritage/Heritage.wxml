@@ -2,7 +2,8 @@
 <view class="container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-title">非遗名录</text>
+    <text class="page-title">探索 · 非遗名录</text>
+    <text class="page-sub">筛选门类后进入列表与详情，支持多级返回</text>
   </view>
 
   <!-- 分类筛选 -->

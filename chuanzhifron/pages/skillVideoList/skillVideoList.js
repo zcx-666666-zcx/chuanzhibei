@@ -68,7 +68,7 @@ Page({
       {
         id: 2,
         title: '景泰蓝制作工艺',
-        description: '工艺美术大师张同禄现场演示景泰蓝的掐丝、点蓝、烧制等关键工艺流程',
+        description: '工艺美术大师张同禄现场呈现景泰蓝的掐丝、点蓝、烧制等关键工艺流程',
         thumbnail: buildStaticUrl('/uploads/masters_InheritorCommunit/master_jingtai.jpg'),
         duration: '18:45',
         date: '2024-05-12',

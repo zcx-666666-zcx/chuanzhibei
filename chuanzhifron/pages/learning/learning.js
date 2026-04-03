@@ -62,5 +62,11 @@ Page({
    */
   onShareAppMessage() {
 
+  },
+
+  goHeritage() {
+    wx.switchTab({
+      url: '/pages/Heritage/Heritage'
+    })
   }
 })

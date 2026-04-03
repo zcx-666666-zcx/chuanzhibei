@@ -106,6 +106,8 @@ Page({
         id: b.id,
         title: b.title,
         description: b.description,
+        // 兼容后端可能返回的新闻关联字段
+        newsId: b.newsId || b.news_id || null,
         image: b.imageUrl
           ? (b.imageUrl.startsWith('http') ? b.imageUrl : buildStaticUrl(b.imageUrl))
           : ''
@@ -310,9 +312,31 @@ Page({
   // 轮播图点击 - 跳转到新闻详情页面
   onBannerTap: function(e) {
     const item = e.currentTarget.dataset.item
-    console.log('点击轮播图:', item)
-    // banner 表目前只有 title/description/imageUrl，没有关联跳转字段
-    // 这里先不做页面跳转，避免跳到错误详情页。
+    if (!item) {
+      return;
+    }
+
+    // 1) 优先使用 banner 自带的新闻关联 id
+    if (item.newsId) {
+      wx.navigateTo({
+        url: `/pages/newsDetail/newsDetail?id=${item.newsId}`
+      });
+      return;
+    }
+
+    // 2) 无关联 id 时，尝试按标题在已加载新闻中匹配
+    const matchedNews = (this.data.newsList || []).find(news => news.title === item.title);
+    if (matchedNews && matchedNews.id) {
+      wx.navigateTo({
+        url: `/pages/newsDetail/newsDetail?id=${matchedNews.id}`
+      });
+      return;
+    }
+
+    // 3) 兜底：带标题关键词跳到新闻列表，用户可直接看到相关内容
+    wx.navigateTo({
+      url: `/pages/newsList/newsList?keyword=${encodeURIComponent(item.title || '')}`
+    });
   },
 
   // 跳转到AR体验页面
@@ -320,5 +344,105 @@ Page({
     wx.switchTab({
       url: '/pages/ARExperience/ARExperience'
     })
+  },
+
+  /** 推荐路径：首页 → 新闻列表 → 详情（由列表内再点） */
+  goFlowNews: function () {
+    wx.navigateTo({
+      url: '/pages/newsList/newsList'
+    })
+  },
+
+  /** 推荐路径：首页 → Tab「探索」 */
+  goFlowHeritage: function () {
+    wx.switchTab({
+      url: '/pages/Heritage/Heritage'
+    })
+  },
+
+  /** 推荐路径：首页 → 非遗详情（单步） */
+  goFlowDetailDirect: function () {
+    wx.navigateTo({
+      url: '/pages/heritageDetail/heritageDetail?id=1'
+    })
+  },
+
+  /** 推荐路径：首页 → AR Tab（再在 AR 页点项目进相机页） */
+  goFlowAR: function () {
+    wx.switchTab({
+      url: '/pages/ARExperience/ARExperience'
+    })
+  },
+
+  goCommunity: function () {
+    wx.navigateTo({
+      url: '/pages/InheritorCommunity/InheritorCommunity'
+    })
+  },
+
+  goLearning: function () {
+    wx.navigateTo({
+      url: '/pages/learning/learning'
+    })
+  },
+
+  goActivity: function () {
+    wx.navigateTo({
+      url: '/pages/activityList/activityList'
+    })
+  },
+
+  /** 二级页：新闻列表 */
+  goNewsList: function () {
+    wx.navigateTo({ url: '/pages/newsList/newsList' })
+  },
+
+  /** 二级页：新闻详情（示例 id） */
+  goNewsDetailDemo: function () {
+    wx.navigateTo({ url: '/pages/newsDetail/newsDetail?id=1' })
+  },
+
+  /** 二级页：国家级非遗列表 */
+  goNational: function () {
+    wx.navigateTo({
+      url: '/pages/nationalHeritageList/nationalHeritageList?category=all'
+    })
+  },
+
+  /** 二级页：省级非遗列表 */
+  goProvincial: function () {
+    wx.navigateTo({
+      url: '/pages/provincialHeritageList/provincialHeritageList?category=all'
+    })
+  },
+
+  /** 二级页：AR 项目列表（全量项目） */
+  goARProjectList: function () {
+    wx.navigateTo({ url: '/pages/ARProjectList/ARProjectList' })
+  },
+
+  /** 二级页：收藏列表 */
+  goCollection: function () {
+    wx.navigateTo({ url: '/pages/collectionList/collectionList' })
+  },
+
+  /** 二级页：预约列表 */
+  goBooking: function () {
+    wx.navigateTo({ url: '/pages/bookingList/bookingList' })
+  },
+
+  /** 二级页：技艺视频列表 */
+  goSkillVideo: function () {
+    wx.navigateTo({ url: '/pages/skillVideoList/skillVideoList' })
+  },
+
+  /** 二级页：传承人名录 */
+  goMasterList: function () {
+    wx.navigateTo({ url: '/pages/masterList/masterList' })
+  },
+
+  /** Tab：个人中心 */
+  goPersonal: function () {
+    wx.switchTab({ url: '/pages/PersonalCenter/PersonalCenter' })
   }
 })

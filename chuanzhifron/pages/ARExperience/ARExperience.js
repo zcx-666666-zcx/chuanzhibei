@@ -9,14 +9,25 @@ Page({
     displayArProjects: [], // 首页显示的AR项目列表（只显示4个）
     experienceRecords: [],
     loading: true,
-    defaultArImage: buildStaticUrl('/uploads/photo_ARExperinece/deomphoto.jpg')
+    // 演示环境下统一使用在线占位图，避免后端图片缺失导致黑屏
+    defaultArImage: 'https://picsum.photos/seed/ar-scene/800/520'
+  },
+
+  // 后端 uploads/video_ARExperinece 下的 4 个本地视频
+  getArVideoList() {
+    return [
+      '/uploads/video_ARExperinece/苏绣双面绣AR体验视频.mp4',
+      '/uploads/video_ARExperinece/青铜器纹样AR体验视频.mp4',
+      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
+      '/uploads/video_ARExperinece/少林武术AR体验视频生成.mp4'
+    ];
   },
 
   onLoad: function() {
-    // 加载AR项目数据
-    this.loadArProjects();
-    // 加载体验记录
-    this.loadHistory();
+    // 先加载项目，保证体验记录可拿到对应视频封面
+    this.loadArProjects().finally(() => {
+      this.loadHistory();
+    });
     // 检查AR功能支持
     this.checkARSupport();
   },
@@ -30,16 +41,23 @@ Page({
         throw new Error(res.message || '获取AR项目失败');
       }
       const list = res.data?.list || res.data || [];
-      // 确保图片路径正确处理
-      const processedList = list.map(item => ({
-        ...item,
-        coverImage: item.coverImage && item.coverImage.startsWith('http') 
-          ? item.coverImage 
-          : buildStaticUrl(item.coverImage || '/uploads/photo_ARExperinece/deomphoto.jpg'),
-        markerImage: item.markerImage && item.markerImage.startsWith('http') 
-          ? item.markerImage 
-          : buildStaticUrl(item.markerImage || '')
-      }));
+      const videoList = this.getArVideoList();
+      // 确保图片路径正确处理：统一使用在线占位封面，避免本地资源缺失导致黑屏
+      const processedList = list.map((item, index) => {
+        const rawVideoPath = videoList[index] || item.videoUrl || '';
+        return {
+          ...item,
+          coverImage: item.coverImage && item.coverImage.startsWith('http') 
+            ? item.coverImage 
+            : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-cover-'+index+'/800/520'),
+          markerImage: item.markerImage && item.markerImage.startsWith('http') 
+            ? item.markerImage 
+            : 'https://picsum.photos/seed/ar-marker-'+index+'/640/360',
+          videoUrl: rawVideoPath && rawVideoPath.startsWith('http')
+            ? rawVideoPath
+            : (rawVideoPath ? buildStaticUrl(rawVideoPath) : '')
+        };
+      });
       // 首页只显示前4个AR项目
       const displayArProjects = processedList.slice(0, 4);
       this.setData({
@@ -59,6 +77,14 @@ Page({
     });
   },
 
+  getVideoUrlByProjectId(projectId) {
+    const project = (this.data.arProjects || []).find(p => String(p.id) === String(projectId));
+    if (project && project.videoUrl) {
+      return project.videoUrl;
+    }
+    return '';
+  },
+
   // 加载体验记录
   loadHistory: function() {
     // 检查登录状态
@@ -68,37 +94,35 @@ Page({
     }
     
     const user = getCurrentUser();
-    if (!user || !user.id) {
-      console.warn('无法获取用户ID，跳过加载体验记录');
+    if (!user || !(user.id || user.userId)) {
+      console.warn('无法获取用户信息，跳过加载体验记录');
       this.setData({ experienceRecords: [] });
       return Promise.resolve();
     }
     
     // 先获取所有体验记录
     return request({
-      url: `/ar/history?userId=${user.id}&page=1&size=100`
+      url: '/ar/history?page=1&size=100'
     }).then(res => {
-      if (!res.success) {
-        throw new Error(res.message || '获取体验记录失败');
-      }
       const allList = res.data?.list || [];
       
       // 如果记录超过4条，删除多余的记录
       if (allList.length > 4) {
         // 调用后端API删除多余的记录（保留最近4条）
         return request({
-          url: `/ar/history/cleanup?userId=${user.id}&keepCount=4`,
+          url: '/ar/history/cleanup?keepCount=4',
           method: 'DELETE'
         }).then(() => {
           // 删除成功后，只取前4条记录
           const list = allList.slice(0, 4);
-          const experienceRecords = list.map(item => ({
+          const experienceRecords = list.map((item, index) => ({
             id: item.id,
             projectId: item.projectId,
             name: item.projectName,
             image: item.projectThumb && item.projectThumb.startsWith('http')
               ? item.projectThumb
-              : buildStaticUrl(item.projectThumb || '/uploads/photo_ARExperinece/deomphoto.jpg'),
+              : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-history-'+index+'/800/520'),
+            videoUrl: this.getVideoUrlByProjectId(item.projectId),
             time: this.formatTime(item.startTime),
             duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
           }));
@@ -107,13 +131,14 @@ Page({
           console.error('删除多余体验记录失败:', err);
           // 即使删除失败，也显示前4条记录
           const list = allList.slice(0, 4);
-          const experienceRecords = list.map(item => ({
+          const experienceRecords = list.map((item, index) => ({
             id: item.id,
             projectId: item.projectId,
             name: item.projectName,
             image: item.projectThumb && item.projectThumb.startsWith('http')
               ? item.projectThumb
-              : buildStaticUrl(item.projectThumb || '/uploads/photo_ARExperinece/deomphoto.jpg'),
+              : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-history-'+index+'/800/520'),
+            videoUrl: this.getVideoUrlByProjectId(item.projectId),
             time: this.formatTime(item.startTime),
             duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
           }));
@@ -121,13 +146,14 @@ Page({
         });
       } else {
         // 记录不超过4条，直接显示
-        const experienceRecords = allList.map(item => ({
+        const experienceRecords = allList.map((item, index) => ({
           id: item.id,
           projectId: item.projectId,
           name: item.projectName,
           image: item.projectThumb && item.projectThumb.startsWith('http')
             ? item.projectThumb
-            : buildStaticUrl(item.projectThumb || '/uploads/photo_ARExperinece/deomphoto.jpg'),
+            : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-history-'+index+'/800/520'),
+          videoUrl: this.getVideoUrlByProjectId(item.projectId),
           time: this.formatTime(item.startTime),
           duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
         }));
@@ -155,6 +181,41 @@ Page({
     this.startARExperience(item);
   },
 
+  // 预览视频元数据加载完成后，跳到末尾并暂停，作为“最后一帧封面”
+  onPreviewMetaLoaded(e) {
+    const index = e.currentTarget.dataset.index;
+    const duration = Number(e.detail && e.detail.duration) || 0;
+    if (index === undefined || !duration) return;
+
+    const ctx = wx.createVideoContext(`preview-video-${index}`, this);
+    const seekTo = Math.max(duration - 0.1, 0);
+
+    // 某些机型需要先播放再 seek，才能稳定显示目标帧
+    ctx.play();
+    setTimeout(() => {
+      ctx.seek(seekTo);
+      setTimeout(() => {
+        ctx.pause();
+      }, 120);
+    }, 80);
+  },
+
+  onRecordPreviewMetaLoaded(e) {
+    const index = e.currentTarget.dataset.index;
+    const duration = Number(e.detail && e.detail.duration) || 0;
+    if (index === undefined || !duration) return;
+
+    const ctx = wx.createVideoContext(`record-preview-video-${index}`, this);
+    const seekTo = Math.max(duration - 0.1, 0);
+    ctx.play();
+    setTimeout(() => {
+      ctx.seek(seekTo);
+      setTimeout(() => {
+        ctx.pause();
+      }, 120);
+    }, 80);
+  },
+
   // 开始AR体验
   startARExperience: function(item) {
     // 检查相机权限
@@ -171,7 +232,7 @@ Page({
         }
         
         wx.navigateTo({
-          url: `/pages/ARPlay/ARPlay?id=${item.id}`
+          url: `/pages/ARPlay/ARPlay?id=${item.id}&videoUrl=${encodeURIComponent(item.videoUrl || '')}`
         });
       }
     });
@@ -202,7 +263,7 @@ Page({
               }
               
               wx.navigateTo({
-                url: `/pages/ARPlay/ARPlay?id=${item.projectId}`
+                url: `/pages/ARPlay/ARPlay?id=${item.projectId}&videoUrl=${encodeURIComponent(item.videoUrl || '')}`
               });
             }
           });

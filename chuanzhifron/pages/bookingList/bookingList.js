@@ -59,7 +59,7 @@ Page({
     }
     
     request({
-      url: `/user/bookings/${userId}`
+      url: '/user/bookings/me'
     }).then(res => {
       if (!res.success) {
         throw new Error(res.message || '获取预约失败');
@@ -174,7 +174,7 @@ Page({
           
           // 调用后端接口删除预约
           request({
-            url: `/user/bookings/${userId}/booking/${bookingId}`,
+            url: `/user/bookings/me/booking/${bookingId}`,
             method: 'DELETE'
           }).then(response => {
             if (response && response.success) {

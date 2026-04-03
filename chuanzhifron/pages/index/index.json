@@ -1,6 +1,6 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "首页",
-  "enablePullDownRefresh": true,
+  "navigationBarTitleText": "遗韵",
+  "enablePullDownRefresh": false,
   "backgroundTextStyle": "dark"
 }

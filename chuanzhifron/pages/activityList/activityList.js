@@ -14,14 +14,10 @@ Page({
 
   // 加载活动列表
   loadActivities: function() {
+    this.setData({ loading: true });
     request({
       url: '/activity/list'
     }).then(res => {
-      // 与后端 Result<T> 结构对齐：{ success, message, data }
-      if (!res.success) {
-        throw new Error(res.message || '获取活动失败');
-      }
-
       const list = res.data?.list || res.data || [];
       const activities = list.map(item => {
         // 处理日期显示
@@ -43,95 +39,22 @@ Page({
           buttonText: item.buttonText || (item.capacity > 0 && item.participants >= item.capacity ? '已满员' : '报名参加')
         };
       });
-      
-      // 如果后端数据为空，使用默认数据
-      if (activities.length === 0) {
-        const defaultActivities = this.getDefaultActivities();
-        this.setData({
-          activities: defaultActivities,
-          loading: false
-        });
-      } else {
-        this.setData({
-          activities: activities,
-          loading: false
-        });
-      }
-    }).catch(err => {
-      console.error('获取活动失败:', err);
-      // 使用默认数据
-      const defaultActivities = this.getDefaultActivities();
+
       this.setData({
-        activities: defaultActivities,
+        activities: activities,
         loading: false
       });
+    }).catch(err => {
+      console.error('获取活动失败:', err);
+      this.setData({
+        activities: [],
+        loading: false
+      });
+      wx.showToast({
+        title: err.message || '获取活动失败',
+        icon: 'none'
+      });
     });
-  },
-
-  // 获取默认活动数据
-  getDefaultActivities: function() {
-    return [
-      {
-        id: 1,
-        title: '非遗技艺体验日',
-        time: '2024-06-15 10:00-16:00',
-        location: '北京市东城区非遗展示中心',
-        day: '15',
-        month: '六月',
-        description: '邀请多位非遗传承人现场展示技艺，观众可近距离观摩并参与体验',
-        participants: 45,
-        capacity: 50,
-        buttonText: '报名参加'
-      },
-      {
-        id: 2,
-        title: '传承人讲座系列',
-        time: '2024-06-18 14:00-16:00',
-        location: '线上直播',
-        day: '18',
-        month: '六月',
-        description: '邀请国家级传承人分享非遗保护与传承的经验和心得',
-        participants: 1200,
-        capacity: 0,
-        buttonText: '预约观看'
-      },
-      {
-        id: 3,
-        title: '传统工艺工作坊',
-        time: '2024-06-22 09:00-12:00',
-        location: '上海市非遗保护中心',
-        day: '22',
-        month: '六月',
-        description: '学习传统手工艺制作，体验匠人精神',
-        participants: 28,
-        capacity: 30,
-        buttonText: '报名参加'
-      },
-      {
-        id: 4,
-        title: '非遗文化节',
-        time: '2024-06-25 09:00-18:00',
-        location: '广州市文化中心',
-        day: '25',
-        month: '六月',
-        description: '大型非遗文化展示活动，包含多种传统技艺展示和互动体验',
-        participants: 500,
-        capacity: 1000,
-        buttonText: '报名参加'
-      },
-      {
-        id: 5,
-        title: '传统戏曲展演',
-        time: '2024-06-28 19:00-21:00',
-        location: '成都市大剧院',
-        day: '28',
-        month: '六月',
-        description: '精彩的传统戏曲表演，包括京剧、川剧等经典剧目',
-        participants: 300,
-        capacity: 500,
-        buttonText: '报名参加'
-      }
-    ];
   },
 
   // 参加活动

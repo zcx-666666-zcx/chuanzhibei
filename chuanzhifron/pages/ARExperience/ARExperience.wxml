@@ -10,7 +10,7 @@
     <view class="intro-content">
       <view class="intro-text">
         <text class="intro-title">什么是文物 AR 体验？</text>
-        <text class="intro-desc">对准指定的文物图片（Marker），在真实画面上叠加播放文物的讲解视频与细节演示，让文物"动起来"。</text>
+        <text class="intro-desc">对准指定的文物图片（Marker），在真实画面上叠加播放文物的讲解视频与细节画面，让文物在光影中徐徐「活」起来。</text>
         <text class="intro-features">通过我们的 AR 功能，您可以：</text>
         <view class="feature-list">
           <view class="feature-item">
@@ -74,7 +74,22 @@
             bindtap="onARProjectTap" 
             data-item="{{item}}">
         <view class="ar-image-container">
-          <image src="{{item.coverImage || defaultArImage}}" class="ar-image" mode="aspectFill"></image>
+          <video
+            id="preview-video-{{index}}"
+            class="ar-image"
+            src="{{item.videoUrl}}"
+            poster="{{item.coverImage || defaultArImage || 'https://picsum.photos/seed/ar-preview-'+index+'/640/360'}}"
+            object-fit="cover"
+            controls="{{false}}"
+            show-center-play-btn="{{false}}"
+            show-play-btn="{{false}}"
+            show-fullscreen-btn="{{false}}"
+            enable-progress-gesture="{{false}}"
+            loop="{{false}}"
+            muted="{{true}}"
+            bindloadedmetadata="onPreviewMetaLoaded"
+            data-index="{{index}}"
+          ></video>
           <view wx:if="{{item.isHot}}" class="hot-badge">热门</view>
         </view>
         <view class="ar-content">
@@ -101,7 +116,22 @@
             wx:key="id" 
             wx:if="{{experienceRecords.length > 0}}">
         <view class="ar-image-container">
-          <image src="{{item.image || defaultArImage}}" class="ar-image" mode="aspectFill"></image>
+          <video
+            id="record-preview-video-{{index}}"
+            class="ar-image"
+            src="{{item.videoUrl}}"
+            poster="{{item.image || defaultArImage || 'https://picsum.photos/seed/ar-record-'+index+'/640/360'}}"
+            object-fit="cover"
+            controls="{{false}}"
+            show-center-play-btn="{{false}}"
+            show-play-btn="{{false}}"
+            show-fullscreen-btn="{{false}}"
+            enable-progress-gesture="{{false}}"
+            loop="{{false}}"
+            muted="{{true}}"
+            bindloadedmetadata="onRecordPreviewMetaLoaded"
+            data-index="{{index}}"
+          ></video>
         </view>
         <view class="ar-content">
           <text class="ar-title">{{item.name}}</text>

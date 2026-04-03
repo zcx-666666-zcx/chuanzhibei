@@ -2,24 +2,24 @@
 /* 全局样式重置 */
 page {
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', SimSun, sans-serif;
-  background-color: #f8f5f2;
-  color: #333;
+  background-color: #f4efe8;
+  color: #2a221c;
 }
 
-/* 中国风色彩定义 */
+/* 全局主题色：墨色、朱砂、金色 */
 page {
-  --primary-red: #c41e3a;
-  --gold: #d4af37;
-  --ink-black: #1a1a1a;
-  --rice-paper: #f8f5f2;
-  --bamboo-green: #7bb32e;
+  --primary-red: #b83232;
+  --gold: #c9a227;
+  --ink-black: #1a1410;
+  --rice-paper: #f4efe8;
+  --bamboo-green: #5a8f3a;
   --porcelain-blue: #3a6ea5;
 }
 
 /* 通用容器样式 */
 .container {
   min-height: 100vh;
-  background-color: #f8f5f2;
+  background-color: #f4efe8;
 }
 
 /* 通用卡片样式 */
@@ -217,6 +217,11 @@ page {
   height: 200rpx;
   margin-bottom: 32rpx;
   opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
 }
 
 /* 通用响应式 */

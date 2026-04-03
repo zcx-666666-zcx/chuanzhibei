@@ -60,7 +60,7 @@ Page({
     }
     
     request({
-      url: `/user/collections/${userId}`
+      url: '/user/collections/me'
     }).then(res => {
       if (!res.success) {
         throw new Error(res.message || '获取收藏失败');
@@ -177,7 +177,7 @@ Page({
           
           // 调用后端接口删除收藏
           request({
-            url: `/user/collections/${userId}/heritage/${heritageId}`,
+            url: `/user/collections/me/heritage/${heritageId}`,
             method: 'DELETE'
           }).then(response => {
             if (response && response.success) {

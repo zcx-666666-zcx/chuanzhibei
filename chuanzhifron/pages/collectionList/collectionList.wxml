@@ -28,8 +28,8 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:if="{{!loading && collections.length === 0}}" class="empty-state">
-    <text>暂无收藏</text>
+  <view wx:if="{{!loading && collections.length === 0}}" class="empty">
+    <text class="empty-text">暂无收藏</text>
   </view>
 </view>
 

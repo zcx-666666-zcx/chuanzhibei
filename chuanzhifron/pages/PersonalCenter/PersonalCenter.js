@@ -8,12 +8,14 @@ Page({
     userInfo: {
       name: '访客',
       title: '非遗文化爱好者',
-      avatar: buildStaticUrl('/uploads/login-bg.png.png')
+      avatar: 'https://picsum.photos/seed/profile-avatar/400/400'
     },
     userStats: {
       collections: 0,
       bookings: 0
     },
+    // 是否已通过非遗传承人认证（基于本地标记 isInheritor）
+    isInheritor: false,
     collections: [],
     displayCollections: [], // 首页显示的收藏列表（只显示前几条）
     bookings: [],
@@ -30,7 +32,8 @@ Page({
     // 页面加载时的初始化
     // 检查用户登录状态
     const user = getCurrentUser();
-    const defaultAvatar = buildStaticUrl('/uploads/login-bg.png.png');
+    const defaultAvatar = 'https://picsum.photos/seed/profile-avatar/400/400';
+    const isInheritor = !!wx.getStorageSync('isInheritor');
     
     if (user) {
       // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
@@ -41,12 +44,14 @@ Page({
       this.setData({
         'userInfo.name': userName,
         'userInfo.avatar': userAvatar,
-        'userInfo.title': userTitle
+        'userInfo.title': userTitle,
+        isInheritor
       });
     } else {
       // 如果没有登录用户，确保使用默认头像
       this.setData({
-        'userInfo.avatar': defaultAvatar
+        'userInfo.avatar': defaultAvatar,
+        isInheritor
       });
     }
     
@@ -57,7 +62,8 @@ Page({
   onShow: function() {
     // 页面显示时刷新用户信息，确保显示最新的用户名
     const user = getCurrentUser();
-    const defaultAvatar = buildStaticUrl('/uploads/login-bg.png.png');
+    const defaultAvatar = 'https://picsum.photos/seed/profile-avatar/400/400';
+    const isInheritor = !!wx.getStorageSync('isInheritor');
     
     if (user) {
       // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
@@ -68,14 +74,16 @@ Page({
       this.setData({
         'userInfo.name': userName,
         'userInfo.avatar': userAvatar,
-        'userInfo.title': userTitle
+        'userInfo.title': userTitle,
+        isInheritor
       });
     } else {
       // 如果没有登录用户，使用默认值
       this.setData({
         'userInfo.name': '访客',
         'userInfo.avatar': defaultAvatar,
-        'userInfo.title': '非遗文化爱好者'
+        'userInfo.title': '非遗文化爱好者',
+        isInheritor
       });
     }
     
@@ -122,7 +130,7 @@ Page({
     }
     
     request({
-      url: `/user/collections/${userId}`
+      url: '/user/collections/me'
     }).then(res => {
       if (!res.success) {
         throw new Error(res.message || '获取收藏失败');
@@ -206,7 +214,7 @@ Page({
     }
     
     request({
-      url: `/user/bookings/${userId}`
+      url: '/user/bookings/me'
     }).then(res => {
       if (!res.success) {
         throw new Error(res.message || '获取预约失败');
@@ -278,7 +286,7 @@ Page({
 
   // 头像加载失败时使用默认头像
   onAvatarError: function(e) {
-    const defaultAvatar = buildStaticUrl('/uploads/login-bg.png.png');
+    const defaultAvatar = 'https://picsum.photos/seed/profile-avatar/400/400';
     this.setData({
       'userInfo.avatar': defaultAvatar
     });
@@ -354,6 +362,14 @@ Page({
   // 选择头像
   chooseAvatar: function() {
     const that = this;
+    const token = wx.getStorageSync('token');
+    if (!token) {
+      wx.showToast({
+        title: '登录已过期，请重新登录',
+        icon: 'none'
+      });
+      return;
+    }
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
@@ -366,11 +382,22 @@ Page({
           url: buildApiUrl('/files/upload-image'),
           filePath: tempFilePath,
           name: 'file',
+          header: {
+            Authorization: `Bearer ${token}`
+          },
           formData: {
             'type': 'avatar'
           },
           success: function(uploadRes) {
             try {
+              if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
+                let message = `上传失败（${uploadRes.statusCode}）`;
+                try {
+                  const parsed = typeof uploadRes.data === 'string' ? JSON.parse(uploadRes.data) : uploadRes.data;
+                  message = parsed?.message || parsed?.error || message;
+                } catch (_) {}
+                throw new Error(message);
+              }
               // 解析响应数据
               let data;
               if (typeof uploadRes.data === 'string') {
@@ -594,7 +621,7 @@ Page({
           
           // 调用后端接口删除收藏
           request({
-            url: `/user/collections/${userId}/heritage/${heritageId}`,
+            url: `/user/collections/me/heritage/${heritageId}`,
             method: 'DELETE'
           }).then(response => {
             if (response && response.success) {
@@ -665,7 +692,7 @@ Page({
           
           // 调用后端接口删除预约
           request({
-            url: `/user/bookings/${userId}/booking/${bookingId}`,
+            url: `/user/bookings/me/booking/${bookingId}`,
             method: 'DELETE'
           }).then(response => {
             if (response && response.success) {
@@ -746,6 +773,87 @@ Page({
     // 跳转到预约体验列表页面
     wx.navigateTo({
       url: '/pages/bookingList/bookingList'
+    });
+  },
+
+  // 进入传承人社区
+  goInheritorCommunity: function() {
+    // 未登录先提示登录
+    if (!isLoggedIn()) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后再进入传承人社区',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' });
+          }
+        }
+      });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/InheritorCommunity/InheritorCommunity'
+    });
+  },
+
+  // 申请成为非遗传承人（前端示意：本地状态）
+  applyAsInheritor: function() {
+    if (!isLoggedIn()) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录，再申请成为非遗传承人',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' });
+          }
+        }
+      });
+      return;
+    }
+
+    wx.showModal({
+      title: '申请成为传承人',
+      content: '在实际系统中，需要提交资质材料并由平台审核。本版将直接开通传承人社区发布权限，用于完整呈现体验流程。',
+      confirmText: '确认开通',
+      cancelText: '暂不',
+      success: (res) => {
+        if (!res.confirm) return;
+        wx.setStorageSync('isInheritor', true);
+        this.setData({ isInheritor: true });
+        wx.showToast({
+          title: '已开通传承人社区',
+          icon: 'success'
+        });
+      }
+    });
+  },
+
+  // 进入传承人发帖页
+  goInheritorPost: function() {
+    const isInheritor = !!wx.getStorageSync('isInheritor');
+    if (!isInheritor) {
+      wx.showModal({
+        title: '提示',
+        content: '请先在本页申请成为非遗传承人，审核通过后即可发布社区动态。',
+        showCancel: true,
+        cancelText: '知道了',
+        confirmText: '去申请',
+        success: (res) => {
+          if (res.confirm) {
+            // 滚动到认证区域由用户自行点击按钮
+          }
+        }
+      });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/inheritorPost/inheritorPost'
     });
   },
 

@@ -33,7 +33,7 @@
     </view>
     <view class="collection-list">
       <view class="collection-item" wx:for="{{displayCollections}}" wx:key="id" bindtap="onCollectionTap" data-item="{{item}}">
-        <image src="{{item.image || item.imageUrl}}" class="collection-image" mode="aspectFill"></image>
+        <image src="{{item.image || item.imageUrl || 'https://picsum.photos/seed/collection-'+index+'/360/240'}}" class="collection-image" mode="aspectFill"></image>
         <view class="collection-content">
           <text class="collection-title">{{item.name || item.heritageName}}</text>
           <text class="collection-level">{{item.level || item.heritageLevel}}</text>
@@ -52,7 +52,7 @@
     </view>
     <view class="booking-list">
       <view class="booking-item" wx:for="{{bookings}}" wx:key="id">
-        <image wx:if="{{item.masterAvatar}}" src="{{item.masterAvatar}}" class="master-avatar" mode="aspectFill"></image>
+        <image wx:if="{{item.masterAvatar}}" src="{{item.masterAvatar || 'https://picsum.photos/seed/booking-'+index+'/200/200'}}" class="master-avatar" mode="aspectFill"></image>
         <view wx:else class="master-avatar-placeholder">
           <text class="avatar-placeholder-icon">{{item.type === 'activity' ? '📅' : (item.type === 'watch' ? '👁' : '👤')}}</text>
         </view>
@@ -68,8 +68,32 @@
     </view>
   </view>
 
-  <!-- 功能菜单 -->
-  
+  <!-- 传承人认证与社区 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">传承人社区</text>
+    </view>
+    <view class="community-card">
+      <view class="community-badge">重要展示模块</view>
+      <text class="community-title">成为非遗传承人，加入社区创作</text>
+      <text class="community-desc">
+        通过认证后，可以在「传承人社区」发布非遗记忆文章、技艺视频，与公众和学员建立长期联系。
+      </text>
+
+      <view wx:if="{{!isInheritor}}">
+        <button class="btn-primary community-btn" bindtap="applyAsInheritor">申请成为非遗传承人</button>
+      </view>
+
+      <view wx:if="{{isInheritor}}" class="community-actions">
+        <view class="community-tag">已认证传承人</view>
+        <view class="community-row">
+          <button class="btn-secondary community-btn-half" bindtap="goInheritorCommunity">进入传承人社区</button>
+          <button class="btn-primary community-btn-half" bindtap="goInheritorPost">发布社区动态</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 修改个人信息弹窗 -->
   <view class="modal-overlay" wx:if="{{showEditModal}}" bindtap="closeEditModal">
     <view class="modal-content" catchtap="stopPropagation">

@@ -9,8 +9,18 @@ Page({
     arRecognitionActive: false
   },
 
+  getArVideoList() {
+    return [
+      '/uploads/video_ARExperinece/苏绣双面绣AR体验视频.mp4',
+      '/uploads/video_ARExperinece/青铜器纹样AR体验视频.mp4',
+      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
+      '/uploads/video_ARExperinece/少林武术AR体验视频生成.mp4'
+    ];
+  },
+
   onLoad(options) {
     const id = options.id;
+    this.overrideVideoUrl = decodeURIComponent(options.videoUrl || '');
     if (!id) {
       wx.showToast({
         title: '缺少项目ID',
@@ -29,6 +39,9 @@ Page({
         throw new Error(res.message || '获取项目失败');
       }
       const data = res.data || {};
+      const videoList = this.getArVideoList();
+      const mappedVideoById = videoList[Number(id) - 1] || '';
+      const rawVideoPath = this.overrideVideoUrl || mappedVideoById || data.videoUrl || '';
       const project = {
         ...data,
         coverImage: data.coverImage && data.coverImage.startsWith('http') 
@@ -37,9 +50,9 @@ Page({
         markerImage: data.markerImage && data.markerImage.startsWith('http') 
           ? data.markerImage 
           : buildStaticUrl(data.markerImage || ''),
-        videoUrl: data.videoUrl && data.videoUrl.startsWith('http') 
-          ? data.videoUrl 
-          : buildStaticUrl(data.videoUrl || '')
+        videoUrl: rawVideoPath.startsWith('http')
+          ? rawVideoPath
+          : buildStaticUrl(rawVideoPath)
       };
       const instructionLines = (data.instruction || '').split('\n').filter(l => l.trim());
       this.setData({
@@ -53,6 +66,20 @@ Page({
         icon: 'none'
       });
     });
+  },
+
+  onPlayPreviewMetaLoaded(e) {
+    const duration = Number(e.detail && e.detail.duration) || 0;
+    if (!duration) return;
+    const ctx = wx.createVideoContext('ar-play-preview-video', this);
+    const seekTo = Math.max(duration - 0.1, 0);
+    ctx.play();
+    setTimeout(() => {
+      ctx.seek(seekTo);
+      setTimeout(() => {
+        ctx.pause();
+      }, 120);
+    }, 80);
   },
 
   startCamera() {
@@ -133,16 +160,11 @@ Page({
         url: '/ar/history',
         method: 'POST',
         data: {
-          userId: user.id,
           projectId: this.data.project.id,
           duration: duration
         }
-      }).then(res => {
-        if (res.success) {
-          console.log('体验记录保存成功');
-        } else {
-          console.error('体验记录保存失败:', res.message);
-        }
+      }).then(() => {
+        console.log('体验记录保存成功');
       }).catch(err => {
         console.error('保存体验记录时发生错误:', err);
       });

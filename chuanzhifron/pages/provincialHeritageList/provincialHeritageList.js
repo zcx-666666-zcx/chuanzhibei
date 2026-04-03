@@ -108,7 +108,7 @@ Page({
     // 批量检查收藏状态
     heritageList.forEach((item, index) => {
       request({
-        url: `/user/collections/${userId}/check/${item.id}`
+        url: `/user/collections/me/check/${item.id}`
       }).then(res => {
         if (res.success) {
           const updatedList = [...this.data.heritageList];
@@ -203,7 +203,7 @@ Page({
     if (isFavorite) {
       // 取消收藏
       request({
-        url: `/user/collections/${userId}/heritage/${heritageId}`,
+        url: `/user/collections/me/heritage/${heritageId}`,
         method: 'DELETE'
       }).then(res => {
         if (res.success) {

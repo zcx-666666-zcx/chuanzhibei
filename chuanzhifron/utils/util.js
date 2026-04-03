@@ -25,6 +25,7 @@ const formatNumber = n => {
 }
 
 const { buildApiUrl } = require('./config')
+const { mockRequest } = require('./mockApi.js')
 
 /**
  * 网络请求工具函数
@@ -32,6 +33,15 @@ const { buildApiUrl } = require('./config')
  * @returns {Promise} 返回Promise对象
  */
 const request = (options) => {
+  try {
+    const app = getApp()
+    if (app && app.globalData && app.globalData.localDataMode) {
+      return mockRequest(options)
+    }
+  } catch (e) {
+    // getApp 在极少数初始化时序下不可用，继续走真实请求
+  }
+
   const token = wx.getStorageSync('token')
   const timeout = options.timeout || 15000
 
@@ -48,11 +58,19 @@ const request = (options) => {
       },
       success(res) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(res.data)
+          const payload = res.data
+          if (payload && typeof payload === 'object' && payload.success === false) {
+            const message = payload.message || payload.error || '请求失败'
+            const error = new Error(message)
+            error.response = payload
+            reject(error)
+            return
+          }
+          resolve(payload)
           return
         }
 
-        if (res.statusCode === 401) {
+        if (res.statusCode === 401 || res.statusCode === 403) {
           wx.removeStorageSync('token')
           wx.removeStorageSync('userInfo')
         }

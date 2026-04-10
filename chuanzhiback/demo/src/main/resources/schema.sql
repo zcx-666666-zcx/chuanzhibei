@@ -1,3 +1,5 @@
+-- 遗留脚本：完整、与 JPA 对齐的建表请以 schema-bootstrap.sql 为准（由 SchemaBootstrapRunner 在开发环境执行）。
+-- 若仅需手工初始化，可执行：mysql ... < src/main/resources/schema-bootstrap.sql
 -- Create tables for the intangible heritage database
 
 -- Users table

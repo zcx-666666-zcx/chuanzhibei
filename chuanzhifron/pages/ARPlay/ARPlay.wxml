@@ -1,60 +1,73 @@
 <view class="container">
-  <view class="header">
-    <text class="title">{{project.name}}</text>
-    <text class="desc">{{project.description}}</text>
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载项目中…</text>
   </view>
 
-  <view class="card">
-    <text class="card-title">识别提示</text>
-    <text class="card-text">请对准下方"识别图"，保持手机稳定，识别成功后会在图像上叠加播放 AR 视频。</text>
-    <video wx:if="{{project.videoUrl}}"
-           id="ar-play-preview-video"
-           src="{{project.videoUrl}}"
-           class="marker-img"
-           poster="{{project.markerImage || 'https://picsum.photos/seed/ar-marker/640/360'}}"
-           controls="{{false}}"
-           show-center-play-btn="{{false}}"
-           show-play-btn="{{false}}"
-           show-fullscreen-btn="{{false}}"
-           enable-progress-gesture="{{false}}"
-           loop="{{false}}"
-           muted="{{true}}"
-           object-fit="cover"
-           bindloadedmetadata="onPlayPreviewMetaLoaded">
-    </video>
-    <image wx:elif="{{project.markerImage}}" src="{{project.markerImage}}" class="marker-img" mode="aspectFill"></image>
-    <image wx:else src="https://picsum.photos/seed/ar-marker-fallback/640/360" class="marker-img" mode="aspectFill"></image>
+  <view wx:elif="{{loadFailed}}" class="state-wrap state-fail">
+    <text class="state-text">{{loadErrorText}}</text>
+    <button class="state-btn" bindtap="onRetryLoadProject" size="mini" type="primary">重新加载</button>
   </view>
 
-  <view class="card">
-    <text class="card-title">体验指南</text>
-    <block wx:for="{{instructionLines}}" wx:key="index">
-      <text class="card-text">{{item}}</text>
-    </block>
-  </view>
+  <block wx:else>
+    <view class="header">
+      <text class="title">{{project.name}}</text>
+      <text class="desc">{{project.description}}</text>
+    </view>
 
-  <view class="footer">
-    <button class="btn-primary" bindtap="startCamera">调用摄像头并开始识别</button>
-  </view>
-  
-  <!-- AR识别结果展示区域 -->
-  <view wx:if="{{arRecognitionActive}}" class="ar-overlay">
-    <view class="ar-result">
-      <text class="result-text">识别成功！正在播放AR视频...</text>
-      <video wx:if="{{project.videoUrl}}" 
-             src="{{project.videoUrl}}" 
-             controls 
-             autoplay 
-             class="video" 
-             poster="{{project.markerImage || project.coverImage}}"
+    <view class="card">
+      <text class="card-title">识别提示</text>
+      <text class="card-text">请对准下方「识别图」，保持手机稳定；当前为演示流程，识别成功后将叠加播放讲解视频。</text>
+      <text wx:if="{{!project.videoUrl}}" class="card-warn">暂无讲解视频地址，仍可体验识别流程；若后台已配置视频，请下拉沉浸页重新进入本页。</text>
+      <video wx:if="{{project.videoUrl}}"
+             id="ar-play-preview-video"
+             src="{{project.videoUrl}}"
+             class="marker-img"
+             poster="{{project.markerImage || arPlaceholderImage}}"
+             controls="{{false}}"
              show-center-play-btn="{{false}}"
              show-play-btn="{{false}}"
-             enable-danmu="{{false}}"
-             enable-play-gesture="{{false}}"
-             vslide-gesture="{{false}}"
-             vslide-gesture-in-fullscreen="{{false}}"
-             picture-in-picture="{{false}}">
+             show-fullscreen-btn="{{false}}"
+             enable-progress-gesture="{{false}}"
+             loop="{{false}}"
+             muted="{{true}}"
+             preload="{{videoPreload}}"
+             object-fit="cover"
+             bindloadedmetadata="onPlayPreviewMetaLoaded">
       </video>
+      <image wx:elif="{{project.markerImage}}" src="{{project.markerImage}}" class="marker-img" mode="aspectFill" lazy-load="{{true}}"></image>
+      <image wx:else src="{{arPlaceholderImage}}" class="marker-img" mode="aspectFill" lazy-load="{{true}}"></image>
     </view>
-  </view>
+
+    <view class="card">
+      <text class="card-title">体验指南</text>
+      <block wx:for="{{instructionLines}}" wx:key="index">
+        <text class="card-text">{{item}}</text>
+      </block>
+    </view>
+
+    <view class="footer">
+      <button class="btn-primary" bindtap="startCamera">调用摄像头并开始识别</button>
+    </view>
+
+    <view wx:if="{{arRecognitionActive}}" class="ar-overlay">
+      <view class="ar-result">
+        <text class="result-text">识别成功！正在播放AR视频...</text>
+        <video wx:if="{{project.videoUrl}}" 
+               src="{{project.videoUrl}}" 
+               controls 
+               autoplay 
+               class="video" 
+               poster="{{project.markerImage || project.coverImage || arPlaceholderImage}}"
+               show-center-play-btn="{{false}}"
+               show-play-btn="{{false}}"
+               enable-danmu="{{false}}"
+               enable-play-gesture="{{false}}"
+               vslide-gesture="{{false}}"
+               vslide-gesture-in-fullscreen="{{false}}"
+               picture-in-picture="{{false}}"
+               preload="{{videoPreload}}">
+        </video>
+      </view>
+    </view>
+  </block>
 </view>

@@ -1,40 +1,50 @@
-<!--ARExperience.wxml-->
-<view class="container">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <text class="page-title">AR文物体验</text>
-  </view>
+<!-- 沉浸体验 · 与首页同色纸感 -->
+<view class="page">
+  <view class="bg-layer" aria-hidden="true"></view>
 
-  <!-- AR体验介绍 -->
-  <view class="intro-section">
-    <view class="intro-content">
-      <view class="intro-text">
-        <text class="intro-title">什么是文物 AR 体验？</text>
-        <text class="intro-desc">对准指定的文物图片（Marker），在真实画面上叠加播放文物的讲解视频与细节画面，让文物在光影中徐徐「活」起来。</text>
-        <text class="intro-features">通过我们的 AR 功能，您可以：</text>
-        <view class="feature-list">
-          <view class="feature-item">
-            <text class="feature-icon">🔍</text>
-            <text class="feature-text">在真实场景中观看文物细节视频</text>
-          </view>
-          <view class="feature-item">
-            <text class="feature-icon">👆</text>
-            <text class="feature-text">对准海报/展板即可触发 AR 叠加</text>
-          </view>
-          <view class="feature-item">
-            <text class="feature-icon">📖</text>
-            <text class="feature-text">聆听文物背后的历史与工艺故事</text>
-          </view>
-
-        </view>
-      </view>
-      <image src="https://s.coze.cn/image/PwCwmJk5298/" class="intro-image" mode="aspectFill"></image>
+  <view class="hero">
+    <view class="hero-deco" aria-hidden="true"></view>
+    <view class="hero-inner">
+      <text class="hero-kicker">IMMERSIVE · AR / VR</text>
+      <text class="hero-title">沉浸体验</text>
+      <text class="hero-sub">对准识别图或平面，在实景画面中叠加讲解与细节（可后续扩展 VR 全景）</text>
     </view>
   </view>
- <!-- AR体验指南 -->
- <view class="guide-section">
-    <view class="section-header">
-      <text class="section-title">AR体验指南</text>
+
+  <view class="sheet sheet-tight">
+    <view class="sheet-head">
+      <view class="sheet-head-left">
+        <text class="sheet-en">INTRO</text>
+        <text class="sheet-cn">什么是文物 沉浸 体验</text>
+      </view>
+    </view>
+    <view class="intro-inner">
+      <text class="intro-desc">对准指定的文物图片（Marker），在真实画面上叠加播放文物的讲解视频与细节画面，让文物在光影中徐徐「活」起来。</text>
+      <text class="intro-features">您可以：</text>
+      <view class="feature-list">
+        <view class="feature-item">
+          <text class="feature-icon">🔍</text>
+          <text class="feature-text">在真实场景中观看文物细节视频</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">👆</text>
+          <text class="feature-text">对准海报/展板即可触发 沉浸 叠加</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">📖</text>
+          <text class="feature-text">聆听文物背后的历史与工艺故事</text>
+        </view>
+      </view>
+      <image src="{{arPlaceholderImage}}" class="intro-image" mode="aspectFill" lazy-load="{{true}}"></image>
+    </view>
+  </view>
+
+  <view class="sheet">
+    <view class="sheet-head">
+      <view class="sheet-head-left">
+        <text class="sheet-en">GUIDE</text>
+        <text class="sheet-cn">体验指南</text>
+      </view>
     </view>
     <view class="guide-grid">
       <view class="guide-item">
@@ -42,85 +52,86 @@
           <text class="iconfont icon-mobile">📱</text>
         </view>
         <text class="guide-title">打开小程序</text>
-        <text class="guide-desc">确保您的设备支持AR功能并已授予相机权限</text>
+        <text class="guide-desc">确保设备支持并已授予相机权限</text>
       </view>
       <view class="guide-item">
         <view class="guide-icon">
           <text class="iconfont icon-camera">📷</text>
         </view>
         <text class="guide-title">扫描识别</text>
-        <text class="guide-desc">将相机对准指定的识别图或平面</text>
+        <text class="guide-desc">将相机对准识别图或平面</text>
       </view>
       <view class="guide-item">
         <view class="guide-icon">
           <text class="iconfont icon-hand">👆</text>
         </view>
         <text class="guide-title">互动体验</text>
-        <text class="guide-desc">点击、缩放或旋转屏幕上的虚拟文物进行互动</text>
+        <text class="guide-desc">在屏幕上进行缩放与查看</text>
       </view>
     </view>
   </view>
 
-  <!-- AR体验项目 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">热门AR体验项目</text>
-      <navigator url="/pages/ARProjectList/ARProjectList" class="more-link" wx:if="{{arProjects.length > 4}}">查看更多</navigator>
-    </view>
-    <view class="ar-grid">
-      <view class="ar-card card card-hover" 
-            wx:for="{{displayArProjects}}" 
-            wx:key="id" 
-            bindtap="onARProjectTap" 
-            data-item="{{item}}">
-        <view class="ar-image-container">
-          <video
-            id="preview-video-{{index}}"
-            class="ar-image"
-            src="{{item.videoUrl}}"
-            poster="{{item.coverImage || defaultArImage || 'https://picsum.photos/seed/ar-preview-'+index+'/640/360'}}"
-            object-fit="cover"
-            controls="{{false}}"
-            show-center-play-btn="{{false}}"
-            show-play-btn="{{false}}"
-            show-fullscreen-btn="{{false}}"
-            enable-progress-gesture="{{false}}"
-            loop="{{false}}"
-            muted="{{true}}"
-            bindloadedmetadata="onPreviewMetaLoaded"
-            data-index="{{index}}"
-          ></video>
-          <view wx:if="{{item.isHot}}" class="hot-badge">热门</view>
-        </view>
-        <view class="ar-content">
-          <text class="ar-title">{{item.name}}</text>
-          <text class="ar-desc">{{item.description}}</text>
-          <button class="btn-primary ar-button" bindtap="startARExperience" data-item="{{item}}" catchtap="true">
-            <text class="iconfont icon-cube"></text>
-            <text>开始体验</text>
-          </button>
-        </view>
+  <view class="sheet">
+    <view class="sheet-head">
+      <view class="sheet-head-left">
+        <text class="sheet-en">DEMO</text>
+        <text class="sheet-cn">3D 沉浸演示</text>
       </view>
     </view>
+    <text class="demo-desc">基于微信 xr-frame：展台场景 + 官方示例 glTF 模型（含动画）+ 多光源与阴影。单指旋转视角，双指缩放。</text>
+    <navigator url="/pages/xrDemo3D/xrDemo3D" class="demo-nav demo-nav-primary" hover-class="demo-nav-hover">
+      <text class="demo-nav-title">进入 3D 演示</text>
+      <text class="demo-nav-sub">可替换为自有非遗 glb 模型</text>
+    </navigator>
   </view>
 
- 
-  <!-- 我的体验记录 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">我的体验记录</text>
+  <view class="sheet">
+    <view class="sheet-head row-between">
+      <view class="sheet-head-left">
+        <text class="sheet-en">PROJECTS</text>
+        <text class="sheet-cn">沉浸 体验项目</text>
+      </view>
+      <text class="sheet-more" bindtap="goARProjectListFull">全部</text>
+    </view>
+    <text wx:if="{{loading}}" class="ar-pro-hint">项目加载中…</text>
+    <text wx:elif="{{!arProjects.length}}" class="ar-pro-hint">暂无项目，可下拉刷新或从首页进入「AR 项目列表」</text>
+    <scroll-view wx:else class="pick-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
+      <view class="pick-track">
+        <view
+          class="pick-card"
+          wx:for="{{arProjects}}"
+          wx:key="id"
+          bindtap="onArProjectTap"
+          data-item="{{item}}"
+        >
+          <image src="{{item.coverImage}}" class="pick-img" mode="aspectFill" lazy-load="{{true}}"></image>
+          <view class="pick-body">
+            <text class="pick-name">{{item.name}}</text>
+            <text class="pick-region">轻点进入相机体验</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="sheet">
+    <view class="sheet-head">
+      <view class="sheet-head-left">
+        <text class="sheet-en">HISTORY</text>
+        <text class="sheet-cn">我的体验记录</text>
+      </view>
     </view>
     <view class="ar-grid">
-      <view class="ar-card card card-hover" 
-            wx:for="{{experienceRecords}}" 
-            wx:key="id" 
+      <view class="ar-card card card-hover"
+            wx:for="{{experienceRecords}}"
+            wx:key="id"
             wx:if="{{experienceRecords.length > 0}}">
         <view class="ar-image-container">
           <video
             id="record-preview-video-{{index}}"
             class="ar-image"
             src="{{item.videoUrl}}"
-            poster="{{item.image || defaultArImage || 'https://picsum.photos/seed/ar-record-'+index+'/640/360'}}"
+            poster="{{item.image || arPlaceholderImage}}"
             object-fit="cover"
             controls="{{false}}"
             show-center-play-btn="{{false}}"
@@ -129,6 +140,7 @@
             enable-progress-gesture="{{false}}"
             loop="{{false}}"
             muted="{{true}}"
+            preload="{{videoPreload}}"
             bindloadedmetadata="onRecordPreviewMetaLoaded"
             data-index="{{index}}"
           ></video>
@@ -147,4 +159,6 @@
       </view>
     </view>
   </view>
+
+  <view class="footer-space"></view>
 </view>

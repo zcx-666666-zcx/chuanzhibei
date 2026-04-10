@@ -187,11 +187,11 @@
   opacity: 0.85;
 }
 
-/* —— 金刚区 4×4 —— */
+/* —— 寻迹导航 3×3 —— */
 .diamond-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16rpx 12rpx;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18rpx 14rpx;
 }
 
 .diamond-item {
@@ -448,6 +448,58 @@
 .article-date {
   font-size: 22rpx;
   color: #a09890;
+}
+
+.article-byline {
+  flex: 1;
+  min-width: 0;
+  margin-right: 16rpx;
+  font-size: 22rpx;
+  color: #a09890;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.article-loading {
+  padding: 48rpx 24rpx;
+  text-align: center;
+}
+
+.article-loading-text {
+  font-size: 26rpx;
+  color: #9a928a;
+}
+
+.article-empty {
+  padding: 48rpx 28rpx 56rpx;
+  text-align: center;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1rpx dashed rgba(42, 34, 28, 0.12);
+}
+
+.article-empty-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2a221c;
+  margin-bottom: 12rpx;
+}
+
+.article-empty-hint {
+  display: block;
+  font-size: 24rpx;
+  color: #9a928a;
+  line-height: 1.5;
+}
+
+.article-empty-link {
+  display: inline-block;
+  margin-top: 28rpx;
+  font-size: 26rpx;
+  color: #b83232;
+  font-weight: 500;
 }
 
 .article-go {

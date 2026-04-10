@@ -1,5 +1,6 @@
 // app.js
 const { buildStaticUrl } = require('./utils/config.js')
+const { useMockApi } = require('./utils/env.js')
 
 App({
   /**
@@ -10,7 +11,7 @@ App({
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
 
-    // 本地数据模式：在未接入真实后端时，使用 utils/mockApi 拦截 request
+    // mock 模式：见 utils/env.js（生产环境强制关闭）
     if (this.globalData.localDataMode) {
       wx.setStorageSync('token', 'local-session-token')
       wx.setStorageSync('userInfo', {
@@ -37,8 +38,8 @@ App({
    * 全局数据
    */
   globalData: {
-    /** 设为 false 可切换为「真实后端 + 登录页」流程 */
-    localDataMode: true,
+    /** 与 utils/env.js 中 useMockApi() 一致；生产环境为 false */
+    localDataMode: useMockApi(),
     userInfo: null
   }
 })

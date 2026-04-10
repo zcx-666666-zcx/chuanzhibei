@@ -1,9 +1,10 @@
-<!--PersonalCenter.wxml-->
-<view class="container">
+<!--PersonalCenter.wxml · 与首页同色纸感 -->
+<view class="page">
+  <view class="bg-layer" aria-hidden="true"></view>
   <!-- 用户信息卡片 -->
   <view class="user-card" bindtap="onUserCardTap">
     <view class="user-header">
-      <image src="{{userInfo.avatar}}" class="user-avatar" mode="aspectFill" binderror="onAvatarError"></image>
+      <image src="{{userInfo.avatar}}" class="user-avatar" mode="aspectFill" binderror="onAvatarError" lazy-load="{{true}}"></image>
       <view class="user-info">
         <text class="user-name">{{userInfo.name || '访客'}}</text>
         <text class="user-title">{{userInfo.title || '非遗文化爱好者'}}</text>
@@ -33,7 +34,7 @@
     </view>
     <view class="collection-list">
       <view class="collection-item" wx:for="{{displayCollections}}" wx:key="id" bindtap="onCollectionTap" data-item="{{item}}">
-        <image src="{{item.image || item.imageUrl || 'https://picsum.photos/seed/collection-'+index+'/360/240'}}" class="collection-image" mode="aspectFill"></image>
+        <image src="{{item.image || item.imageUrl || userInfo.avatar}}" class="collection-image" mode="aspectFill" lazy-load="{{true}}"></image>
         <view class="collection-content">
           <text class="collection-title">{{item.name || item.heritageName}}</text>
           <text class="collection-level">{{item.level || item.heritageLevel}}</text>
@@ -48,11 +49,11 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">预约体验</text>
-      <text class="more-link" bindtap="viewAllBookings">查看全部</text>
+      <text class="more-link" bindtap="viewAllBookings" wx:if="{{bookings.length > 0}}">查看全部</text>
     </view>
     <view class="booking-list">
       <view class="booking-item" wx:for="{{bookings}}" wx:key="id">
-        <image wx:if="{{item.masterAvatar}}" src="{{item.masterAvatar || 'https://picsum.photos/seed/booking-'+index+'/200/200'}}" class="master-avatar" mode="aspectFill"></image>
+        <image wx:if="{{item.masterAvatar}}" src="{{item.masterAvatar}}" class="master-avatar" mode="aspectFill" lazy-load="{{true}}"></image>
         <view wx:else class="master-avatar-placeholder">
           <text class="avatar-placeholder-icon">{{item.type === 'activity' ? '📅' : (item.type === 'watch' ? '👁' : '👤')}}</text>
         </view>
@@ -64,32 +65,6 @@
         <button wx:if="{{item.status === 'pending' || item.status === 'confirmed'}}" class="btn-secondary cancel-btn" bindtap="cancelBooking" data-item="{{item}}">
           取消预约
         </button>
-      </view>
-    </view>
-  </view>
-
-  <!-- 传承人认证与社区 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">传承人社区</text>
-    </view>
-    <view class="community-card">
-      <view class="community-badge">重要展示模块</view>
-      <text class="community-title">成为非遗传承人，加入社区创作</text>
-      <text class="community-desc">
-        通过认证后，可以在「传承人社区」发布非遗记忆文章、技艺视频，与公众和学员建立长期联系。
-      </text>
-
-      <view wx:if="{{!isInheritor}}">
-        <button class="btn-primary community-btn" bindtap="applyAsInheritor">申请成为非遗传承人</button>
-      </view>
-
-      <view wx:if="{{isInheritor}}" class="community-actions">
-        <view class="community-tag">已认证传承人</view>
-        <view class="community-row">
-          <button class="btn-secondary community-btn-half" bindtap="goInheritorCommunity">进入传承人社区</button>
-          <button class="btn-primary community-btn-half" bindtap="goInheritorPost">发布社区动态</button>
-        </view>
       </view>
     </view>
   </view>
@@ -107,7 +82,7 @@
         <view class="form-item">
           <text class="form-label">头像</text>
           <view class="avatar-upload">
-            <image src="{{editForm.avatar || userInfo.avatar}}" class="avatar-preview" mode="aspectFill"></image>
+            <image src="{{editForm.avatar || userInfo.avatar}}" class="avatar-preview" mode="aspectFill" lazy-load="{{true}}"></image>
             <button class="btn-upload" bindtap="chooseAvatar">选择头像</button>
           </view>
         </view>

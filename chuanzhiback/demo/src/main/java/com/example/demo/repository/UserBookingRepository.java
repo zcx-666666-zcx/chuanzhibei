@@ -21,6 +21,6 @@ public interface UserBookingRepository extends JpaRepository<UserBooking, Long> 
     @Modifying
     @Transactional
     @Query("DELETE FROM UserBooking ub WHERE ub.user.id = :userId AND ub.id = :bookingId")
-    void deleteByUserIdAndBookingId(@Param("userId") Long userId, @Param("bookingId") Long bookingId);
+    int deleteByUserIdAndBookingId(@Param("userId") Long userId, @Param("bookingId") Long bookingId);
 }
 

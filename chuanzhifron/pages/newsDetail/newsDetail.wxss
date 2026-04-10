@@ -4,6 +4,29 @@
   min-height: 100vh;
 }
 
+.load-fail {
+  padding: 120rpx 40rpx;
+  text-align: center;
+}
+
+.load-fail-text {
+  display: block;
+  font-size: 28rpx;
+  color: #888;
+  margin-bottom: 32rpx;
+  line-height: 1.5;
+}
+
+.load-fail-btn {
+  margin: 0 auto;
+}
+
+.empty-body {
+  padding: 24rpx 0;
+  font-size: 26rpx;
+  color: #aaa;
+}
+
 .header {
   margin-bottom: 30rpx;
   padding: 20rpx;

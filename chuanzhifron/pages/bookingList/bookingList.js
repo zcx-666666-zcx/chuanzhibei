@@ -1,11 +1,13 @@
 // pages/bookingList/bookingList.js
-import { request } from '../../utils/util.js'
-import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
 
 Page({
   data: {
     bookings: [],
-    loading: true
+    loading: true,
+    loadError: false,
+    loadErrorText: ''
   },
 
   onLoad: function() {
@@ -35,11 +37,14 @@ Page({
 
   // 加载预约数据
   loadBookings: function() {
+    this.setData({ loading: true, loadError: false, loadErrorText: '' })
     const user = getCurrentUser();
     if (!user) {
       this.setData({
         bookings: [],
-        loading: false
+        loading: false,
+        loadError: true,
+        loadErrorText: '用户信息缺失，请重新登录'
       });
       return;
     }
@@ -49,7 +54,9 @@ Page({
       console.error('无法获取用户ID');
       this.setData({
         bookings: [],
-        loading: false
+        loading: false,
+        loadError: true,
+        loadErrorText: '无法获取用户信息'
       });
       wx.showToast({
         title: '无法获取用户信息',
@@ -107,16 +114,21 @@ Page({
       
       this.setData({
         bookings: processedBookings,
-        loading: false
+        loading: false,
+        loadError: false,
+        loadErrorText: ''
       });
     }).catch(err => {
       console.error('获取预约数据失败:', err);
+      const msg = requestErrorMessage(err)
       this.setData({
         bookings: [],
-        loading: false
+        loading: false,
+        loadError: true,
+        loadErrorText: msg
       });
       wx.showToast({
-        title: err.message || '加载预约失败',
+        title: msg,
         icon: 'none'
       });
     });
@@ -194,7 +206,7 @@ Page({
           }).catch(err => {
             console.error('取消预约失败:', err);
             wx.showToast({
-              title: '取消预约失败，请重试',
+              title: requestErrorMessage(err),
               icon: 'none'
             });
           });
@@ -217,10 +229,13 @@ Page({
 
   // 下拉刷新
   onPullDownRefresh: function() {
-    this.loadBookings();
-    setTimeout(() => {
+    this.loadBookings().finally(() => {
       wx.stopPullDownRefresh();
-    }, 500);
+    });
+  },
+
+  onRetryLoad() {
+    this.loadBookings()
   }
 })
 

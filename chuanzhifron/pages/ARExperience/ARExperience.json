@@ -1,5 +1,8 @@
 {
-  "navigationBarTitleText": "AR 沉浸体验",
+  "navigationBarTitleText": "沉浸体验",
+  "navigationBarBackgroundColor": "#1a1410",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f4efe8",
   "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark"
+  "backgroundTextStyle": "light"
 }

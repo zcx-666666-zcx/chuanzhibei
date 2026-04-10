@@ -1,6 +1,6 @@
-import { request } from '../../utils/util.js'
-import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn, logout } = require('../../utils/auth.js')
+const { buildStaticUrl } = require('../../utils/config.js')
 
 Page({
   data: {
@@ -12,7 +12,11 @@ Page({
     isFavorite: false,
     heritageId: null,
     fromCollection: false,
-    collectionData: null
+    collectionData: null,
+    loading: true,
+    loadFailed: false,
+    loadErrorText: '',
+    defaultImageUrl: buildStaticUrl('/uploads/photo_ARExperience.png')
   },
 
   onLoad(options) {
@@ -22,8 +26,10 @@ Page({
         title: '未找到项目ID',
         icon: 'none'
       })
+      this.setData({ loading: false, loadFailed: true, loadErrorText: '缺少项目 ID' })
       return
     }
+    this._heritageLoadId = id
     
     // 检查是否从收藏页面跳转过来
     const fromCollection = options.fromCollection === 'true';
@@ -49,11 +55,24 @@ Page({
     this.loadHeritageDetail(id)
   },
 
+  onRetryLoad() {
+    const id = this._heritageLoadId || this.data.heritageId
+    if (id) {
+      this.loadHeritageDetail(id)
+    }
+  },
+
+  onFailBack() {
+    wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/index/index' }) })
+  },
+
   // 加载非遗项目详情（图文内容从后端获取）
   loadHeritageDetail(id) {
+    this.setData({ loading: true, loadFailed: false, loadErrorText: '' })
     // 确保id是数字类型
     const heritageId = parseInt(id);
     if (!heritageId || isNaN(heritageId)) {
+      this.setData({ loading: false, loadFailed: true, loadErrorText: '非遗项目 ID 无效' })
       wx.showModal({
         title: '错误',
         content: '非遗项目ID无效',
@@ -82,24 +101,14 @@ Page({
 
       // 处理图片：后端存的是相对路径，前面补服务器地址
       let imageUrl = ''
+      const fallbackImage = this.data.defaultImageUrl
       if (data.imageUrl) {
         imageUrl = data.imageUrl.startsWith('http')
           ? data.imageUrl
           : buildStaticUrl(data.imageUrl)
       } else {
-        // 按你的说明使用 heritage_index 中的图片，书法、中医药等可以根据名称简单映射
-        const name = (data.name || '').trim()
-        if (name.includes('书法')) {
-          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_shufa.jpg')
-        } else if (name.includes('刺绣')) {
-          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_cixiu.jpg')
-        } else if (name.includes('中医') || name.includes('中医药')) {
-          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_zhongyiyao.jpg')
-        } else if (name.includes('武术')) {
-          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_wushu.jpg')
-        } else {
-          imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_shufa.jpg')
-        }
+        // 后端缺少图片地址时，统一使用兜底图，避免因历史路径不存在导致 500。
+        imageUrl = fallbackImage
       }
 
       // 处理文字内容：后端 description + 我帮你扩展的介绍性文案
@@ -133,7 +142,10 @@ Page({
         descriptionParagraphs,
         levelText,
         categoryText,
-        heritageId: data.id
+        heritageId: data.id,
+        loading: false,
+        loadFailed: false,
+        loadErrorText: ''
       });
       
       // 检查是否已收藏
@@ -144,19 +156,18 @@ Page({
       
       // 如果是从收藏页面跳转过来的，且项目不存在，使用收藏数据来显示
       if (this.data.fromCollection && this.data.collectionData && errorMsg.includes('不存在')) {
+        this.setData({ loading: false, loadFailed: false })
         this.loadFromCollectionData();
         return;
       }
       
-      wx.showModal({
-        title: '加载失败',
-        content: errorMsg.includes('不存在') ? '该非遗项目不存在或已被删除' : errorMsg,
-        showCancel: false,
-        confirmText: '返回',
-        success: () => {
-          wx.navigateBack();
-        }
-      });
+      this.setData({
+        loading: false,
+        loadFailed: true,
+        loadErrorText: errorMsg.includes('不存在')
+          ? '该非遗项目不存在或已被删除'
+          : requestErrorMessage(err)
+      })
     })
   },
 
@@ -182,8 +193,8 @@ Page({
       imageUrl = buildStaticUrl(imageUrl);
     }
     if (!imageUrl) {
-      // 使用默认图片
-      imageUrl = buildStaticUrl('/uploads/heritage_index/recommend_heritage_shufa.jpg');
+      // 使用默认兜底图
+      imageUrl = this.data.defaultImageUrl;
     }
     
     // 处理描述
@@ -206,7 +217,9 @@ Page({
       levelText: levelText,
       categoryText: '非遗门类',
       heritageId: this.data.heritageId,
-      isFavorite: true // 从收藏来的，默认已收藏
+      isFavorite: true, // 从收藏来的，默认已收藏
+      loading: false,
+      loadFailed: false
     });
     
     wx.showToast({
@@ -231,7 +244,6 @@ Page({
 
   // 检查收藏状态
   checkFavoriteStatus: function(heritageId) {
-    // 先检查是否登录
     if (!isLoggedIn()) {
       this.setData({
         isFavorite: false
@@ -240,16 +252,7 @@ Page({
     }
     
     const user = getCurrentUser();
-    if (!user) {
-      this.setData({
-        isFavorite: false
-      });
-      return;
-    }
-    
-    // 获取用户ID
-    const userId = user.id || user.userId;
-    if (!userId) {
+    if (!user || !(user.id || user.userId)) {
       this.setData({
         isFavorite: false
       });
@@ -269,101 +272,67 @@ Page({
         });
       }
     }).catch(err => {
-      console.error('检查收藏状态失败:', err);
+      // token 失效或鉴权失败时，降级为未收藏并清理本地会话，避免页面报错刷屏。
+      if (err && (err.statusCode === 401 || err.statusCode === 403)) {
+        logout();
+      } else {
+        console.error('检查收藏状态失败:', err);
+      }
       this.setData({
         isFavorite: false
       });
     });
   },
 
+  onCoverImageError() {
+    this.setData({
+      imageUrl: this.data.defaultImageUrl
+    });
+  },
+
+  ensureLoggedIn() {
+    if (isLoggedIn()) {
+      return true
+    }
+    wx.showModal({
+      title: '提示',
+      content: '请先登录',
+      showCancel: true,
+      cancelText: '取消',
+      confirmText: '去登录',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/login/login' })
+        }
+      }
+    })
+    return false
+  },
+
+  getCurrentUserId() {
+    const user = getCurrentUser()
+    if (!user || typeof user !== 'object') {
+      return null
+    }
+    return user.id || user.userId || null
+  },
+
   // 切换收藏状态
   toggleFavorite: function() {
-    // 检查token
-    const token = wx.getStorageSync('token');
-    console.log('Token:', token);
-    
-    // 使用isLoggedIn检查登录状态
-    if (!isLoggedIn() || !token) {
-      console.log('未登录，token为空');
-      wx.showModal({
-        title: '提示',
-        content: '请先登录',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
+    if (!this.ensureLoggedIn()) {
+      return
     }
-    
-    const user = getCurrentUser();
-    console.log('用户信息:', user);
-    console.log('用户信息类型:', typeof user);
-    
-    if (!user) {
-      console.log('用户信息为空');
-      wx.showModal({
-        title: '提示',
-        content: '用户信息获取失败，请重新登录',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
-    }
-    
-    // 获取用户ID - 尝试多种方式
-    let userId = null;
-    if (user && typeof user === 'object') {
-      // 直接获取id（最常见的情况）
-      userId = user.id;
-      
-      // 如果id不存在，尝试其他可能的字段名
-      if (!userId) {
-        userId = user.userId || user.user_id || user.ID;
-      }
-      
-      // 如果还是不存在，尝试从嵌套对象中获取
-      if (!userId && user.data && user.data.id) {
-        userId = user.data.id;
-      }
-      if (!userId && user.user && user.user.id) {
-        userId = user.user.id;
-      }
-    }
-    
-    console.log('最终获取到的用户ID:', userId);
-    
+    const userId = this.getCurrentUserId()
     if (!userId) {
-      console.error('无法获取用户ID');
-      console.error('用户信息完整内容:', JSON.stringify(user, null, 2));
-      console.error('用户信息类型:', typeof user);
-      console.error('用户信息是否为对象:', user instanceof Object);
-      
       wx.showModal({
         title: '提示',
-        content: '无法获取用户ID，请重新登录。如果问题持续，请联系客服。',
+        content: '用户信息无效，请重新登录',
         showCancel: true,
         cancelText: '取消',
         confirmText: '去登录',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
+            wx.navigateTo({ url: '/pages/login/login' });
           }
         }
       });
@@ -395,7 +364,7 @@ Page({
       }).catch(err => {
         console.error('取消收藏失败:', err);
         wx.showToast({
-          title: err.message || '取消收藏失败，请重试',
+          title: requestErrorMessage(err),
           icon: 'none'
         });
       });
@@ -437,7 +406,7 @@ Page({
       }).catch(err => {
         console.error('收藏失败:', err);
         wx.showToast({
-          title: err.message || '收藏失败，请重试',
+          title: requestErrorMessage(err),
           icon: 'none'
         });
       });

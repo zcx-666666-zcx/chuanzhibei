@@ -2,7 +2,7 @@
 <view class="page">
   <view class="content">
     <view class="brand">
-      <image class="logo" src="{{logoUrl}}" mode="aspectFill"></image>
+      <image class="logo" src="{{logoUrl}}" mode="aspectFill" binderror="onLogoError"></image>
       <text class="title">创建账号</text>
       <text class="subtitle">开启你的非遗传承之旅</text>
     </view>
@@ -10,29 +10,63 @@
     <view class="card">
       <view class="input-group">
         <text class="input-label">用户名</text>
-        <input class="form-input" placeholder="请输入用户名" bindinput="onUsernameInput" />
+        <input
+          class="form-input"
+          placeholder="2～20 位，中文、字母、数字或下划线"
+          value="{{username}}"
+          bindinput="onUsernameInput"
+        />
+      </view>
+
+      <view class="input-group">
+        <text class="input-label">昵称（可选）</text>
+        <input
+          class="form-input"
+          placeholder="不填则与用户名相同，最长 32 字"
+          value="{{nickname}}"
+          bindinput="onNicknameInput"
+        />
       </view>
 
       <view class="input-group">
         <text class="input-label">密码</text>
-        <input class="form-input" placeholder="请输入密码" password bindinput="onPasswordInput" />
+        <input
+          class="form-input"
+          placeholder="6～64 位"
+          password
+          value="{{password}}"
+          bindinput="onPasswordInput"
+        />
       </view>
 
       <view class="input-group">
         <text class="input-label">确认密码</text>
-        <input class="form-input" placeholder="请再次输入密码" password bindinput="onConfirmPasswordInput" />
+        <input
+          class="form-input"
+          placeholder="请再次输入密码"
+          password
+          value="{{confirmPassword}}"
+          bindinput="onConfirmPasswordInput"
+        />
       </view>
 
       <view class="input-group">
         <text class="input-label">邮箱（可选）</text>
-        <input class="form-input" placeholder="请输入邮箱地址" bindinput="onEmailInput" />
+        <input
+          class="form-input"
+          placeholder="用于找回与通知"
+          value="{{email}}"
+          bindinput="onEmailInput"
+        />
       </view>
 
-      <button class="primary-btn" bindtap="onRegister">注册</button>
+      <button class="primary-btn" bindtap="onRegister" loading="{{submitting}}" disabled="{{submitting}}">
+        {{submitting ? '提交中…' : '注册'}}
+      </button>
 
       <view class="footer">
         <text class="footer-text">已有账号？</text>
-        <text class="link" bindtap="goToLogin">立即登录</text>
+        <text class="link" bindtap="goToLogin">返回登录</text>
       </view>
     </view>
   </view>

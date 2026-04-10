@@ -19,6 +19,7 @@
           data-item="{{item}}">
       <view class="video-container">
         <image src="{{item.thumbnail}}" class="video-thumbnail" mode="aspectFill"></image>
+        <text wx:if="{{item.isFallback}}" class="fallback-badge">演示兜底</text>
         <view class="play-overlay">
           <text class="play-icon">▶</text>
         </view>
@@ -38,6 +39,23 @@
   <!-- 空状态 -->
   <view wx:if="{{!loading && skillVideos.length === 0}}" class="empty">
     <text class="empty-text">暂无视频内容</text>
+  </view>
+
+  <view wx:if="{{showVideoPlayer && playingVideo}}" class="player-mask" bindtap="closeVideoPlayer">
+    <view class="player-panel" catchtap="true">
+      <view class="player-head">
+        <text class="player-title">{{playingVideo.title}}</text>
+        <text class="player-close" bindtap="closeVideoPlayer">关闭</text>
+      </view>
+      <video
+        class="player-video"
+        src="{{playingVideo.videoUrl}}"
+        poster="{{playingVideo.thumbnail}}"
+        controls
+        autoplay
+        object-fit="contain"
+      ></video>
+    </view>
   </view>
 </view>
 

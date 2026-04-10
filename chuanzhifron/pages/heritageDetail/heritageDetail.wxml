@@ -1,37 +1,49 @@
 <view class="container">
-  <!-- 头部标题与基础信息 -->
-  <view class="header">
-    <view class="title-row">
-      <text class="title">{{heritageDetail.name}}</text>
-      <button class="favorite-btn" bindtap="toggleFavorite">
-        <text class="iconfont {{isFavorite ? 'icon-heart-fill' : 'icon-heart'}}"></text>
-      </button>
-    </view>
-    <view class="meta">
-      <text class="tag level-tag">{{levelText}}</text>
-      <text class="tag region-tag">{{heritageDetail.region}}</text>
-      <text class="tag category-tag">{{categoryText}}</text>
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{loadFailed}}" class="state-wrap state-fail">
+    <text class="state-text">{{loadErrorText}}</text>
+    <view class="state-actions">
+      <button class="state-btn" bindtap="onRetryLoad" size="mini" type="primary">重新加载</button>
+      <button class="state-btn ghost" bindtap="onFailBack" size="mini">返回</button>
     </view>
   </view>
 
-  <!-- 封面图片 -->
-  <view wx:if="{{imageUrl}}" class="cover-wrapper">
-    <image src="{{imageUrl}}" class="cover-image" mode="aspectFill"></image>
-  </view>
-
-  <!-- 文字介绍 -->
-  <view class="section">
-    <text class="section-title">项目简介</text>
-    <view class="section-content">
-      <block wx:for="{{descriptionParagraphs}}" wx:key="index">
-        <text class="paragraph">{{item}}</text>
-      </block>
+  <block wx:else>
+    <!-- 头部标题与基础信息 -->
+    <view class="header">
+      <view class="title-row">
+        <text class="title">{{heritageDetail.name}}</text>
+        <button class="favorite-btn" bindtap="toggleFavorite">
+          <text class="iconfont {{isFavorite ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+        </button>
+      </view>
+      <view class="meta">
+        <text class="tag level-tag">{{levelText}}</text>
+        <text class="tag region-tag">{{heritageDetail.region}}</text>
+        <text class="tag category-tag">{{categoryText}}</text>
+      </view>
     </view>
-  </view>
 
-  <!-- 预留更多模块（传承人、传承地等） -->
-  <view class="section" wx:if="{{false}}">
-    <text class="section-title">更多信息</text>
-  </view>
+    <!-- 封面图片 -->
+    <view wx:if="{{imageUrl}}" class="cover-wrapper">
+      <image src="{{imageUrl}}" class="cover-image" mode="aspectFill" lazy-load="{{true}}" binderror="onCoverImageError"></image>
+    </view>
+
+    <!-- 文字介绍 -->
+    <view class="section">
+      <text class="section-title">项目简介</text>
+      <view class="section-content">
+        <block wx:for="{{descriptionParagraphs}}" wx:key="index">
+          <text class="paragraph">{{item}}</text>
+        </block>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{false}}">
+      <text class="section-title">更多信息</text>
+    </view>
+  </block>
 </view>
-

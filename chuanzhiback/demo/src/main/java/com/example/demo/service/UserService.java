@@ -37,6 +37,16 @@ public class UserService {
         Optional<User> user = userRepository.findByNickname(nickname);
         return user.orElse(null);
     }
+
+    /**
+     * 邮箱是否已被占用（用于注册校验）
+     */
+    public boolean existsByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        return userRepository.findByEmail(email.trim()).isPresent();
+    }
     
     public User saveUser(User user) {
         return userRepository.save(user);

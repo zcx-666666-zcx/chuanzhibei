@@ -10,6 +10,11 @@
     <text>加载中...</text>
   </view>
 
+  <view wx:elif="{{loadError}}" class="empty">
+    <text class="empty-text">{{loadErrorText || '收藏列表加载失败'}}</text>
+    <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重试</button>
+  </view>
+
   <!-- 收藏列表 -->
   <view wx:else class="collection-list">
     <view class="collection-item card card-hover" 
@@ -17,7 +22,7 @@
           wx:key="id" 
           bindtap="onCollectionTap" 
           data-item="{{item}}">
-      <image src="{{item.image || item.imageUrl}}" class="collection-image" mode="aspectFill"></image>
+      <image src="{{item.image || item.imageUrl}}" class="collection-image" mode="aspectFill" lazy-load="{{true}}"></image>
       <view class="collection-content">
         <text class="collection-title">{{item.name || item.heritageName}}</text>
         <text class="collection-level">{{item.level || item.heritageLevel}}</text>

@@ -24,8 +24,9 @@ public class UserCollectionService {
     }
     
     @Transactional
-    public void deleteUserCollection(Long userId, Long heritageId) {
-        userCollectionRepository.deleteByUserIdAndHeritageId(userId, heritageId);
+    public boolean deleteUserCollection(Long userId, Long heritageId) {
+        int affected = userCollectionRepository.deleteByUserIdAndHeritageId(userId, heritageId);
+        return affected > 0;
     }
     
     public boolean isHeritageCollected(Long userId, Long heritageId) {

@@ -19,7 +19,7 @@ public interface UserCollectionRepository extends JpaRepository<UserCollection, 
     // 通过User的id和heritageId来删除收藏
     @Modifying
     @Query("DELETE FROM UserCollection uc WHERE uc.user.id = :userId AND uc.heritageId = :heritageId")
-    void deleteByUserIdAndHeritageId(@Param("userId") Long userId, @Param("heritageId") Long heritageId);
+    int deleteByUserIdAndHeritageId(@Param("userId") Long userId, @Param("heritageId") Long heritageId);
     
     // 检查是否已收藏
     @Query("SELECT COUNT(uc) > 0 FROM UserCollection uc WHERE uc.user.id = :userId AND uc.heritageId = :heritageId")

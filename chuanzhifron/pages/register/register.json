@@ -1,3 +1,7 @@
 {
-  "usingComponents": {}
+  "usingComponents": {},
+  "navigationBarTitleText": "注册",
+  "navigationBarBackgroundColor": "#1a1410",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f4efe8"
 }

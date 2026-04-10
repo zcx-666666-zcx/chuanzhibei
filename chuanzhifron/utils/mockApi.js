@@ -4,7 +4,20 @@
  */
 const { buildStaticUrl } = require('./config.js')
 
-const PIC = (seed) => `https://picsum.photos/seed/${seed}/800/520`
+/**
+ * 统一使用本地 uploads 资源，避免 mock 数据依赖外链导致审核/离线演示不稳定。
+ * 不同 seed 轮换不同占位图，保持页面视觉差异。
+ */
+const MOCK_PLACEHOLDERS = [
+  '/uploads/photo_ARExperience.png',
+  '/uploads/photo_ARExperinece/deomphoto.jpg',
+  '/uploads/login-bg.png.png'
+]
+const hashSeed = (seed) => String(seed || '').split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+const PIC = (seed) => {
+  const idx = hashSeed(seed) % MOCK_PLACEHOLDERS.length
+  return buildStaticUrl(MOCK_PLACEHOLDERS[idx])
+}
 
 const mockFavoriteIds = new Set([1, 4])
 let mockBookingSeq = 100
@@ -42,7 +55,7 @@ const NEWS = [
     content: '课程由传承人驻校授课，配合小程序内的预习资料与身段图解，形成课内外闭环。\n\n家长可通过个人中心查看孩子参与的研学与预约记录。',
     publishTime: '2026-02-28 16:45:00'
   }
-]
+].map((n) => ({ ...n, author: n.author || '遗韵编辑' }))
 
 const HERITAGE = [
   { id: 1, name: '苏绣', level: 1, category: 'craft', region: '江苏苏州', description: '以精细雅洁著称，针法灵动，设色秀雅。', imageUrl: PIC('h1') },
@@ -75,6 +88,30 @@ const AR_PROJECTS = [
   ...item,
   videoUrl: AR_VIDEOS[index] || AR_VIDEOS[0]
 }))
+
+const XR_MODELS = [
+  {
+    id: 'jingde',
+    name: '青花瓷（本地示例）',
+    modelUrl: '/uploads/xr-demo/cool-star.glb',
+    coverImage: '/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg',
+    source: 'mock'
+  },
+  {
+    id: 'bronze',
+    name: '青铜器（待替换）',
+    modelUrl: '/uploads/xr-demo/bronze-vessel.glb',
+    coverImage: '/uploads/ar_index/ar_bronze1.jpg',
+    source: 'mock'
+  },
+  {
+    id: 'embroidery',
+    name: '苏绣纹样（待替换）',
+    modelUrl: '/uploads/xr-demo/embroidery-frame.glb',
+    coverImage: '/uploads/masters_InheritorCommunit/master_suxiu.jpg',
+    source: 'mock'
+  }
+]
 
 const BANNERS = [
   { id: 1, title: '遗韵 · 数字传承', description: '列表 → 详情 → 延伸体验，完整跳转链路一目了然', newsId: 1, imageUrl: PIC('ban1') },
@@ -168,6 +205,29 @@ function parseQuery(url) {
   return q
 }
 
+function sortNewsNewestFirst(list) {
+  return [...list].sort((a, b) => {
+    const ta = new Date(String(a.publishTime || '').replace(/-/g, '/')).getTime()
+    const tb = new Date(String(b.publishTime || '').replace(/-/g, '/')).getTime()
+    return tb - ta
+  })
+}
+
+function paginateNewsList(list, query) {
+  const p = Math.max(0, parseInt(query.page, 10) || 0)
+  const s = Math.min(50, Math.max(1, parseInt(query.size, 10) || 20))
+  const total = list.length
+  const start = p * s
+  const slice = list.slice(start, start + s)
+  return {
+    list: slice,
+    total,
+    page: p,
+    size: s,
+    hasMore: start + slice.length < total
+  }
+}
+
 function mockRequest(options) {
   const method = (options.method || 'GET').toUpperCase()
   const rawUrl = options.url || ''
@@ -175,19 +235,49 @@ function mockRequest(options) {
   const query = parseQuery(rawUrl)
   const body = options.data || {}
 
+  // —— 认证（本地演示） ——
+  if (method === 'POST' && path === '/auth/login') {
+    const tok = `mock-token-${Date.now()}`
+    return ok({
+      token: tok,
+      user: {
+        id: 1,
+        username: body.username || 'demo_user',
+        nickname: body.nickname || body.username || '遗韵体验用户',
+        avatarUrl: buildStaticUrl('/uploads/login-bg.png.png')
+      }
+    })
+  }
+  if (method === 'POST' && path === '/auth/register') {
+    const tok = `mock-token-${Date.now()}`
+    return ok({
+      token: tok,
+      user: {
+        id: 2,
+        username: body.username || 'new_user',
+        nickname: (body.nickname && body.nickname.trim()) || body.username || '新用户',
+        avatarUrl: buildStaticUrl('/uploads/login-bg.png.png')
+      }
+    })
+  }
+
   // —— 新闻 ——
   if (method === 'GET' && path === '/news/recent') {
-    return ok(NEWS)
+    const sorted = sortNewsNewestFirst(NEWS)
+    return ok(paginateNewsList(sorted, query))
   }
   if (method === 'GET' && path === '/news/search') {
     const kw = (query.keyword || '').trim().toLowerCase()
-    if (!kw) return ok(NEWS)
-    const filtered = NEWS.filter(
-      (n) =>
-        (n.title && n.title.toLowerCase().includes(kw)) ||
-        (n.description && n.description.toLowerCase().includes(kw))
-    )
-    return ok(filtered)
+    let base = sortNewsNewestFirst(NEWS)
+    if (kw) {
+      base = base.filter(
+        (n) =>
+          (n.title && n.title.toLowerCase().includes(kw)) ||
+          (n.description && n.description.toLowerCase().includes(kw)) ||
+          (n.content && n.content.toLowerCase().includes(kw))
+      )
+    }
+    return ok(paginateNewsList(base, query))
   }
   if (method === 'GET' && /^\/news\/\d+$/.test(path)) {
     const id = Number(path.replace('/news/', ''))
@@ -223,6 +313,9 @@ function mockRequest(options) {
   }
 
   // —— AR ——
+  if (method === 'GET' && path === '/ar/models') {
+    return ok({ list: XR_MODELS })
+  }
   if (method === 'GET' && path === '/ar/projects') {
     return ok({ list: AR_PROJECTS })
   }

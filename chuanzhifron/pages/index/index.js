@@ -2,8 +2,13 @@
 const app = getApp()
 // NOTE: utils/config.js 和 utils/util.js 使用的是 CommonJS 的 module.exports，
 // 在小程序端用 require 引入更稳，避免 import 的命名导出兼容性问题。
-const { request } = require('../../utils/util.js')
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { isLoggedIn } = require('../../utils/auth.js')
 const { buildStaticUrl, DEFAULT_IMAGE_DATA_URI } = require('../../utils/config.js')
+const { normalizeNewsResponseData, mapNewsItem } = require('../../utils/newsDisplay.js')
+
+const HOME_NEWS_FETCH_SIZE = 20
+const HOME_NEWS_DISPLAY = 5
 
 Page({
   normalizeList(data) {
@@ -27,7 +32,8 @@ Page({
     fallbackImage: DEFAULT_IMAGE_DATA_URI,
     // 推荐非遗项目列表（从后端获取）
     recommendList: [],
-    loading: true
+    newsLoading: true,
+    newsLoadError: false
   },
 
   onLogoError() {
@@ -94,7 +100,7 @@ Page({
 
   // 加载首页轮播图数据（从 banner 表获取）
   loadBannerData: function() {
-    request({
+    return request({
       url: '/banners'
     }).then(res => {
       if (!res.success) {
@@ -120,6 +126,16 @@ Page({
         title: '加载轮播图失败',
         icon: 'none'
       });
+    });
+  },
+
+  onPullDownRefresh() {
+    Promise.all([
+      this.loadBannerData().catch(() => {}),
+      this.loadNewsData().catch(() => {}),
+      this.loadRecommendHeritage().catch(() => {})
+    ]).finally(() => {
+      wx.stopPullDownRefresh();
     });
   },
 
@@ -150,68 +166,31 @@ Page({
     });
   },
   
-  // 加载新闻数据
+  // 加载新闻数据（多取若干条供轮播标题匹配，卡片仅展示前几条）
   loadNewsData: function() {
-    request({
-      url: '/news/recent'
+    this.setData({ newsLoading: true, newsLoadError: false });
+    return request({
+      url: `/news/recent?page=0&size=${HOME_NEWS_FETCH_SIZE}`
     }).then(res => {
-      // 与后端 Result<T> 结构对齐：{ success, message, data }
       if (!res.success) {
         throw new Error(res.message || '获取新闻失败');
       }
 
-      const list = this.normalizeList(res.data);
+      const { list: rawList } = normalizeNewsResponseData(res.data);
+      const newsList = rawList.map(mapNewsItem);
+      const displayNewsList = newsList.slice(0, HOME_NEWS_DISPLAY);
 
-      // 处理新闻数据：补充图片与日期字段，并增加收藏状态
-      const newsList = list.map(item => {
-        // 处理封面图：取 imageUrls 中第一张，没有则按 id 兜底
-        let image = '';
-        if (item.imageUrls) {
-          const first = item.imageUrls.split(',')[0].trim();
-          image = first.startsWith('http')
-            ? first
-            : buildStaticUrl(first);
-        } else if (item.id != null) {
-          image = buildStaticUrl(`/uploads/news_index/news_${item.id}.jpg`);
-        }
-
-        // 处理发布日期，转换为字符串，供界面展示
-        let dateStr = '';
-        let publishTime = item.publishTime;
-        if (publishTime) {
-          if (typeof publishTime === 'object' && publishTime.year) {
-            // Java LocalDateTime 对象
-            dateStr = `${publishTime.year}-${String(publishTime.monthValue).padStart(2, '0')}-${String(publishTime.dayOfMonth).padStart(2, '0')}`;
-          } else if (typeof publishTime === 'object' && Object.prototype.hasOwnProperty.call(publishTime, 'time')) {
-            // 时间戳对象
-            const d = new Date(publishTime.time);
-            dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          } else if (typeof publishTime === 'string') {
-            // 已经是字符串，按“日期 时间”拆分，只取日期部分
-            dateStr = publishTime.split(' ')[0];
-          }
-        }
-
-        return {
-          ...item,
-          image,
-          date: dateStr,
-          isFav: false
-        };
-      });
-      
-      // 首页只显示前3条新闻
-      const displayNewsList = newsList.slice(0, 3);
-      
       this.setData({
         newsList,
         displayNewsList,
-        loading: false
+        newsLoading: false,
+        newsLoadError: false
       });
     }).catch(err => {
       console.error('获取新闻失败:', err);
       this.setData({
-        loading: false
+        newsLoading: false,
+        newsLoadError: true
       });
       wx.showToast({
         title: '加载新闻失败',
@@ -222,7 +201,7 @@ Page({
 
   // 加载推荐非遗项目（用于首页“推荐非遗项目”板块）
   loadRecommendHeritage: function() {
-    request({
+    return request({
       url: '/heritage/recommended'
     }).then(res => {
       if (!res.success) {
@@ -244,8 +223,7 @@ Page({
       });
     }).catch(err => {
       console.error('获取推荐非遗项目失败:', err);
-      // 后端推荐接口异常时，回退到全量接口，保障首页稳定
-      request({
+      return request({
         url: '/heritage'
       }).then(allRes => {
         if (!allRes.success) {
@@ -272,19 +250,23 @@ Page({
     request({
       url: '/home/notifications'
     }).then(res => {
-      if (!res.success || !(res.data || []).length) {
+      const data = res && res.data
+      const notifications = Array.isArray(data)
+        ? data
+        : (data && Array.isArray(data.list) ? data.list : [])
+      if (!res.success || notifications.length === 0) {
         wx.showToast({ title: '暂无新通知', icon: 'none' });
         return;
       }
-      const latest = res.data[0];
+      const latest = notifications[0];
       wx.showModal({
         title: latest.title || '系统通知',
         content: latest.content || '暂无内容',
         showCancel: false
       });
-    }).catch(() => {
+    }).catch((err) => {
       wx.showToast({
-        title: '获取通知失败',
+        title: requestErrorMessage(err),
         icon: 'none'
       });
     });
@@ -353,36 +335,47 @@ Page({
     })
   },
 
-  /** 推荐路径：首页 → Tab「探索」 */
+  /** 推荐路径：首页 → 非遗名录（Heritage 非 Tab，须 navigateTo） */
   goFlowHeritage: function () {
-    wx.switchTab({
+    wx.navigateTo({
       url: '/pages/Heritage/Heritage'
     })
   },
 
   /** 推荐路径：首页 → 非遗详情（单步） */
   goFlowDetailDirect: function () {
-    wx.navigateTo({
-      url: '/pages/heritageDetail/heritageDetail?id=1'
-    })
+    const first = (this.data.recommendList || [])[0]
+    if (first && first.id) {
+      wx.navigateTo({
+        url: `/pages/heritageDetail/heritageDetail?id=${first.id}`
+      })
+      return
+    }
+
+    // 推荐列表尚未就绪时兜底到接口首条，避免硬编码 id。
+    request({ url: '/heritage/recommended' })
+      .then((res) => {
+        const list = this.normalizeList(res && res.data)
+        const firstItem = list[0]
+        if (!firstItem || !firstItem.id) {
+          throw new Error('暂无可用的推荐非遗项目')
+        }
+        wx.navigateTo({
+          url: `/pages/heritageDetail/heritageDetail?id=${firstItem.id}`
+        })
+      })
+      .catch((err) => {
+        wx.showToast({
+          title: requestErrorMessage(err),
+          icon: 'none'
+        })
+      })
   },
 
   /** 推荐路径：首页 → AR Tab（再在 AR 页点项目进相机页） */
   goFlowAR: function () {
     wx.switchTab({
       url: '/pages/ARExperience/ARExperience'
-    })
-  },
-
-  goCommunity: function () {
-    wx.navigateTo({
-      url: '/pages/InheritorCommunity/InheritorCommunity'
-    })
-  },
-
-  goLearning: function () {
-    wx.navigateTo({
-      url: '/pages/learning/learning'
     })
   },
 
@@ -416,18 +409,43 @@ Page({
     })
   },
 
-  /** 二级页：AR 项目列表（全量项目） */
-  goARProjectList: function () {
-    wx.navigateTo({ url: '/pages/ARProjectList/ARProjectList' })
-  },
-
   /** 二级页：收藏列表 */
   goCollection: function () {
+    if (!isLoggedIn()) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后查看我的收藏',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+      return
+    }
     wx.navigateTo({ url: '/pages/collectionList/collectionList' })
   },
 
   /** 二级页：预约列表 */
   goBooking: function () {
+    if (!isLoggedIn()) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后查看我的预约',
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/login' })
+          }
+        }
+      })
+      return
+    }
     wx.navigateTo({ url: '/pages/bookingList/bookingList' })
   },
 

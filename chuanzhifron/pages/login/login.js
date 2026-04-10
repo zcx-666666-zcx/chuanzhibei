@@ -1,194 +1,162 @@
 // pages/login/login.js
-import { loginToBackend, loginWithUsername } from '../../utils/auth.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { loginToBackend, loginWithUsername, validateUsername, validatePassword } = require('../../utils/auth.js')
+const { buildStaticUrl, DEFAULT_IMAGE_DATA_URI } = require('../../utils/config.js')
 
 Page({
   data: {
-    currentTab: 0, // 0: 账号登录, 1: 微信登录
+    currentTab: 0,
     username: '',
     password: '',
     canIUseGetUserProfile: false,
     tempLoginCode: '',
-    logoUrl: buildStaticUrl('/uploads/login-bg.png.png')
+    logoUrl: buildStaticUrl('/uploads/login-bg.png.png'),
+    submitting: false
   },
 
-  onLoad: function () {
+  onLoad() {
+    const pages = getCurrentPages()
+    const current = pages[pages.length - 1]
+    const options = (current && current.options) || {}
     this.setData({
       canIUseGetUserProfile: wx.canIUse('getUserProfile')
     })
-  },
-
-  switchTab: function(e) {
-    const tab = parseInt(e.currentTarget.dataset.tab);
-    this.setData({
-      currentTab: tab
-    });
-  },
-
-  goToRegister: function() {
-    wx.navigateTo({
-      url: '../register/register'
-    });
-  },
-
-  onUsernameInput: function(e) {
-    this.setData({
-      username: e.detail.value
-    });
-  },
-
-  onPasswordInput: function(e) {
-    this.setData({
-      password: e.detail.value
-    });
-  },
-
-  onLogin: function () {
-    const { username, password } = this.data;
-    
-    if (!username) {
-      wx.showToast({
-        title: '请输入用户名',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    if (!password) {
-      wx.showToast({
-        title: '请输入密码',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    // 发送登录请求到后端
-    loginWithUsername({
-      username: username,
-      password: password
-    }).then((res) => {
-      wx.showToast({
-        title: '登录成功',
-        icon: 'success'
-      });
-
-      // 延迟跳转到首页
-      setTimeout(() => {
-        wx.switchTab({
-          url: '../index/index'
-        })
-      }, 1000)
-    }).catch((err) => {
-      wx.showToast({
-        title: err.message || err.error || '登录失败',
-        icon: 'none'
+    if (options.username) {
+      this.setData({
+        currentTab: 0,
+        username: decodeURIComponent(options.username)
       })
-    });
+    }
   },
 
-  onWechatLogin: function () {
+  onLogoError() {
+    this.setData({ logoUrl: DEFAULT_IMAGE_DATA_URI })
+  },
+
+  switchTabHandler(e) {
+    const tab = parseInt(e.currentTarget.dataset.tab, 10)
+    this.setData({ currentTab: tab })
+  },
+
+  goToRegister() {
+    wx.navigateTo({
+      url: '/pages/register/register'
+    })
+  },
+
+  onUsernameInput(e) {
+    this.setData({ username: e.detail.value })
+  },
+
+  onPasswordInput(e) {
+    this.setData({ password: e.detail.value })
+  },
+
+  onLogin() {
+    const { username, password, submitting } = this.data
+    if (submitting) return
+
+    const u = (username || '').trim()
+    const usernameError = validateUsername(u)
+    if (usernameError) {
+      wx.showToast({ title: usernameError, icon: 'none' })
+      return
+    }
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      wx.showToast({ title: passwordError, icon: 'none' })
+      return
+    }
+
+    this.setData({ submitting: true })
+    loginWithUsername({ username: u, password })
+      .then(() => {
+        wx.showToast({ title: '登录成功', icon: 'success' })
+        setTimeout(() => {
+          wx.switchTab({ url: '/pages/index/index' })
+        }, 600)
+      })
+      .catch((err) => {
+        wx.showToast({
+          title: err.message || '登录失败',
+          icon: 'none'
+        })
+      })
+      .finally(() => {
+        this.setData({ submitting: false })
+      })
+  },
+
+  onWechatLogin() {
+    if (this.data.submitting) return
     wx.login({
       success: (res) => {
         if (res.code) {
-          // 使用微信用户信息接口（适用于较新版本）
           if (this.data.canIUseGetUserProfile) {
-            // 保存登录code，等待用户点击授权按钮
-            this.setData({
-              tempLoginCode: res.code
-            });
-            
-            // 显示提示信息，让用户知道需要授权
+            this.setData({ tempLoginCode: res.code })
             wx.showModal({
               title: '需要授权',
-              content: '为了更好的体验，需要获取您的头像和昵称信息',
+              content: '为展示头像与昵称，需要获取您的微信公开资料（仅用于本小程序）',
               showCancel: true,
               confirmText: '去授权',
               success: (modalRes) => {
                 if (modalRes.confirm) {
-                  this.onGetUserProfile();
+                  this.onGetUserProfile()
                 }
               }
-            });
+            })
           } else {
-            // 兼容旧版本
             wx.getUserInfo({
               success: (userInfos) => {
-                // 将微信登录code和用户信息发送到后端
                 this.loginToServer(res.code, userInfos.userInfo)
               },
-              fail: (err) => {
-                console.error('获取用户信息失败', err)
-                wx.showToast({
-                  title: '登录失败',
-                  icon: 'none'
-                })
+              fail: () => {
+                wx.showToast({ title: '需要授权才能登录', icon: 'none' })
               }
             })
           }
         } else {
-          console.log('登录失败！' + res.errMsg)
-          wx.showToast({
-            title: '登录失败',
-            icon: 'none'
-          })
+          wx.showToast({ title: '微信登录失败', icon: 'none' })
         }
       },
-      fail: (err) => {
-        console.error('微信登录失败', err)
-        wx.showToast({
-          title: '微信登录失败',
-          icon: 'none'
-        })
-      }
-    })
-  },
-  
-  onGetUserProfile: function () {
-    const that = this;
-    wx.getUserProfile({
-      desc: '用于完善会员资料',
-      success: (userProfileRes) => {
-        // 将微信登录code和用户信息发送到后端
-        that.loginToServer(that.data.tempLoginCode, userProfileRes.userInfo)
-      },
-      fail: (err) => {
-        console.error('获取用户信息失败', err)
-        wx.showToast({
-          title: '授权失败',
-          icon: 'none'
-        })
+      fail: () => {
+        wx.showToast({ title: '微信登录失败', icon: 'none' })
       }
     })
   },
 
-  loginToServer: function (code, userInfo) {
-    // 先传微信 code，后端可在正式环境中换取 openid
+  onGetUserProfile() {
+    wx.getUserProfile({
+      desc: '用于完善会员资料',
+      success: (userProfileRes) => {
+        this.loginToServer(this.data.tempLoginCode, userProfileRes.userInfo)
+      },
+      fail: () => {
+        wx.showToast({ title: '授权失败', icon: 'none' })
+      }
+    })
+  },
+
+  loginToServer(code, userInfo) {
+    this.setData({ submitting: true })
     const loginData = {
       ...userInfo,
       wxCode: code
     }
-
-    // 登录到后端系统
     loginToBackend(loginData)
-      .then((res) => {
-        wx.showToast({
-          title: '登录成功',
-          icon: 'success'
-        })
-
-        // 延迟跳转到首页
+      .then(() => {
+        wx.showToast({ title: '登录成功', icon: 'success' })
         setTimeout(() => {
-          wx.switchTab({
-            url: '../index/index'
-          })
-        }, 1000)
+          wx.switchTab({ url: '/pages/index/index' })
+        }, 600)
       })
       .catch((err) => {
-        console.error('后端登录失败', err)
         wx.showToast({
-          title: '登录失败',
+          title: err.message || '登录失败',
           icon: 'none'
         })
+      })
+      .finally(() => {
+        this.setData({ submitting: false })
       })
   }
 })

@@ -1,24 +1,32 @@
-import { request } from '../../utils/util.js'
-import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
+const { buildStaticUrl } = require('../../utils/config.js')
+const { getVideoPreloadMode } = require('../../utils/resourceProfile.js')
 
 Page({
   data: {
     project: {},
     instructionLines: [],
-    arRecognitionActive: false
+    arRecognitionActive: false,
+    loading: true,
+    loadFailed: false,
+    loadErrorText: '',
+    videoPreload: 'metadata',
+    arPlaceholderImage: buildStaticUrl('/uploads/photo_ARExperience.png'),
+    projectLoadId: ''
   },
 
   getArVideoList() {
     return [
+      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
       '/uploads/video_ARExperinece/苏绣双面绣AR体验视频.mp4',
       '/uploads/video_ARExperinece/青铜器纹样AR体验视频.mp4',
-      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
       '/uploads/video_ARExperinece/少林武术AR体验视频生成.mp4'
     ];
   },
 
   onLoad(options) {
+    this.initResourceProfile();
     const id = options.id;
     this.overrideVideoUrl = decodeURIComponent(options.videoUrl || '');
     if (!id) {
@@ -26,12 +34,38 @@ Page({
         title: '缺少项目ID',
         icon: 'none'
       });
+      this.setData({
+        loading: false,
+        loadFailed: true,
+        loadErrorText: '缺少项目 ID',
+        projectLoadId: ''
+      });
       return;
     }
+    this.setData({ projectLoadId: id });
     this.loadProject(id);
   },
 
+  initResourceProfile() {
+    wx.getNetworkType({
+      success: ({ networkType }) => {
+        this.setData({ videoPreload: getVideoPreloadMode(networkType) });
+      },
+      fail: () => {
+        this.setData({ videoPreload: 'metadata' });
+      }
+    });
+  },
+
+  onRetryLoadProject() {
+    const id = this.data.projectLoadId;
+    if (id) {
+      this.loadProject(id);
+    }
+  },
+
   loadProject(id) {
+    this.setData({ loading: true, loadFailed: false, loadErrorText: '' });
     request({
       url: `/ar/projects/${id}`
     }).then(res => {
@@ -41,29 +75,34 @@ Page({
       const data = res.data || {};
       const videoList = this.getArVideoList();
       const mappedVideoById = videoList[Number(id) - 1] || '';
-      const rawVideoPath = this.overrideVideoUrl || mappedVideoById || data.videoUrl || '';
+      const rawVideoPath = this.overrideVideoUrl || data.videoUrl || mappedVideoById || '';
+      const ph = this.data.arPlaceholderImage;
       const project = {
         ...data,
-        coverImage: data.coverImage && data.coverImage.startsWith('http') 
-          ? data.coverImage 
-          : buildStaticUrl(data.coverImage || ''),
-        markerImage: data.markerImage && data.markerImage.startsWith('http') 
-          ? data.markerImage 
-          : buildStaticUrl(data.markerImage || ''),
+        coverImage: data.coverImage
+          ? (data.coverImage.startsWith('http') ? data.coverImage : buildStaticUrl(data.coverImage))
+          : ph,
+        markerImage: data.markerImage
+          ? (data.markerImage.startsWith('http') ? data.markerImage : buildStaticUrl(data.markerImage))
+          : ph,
         videoUrl: rawVideoPath.startsWith('http')
           ? rawVideoPath
-          : buildStaticUrl(rawVideoPath)
+          : (rawVideoPath ? buildStaticUrl(rawVideoPath) : '')
       };
       const instructionLines = (data.instruction || '').split('\n').filter(l => l.trim());
       this.setData({
         project,
-        instructionLines
+        instructionLines,
+        loading: false,
+        loadFailed: false,
+        loadErrorText: ''
       });
     }).catch(err => {
       console.error('获取AR项目失败:', err);
-      wx.showToast({
-        title: '加载失败',
-        icon: 'none'
+      this.setData({
+        loading: false,
+        loadFailed: true,
+        loadErrorText: requestErrorMessage(err)
       });
     });
   },
@@ -148,7 +187,8 @@ Page({
       }
       
       const user = getCurrentUser();
-      if (!user || !user.id) {
+      const userId = user && (user.id || user.userId);
+      if (!userId) {
         console.warn('无法获取用户ID，跳过保存体验记录');
         return;
       }

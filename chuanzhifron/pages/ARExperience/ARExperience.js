@@ -1,35 +1,48 @@
 // ARExperience.js
-import { request } from '../../utils/util.js'
-import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { request } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
+const { buildStaticUrl } = require('../../utils/config.js')
+const { getVideoPreloadMode } = require('../../utils/resourceProfile.js')
 
 Page({
   data: {
     arProjects: [],
-    displayArProjects: [], // 首页显示的AR项目列表（只显示4个）
     experienceRecords: [],
     loading: true,
-    // 演示环境下统一使用在线占位图，避免后端图片缺失导致黑屏
-    defaultArImage: 'https://picsum.photos/seed/ar-scene/800/520'
+    videoPreload: 'metadata',
+    /** 示意图与 AR 封面兜底：uploads 静态资源，避免外链审核风险 */
+    arPlaceholderImage: buildStaticUrl('/uploads/photo_ARExperience.png')
   },
 
   // 后端 uploads/video_ARExperinece 下的 4 个本地视频
   getArVideoList() {
     return [
+      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
       '/uploads/video_ARExperinece/苏绣双面绣AR体验视频.mp4',
       '/uploads/video_ARExperinece/青铜器纹样AR体验视频.mp4',
-      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
       '/uploads/video_ARExperinece/少林武术AR体验视频生成.mp4'
     ];
   },
 
   onLoad: function() {
+    this.initResourceProfile();
     // 先加载项目，保证体验记录可拿到对应视频封面
     this.loadArProjects().finally(() => {
       this.loadHistory();
     });
     // 检查AR功能支持
     this.checkARSupport();
+  },
+
+  initResourceProfile() {
+    wx.getNetworkType({
+      success: ({ networkType }) => {
+        this.setData({ videoPreload: getVideoPreloadMode(networkType) });
+      },
+      fail: () => {
+        this.setData({ videoPreload: 'metadata' });
+      }
+    });
   },
   
   // 加载AR项目数据
@@ -42,27 +55,26 @@ Page({
       }
       const list = res.data?.list || res.data || [];
       const videoList = this.getArVideoList();
-      // 确保图片路径正确处理：统一使用在线占位封面，避免本地资源缺失导致黑屏
+      const ph = this.data.arPlaceholderImage;
       const processedList = list.map((item, index) => {
-        const rawVideoPath = videoList[index] || item.videoUrl || '';
+        const rawVideoPath = item.videoUrl || videoList[index] || '';
+        const cover = item.coverImage
+          ? (item.coverImage.startsWith('http') ? item.coverImage : buildStaticUrl(item.coverImage))
+          : ph;
+        const marker = item.markerImage
+          ? (item.markerImage.startsWith('http') ? item.markerImage : buildStaticUrl(item.markerImage))
+          : cover;
         return {
           ...item,
-          coverImage: item.coverImage && item.coverImage.startsWith('http') 
-            ? item.coverImage 
-            : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-cover-'+index+'/800/520'),
-          markerImage: item.markerImage && item.markerImage.startsWith('http') 
-            ? item.markerImage 
-            : 'https://picsum.photos/seed/ar-marker-'+index+'/640/360',
+          coverImage: cover,
+          markerImage: marker,
           videoUrl: rawVideoPath && rawVideoPath.startsWith('http')
             ? rawVideoPath
             : (rawVideoPath ? buildStaticUrl(rawVideoPath) : '')
         };
       });
-      // 首页只显示前4个AR项目
-      const displayArProjects = processedList.slice(0, 4);
       this.setData({
         arProjects: processedList,
-        displayArProjects: displayArProjects,
         loading: false
       });
     }).catch(err => {
@@ -105,7 +117,8 @@ Page({
       url: '/ar/history?page=1&size=100'
     }).then(res => {
       const allList = res.data?.list || [];
-      
+      const ph = this.data.arPlaceholderImage;
+
       // 如果记录超过4条，删除多余的记录
       if (allList.length > 4) {
         // 调用后端API删除多余的记录（保留最近4条）
@@ -121,7 +134,7 @@ Page({
             name: item.projectName,
             image: item.projectThumb && item.projectThumb.startsWith('http')
               ? item.projectThumb
-              : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-history-'+index+'/800/520'),
+              : (item.projectThumb ? buildStaticUrl(item.projectThumb) : ph),
             videoUrl: this.getVideoUrlByProjectId(item.projectId),
             time: this.formatTime(item.startTime),
             duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
@@ -137,7 +150,7 @@ Page({
             name: item.projectName,
             image: item.projectThumb && item.projectThumb.startsWith('http')
               ? item.projectThumb
-              : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-history-'+index+'/800/520'),
+              : (item.projectThumb ? buildStaticUrl(item.projectThumb) : ph),
             videoUrl: this.getVideoUrlByProjectId(item.projectId),
             time: this.formatTime(item.startTime),
             duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
@@ -152,7 +165,7 @@ Page({
           name: item.projectName,
           image: item.projectThumb && item.projectThumb.startsWith('http')
             ? item.projectThumb
-            : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-history-'+index+'/800/520'),
+            : (item.projectThumb ? buildStaticUrl(item.projectThumb) : ph),
           videoUrl: this.getVideoUrlByProjectId(item.projectId),
           time: this.formatTime(item.startTime),
           duration: item.duration ? `${Math.round(item.duration / 60)}分钟` : '—'
@@ -165,6 +178,31 @@ Page({
     });
   },
 
+  goARProjectListFull() {
+    wx.navigateTo({ url: '/pages/ARProjectList/ARProjectList' });
+  },
+
+  onArProjectTap(e) {
+    const item = e.currentTarget.dataset.item;
+    if (!item || item.id == null) return;
+    wx.getSetting({
+      success: (res) => {
+        if (res.authSetting['scope.camera'] === false) {
+          wx.showModal({
+            title: '需要相机权限',
+            content: 'AR体验需要访问您的相机，请在设置中开启相机权限',
+            showCancel: false,
+            confirmText: '知道了'
+          });
+          return;
+        }
+        wx.navigateTo({
+          url: `/pages/ARPlay/ARPlay?id=${item.id}&videoUrl=${encodeURIComponent(item.videoUrl || '')}`
+        });
+      }
+    });
+  },
+
   // 检查AR功能支持
   checkARSupport: function() {
     wx.getSystemInfo({
@@ -173,31 +211,6 @@ Page({
         // 这里可以添加AR功能检测逻辑
       }
     });
-  },
-
-  // AR项目点击
-  onARProjectTap: function(e) {
-    const item = e.currentTarget.dataset.item;
-    this.startARExperience(item);
-  },
-
-  // 预览视频元数据加载完成后，跳到末尾并暂停，作为“最后一帧封面”
-  onPreviewMetaLoaded(e) {
-    const index = e.currentTarget.dataset.index;
-    const duration = Number(e.detail && e.detail.duration) || 0;
-    if (index === undefined || !duration) return;
-
-    const ctx = wx.createVideoContext(`preview-video-${index}`, this);
-    const seekTo = Math.max(duration - 0.1, 0);
-
-    // 某些机型需要先播放再 seek，才能稳定显示目标帧
-    ctx.play();
-    setTimeout(() => {
-      ctx.seek(seekTo);
-      setTimeout(() => {
-        ctx.pause();
-      }, 120);
-    }, 80);
   },
 
   onRecordPreviewMetaLoaded(e) {
@@ -214,28 +227,6 @@ Page({
         ctx.pause();
       }, 120);
     }, 80);
-  },
-
-  // 开始AR体验
-  startARExperience: function(item) {
-    // 检查相机权限
-    wx.getSetting({
-      success: (res) => {
-        if (res.authSetting['scope.camera'] === false) {
-          wx.showModal({
-            title: '需要相机权限',
-            content: 'AR体验需要访问您的相机，请在设置中开启相机权限',
-            showCancel: false,
-            confirmText: '知道了'
-          });
-          return;
-        }
-        
-        wx.navigateTo({
-          url: `/pages/ARPlay/ARPlay?id=${item.id}&videoUrl=${encodeURIComponent(item.videoUrl || '')}`
-        });
-      }
-    });
   },
 
   // 重新体验

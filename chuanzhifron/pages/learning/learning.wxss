@@ -25,7 +25,130 @@
   color: #6a625a;
   line-height: 1.6;
   display: block;
-  margin-bottom: 36rpx;
+  margin-bottom: 24rpx;
+}
+
+.progress-box {
+  margin-bottom: 24rpx;
+  background: rgba(184, 50, 50, 0.06);
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.progress-title {
+  font-size: 26rpx;
+  color: #5b4d42;
+}
+
+.progress-num {
+  font-size: 24rpx;
+  color: #8b2a2a;
+}
+
+.progress-track {
+  height: 12rpx;
+  border-radius: 999rpx;
+  background: rgba(139, 42, 42, 0.16);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #c23f3f, #8b2a2a);
+}
+
+.progress-tip {
+  margin-top: 10rpx;
+  display: block;
+  font-size: 22rpx;
+  color: #7d6f62;
+}
+
+.state {
+  font-size: 24rpx;
+  color: #6a625a;
+  margin-bottom: 24rpx;
+}
+
+.state-error {
+  color: #8b2a2a;
+}
+
+.retry-btn {
+  margin-top: 14rpx;
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.chapter-item {
+  background: #fff;
+  border-radius: 14rpx;
+  padding: 18rpx;
+}
+
+.chapter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.chapter-title {
+  font-size: 28rpx;
+  color: #2a221c;
+  font-weight: 600;
+}
+
+.chapter-duration {
+  font-size: 22rpx;
+  color: #8b2a2a;
+}
+
+.chapter-desc {
+  font-size: 24rpx;
+  color: #6a625a;
+  line-height: 1.5;
+}
+
+.chapter-foot {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chapter-btn {
+  margin: 0;
+  background: rgba(184, 50, 50, 0.12);
+  color: #8b2a2a;
+}
+
+.chapter-btn::after {
+  border: none;
+}
+
+.fallback-text {
+  font-size: 22rpx;
+  color: #a8895f;
+}
+
+.btn-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
 .btn {
@@ -34,6 +157,12 @@
   border-radius: 999rpx;
   font-size: 28rpx;
   border: none;
+  margin: 0;
+}
+
+.btn-secondary {
+  background: rgba(184, 50, 50, 0.12);
+  color: #8b2a2a;
 }
 
 .btn::after {

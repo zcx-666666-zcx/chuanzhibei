@@ -22,7 +22,7 @@
           id="project-preview-video-{{index}}"
           class="ar-image"
           src="{{item.videoUrl}}"
-          poster="{{item.coverImage || defaultArImage}}"
+          poster="{{item.coverImage || arPlaceholderImage}}"
           object-fit="cover"
           controls="{{false}}"
           show-center-play-btn="{{false}}"
@@ -31,6 +31,7 @@
           enable-progress-gesture="{{false}}"
           loop="{{false}}"
           muted="{{true}}"
+          preload="{{videoPreload}}"
           bindloadedmetadata="onProjectPreviewMetaLoaded"
           data-index="{{index}}"
         ></video>

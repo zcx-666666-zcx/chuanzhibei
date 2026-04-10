@@ -1,25 +1,33 @@
 <view class="container">
-  <view class="header">
-    <text class="title">{{newsDetail.title}}</text>
-    <view class="meta">
-      <text class="author">作者：{{newsDetail.author}}</text>
-      <text class="publish-time">发布时间：{{newsDetail.publishTime}}</text>
-    </view>
+  <view wx:if="{{loadFailed}}" class="load-fail">
+    <text class="load-fail-text">{{loadErrorText || '内容加载失败，请检查网络后重试'}}</text>
+    <button class="load-fail-btn" bindtap="onRetryLoad" size="mini">重新加载</button>
   </view>
-  
-  <view class="content">
-    <text class="description">{{newsDetail.description}}</text>
-    
-    <!-- 显示多张图片 -->
-    <block wx:for="{{imageList}}" wx:key="index">
-      <image src="{{item}}" class="news-image" mode="widthFix"></image>
-    </block>
-    
-    <!-- 显示详细内容 -->
-    <view class="rich-content">
-      <block wx:for="{{contentParagraphs}}" wx:key="index">
-        <text class="content-paragraph">{{item}}</text>
+
+  <block wx:else>
+    <view class="header">
+      <text class="title">{{newsDetail.title}}</text>
+      <view class="meta">
+        <text class="author">作者：{{newsDetail.author}}</text>
+        <text class="publish-time">发布时间：{{newsDetail.publishTime}}</text>
+      </view>
+    </view>
+
+    <view class="content">
+      <text class="description">{{newsDetail.description}}</text>
+
+      <block wx:for="{{imageList}}" wx:key="index">
+        <image src="{{item}}" class="news-image" mode="widthFix" lazy-load="{{true}}"></image>
       </block>
+
+      <view class="rich-content">
+        <block wx:for="{{contentParagraphs}}" wx:key="index">
+          <text class="content-paragraph">{{item}}</text>
+        </block>
+        <view wx:if="{{contentParagraphs.length === 0}}" class="empty-body">
+          <text>暂无正文</text>
+        </view>
+      </view>
     </view>
-  </view>
+  </block>
 </view>

@@ -1,6 +1,9 @@
 {
   "usingComponents": {},
   "navigationBarTitleText": "遗韵",
-  "enablePullDownRefresh": false,
-  "backgroundTextStyle": "dark"
+  "navigationBarBackgroundColor": "#1a1410",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f4efe8",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "light"
 }

@@ -1,23 +1,27 @@
 // pages/activityList/activityList.js
-import { request } from '../../utils/util.js'
-import { getCurrentUser } from '../../utils/auth.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
 
 Page({
   data: {
     activities: [],
-    loading: true
+    loading: true,
+    loadError: false,
+    loadErrorText: ''
   },
 
   onLoad: function(options) {
     this.loadActivities();
   },
 
-  // 加载活动列表
   loadActivities: function() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, loadError: false, loadErrorText: '' });
     request({
       url: '/activity/list'
     }).then(res => {
+      if (!res.success) {
+        throw new Error(res.message || '获取活动列表失败');
+      }
       const list = res.data?.list || res.data || [];
       const activities = list.map(item => {
         // 处理日期显示
@@ -42,24 +46,43 @@ Page({
 
       this.setData({
         activities: activities,
-        loading: false
+        loading: false,
+        loadError: false,
+        loadErrorText: ''
       });
     }).catch(err => {
       console.error('获取活动失败:', err);
+      const msg = requestErrorMessage(err)
       this.setData({
         activities: [],
-        loading: false
+        loading: false,
+        loadError: true,
+        loadErrorText: msg
       });
       wx.showToast({
-        title: err.message || '获取活动失败',
+        title: msg,
         icon: 'none'
       });
     });
   },
 
-  // 参加活动
+  onRetryLoadActivities() {
+    this.loadActivities();
+  },
+
   joinActivity: function(e) {
     const item = e.currentTarget.dataset.item;
+    if (!isLoggedIn()) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后再报名活动',
+        confirmText: '去登录',
+        success: (r) => {
+          if (r.confirm) wx.navigateTo({ url: '/pages/login/login' });
+        }
+      });
+      return;
+    }
     if (item.buttonText === '已满员') {
       wx.showToast({
         title: '活动已满员',
@@ -67,95 +90,68 @@ Page({
       });
       return;
     }
-    
+
     wx.showModal({
       title: '参加活动',
-      content: `确定要${item.buttonText || '参加'}"${item.title}"吗？`,
+      content: `确定要${item.buttonText || '参加'}「${item.title}」吗？`,
       showCancel: true,
       cancelText: '取消',
       confirmText: '确定',
       success: (res) => {
-        if (res.confirm) {
-          // 这里可以调用后端接口进行报名
-          request({
-            url: '/activity/join',
-            method: 'POST',
-            data: {
-              activityId: item.id
+        if (!res.confirm) return;
+        const bookingType = item.buttonText === '报名参加' ? 'activity' : 'watch';
+        const bookingPayload = {
+          type: bookingType,
+          activityId: item.id,
+          activityTitle: item.title,
+          time: item.time || '待确认',
+          location: item.location || '待确认',
+          description: item.description || '',
+          status: 'pending',
+          statusText: '待确认'
+        };
+        request({
+          url: '/activity/join',
+          method: 'POST',
+          data: {
+            activityId: item.id
+          }
+        })
+          .then((response) => {
+            if (!response || !response.success) {
+              throw new Error(response?.message || '报名失败');
             }
-          }).then(response => {
-            if (response && response.success) {
-              // 保存预约信息到本地存储
-              const bookingType = item.buttonText === '报名参加' ? 'activity' : 'watch';
-              this.saveBooking({
-                type: bookingType, // 预约类型：活动报名或预约观看
-                activityId: item.id,
-                activityTitle: item.title,
-                time: item.time || '待确认',
-                location: item.location || '待确认',
-                description: item.description || '',
-                status: 'pending',
-                statusText: '待确认'
-              });
-              
-              wx.showToast({
-                title: item.buttonText === '报名参加' ? '报名成功' : '预约成功',
-                icon: 'success'
-              });
-              // 刷新活动列表
-              this.loadActivities();
-            } else {
-              wx.showToast({
-                title: response.message || '操作失败',
-                icon: 'none'
-              });
-            }
-          }).catch(err => {
-            console.error('参加活动失败:', err);
-            // 即使接口失败，也保存到本地存储（离线支持）
-            const bookingType = item.buttonText === '报名参加' ? 'activity' : 'watch';
-            this.saveBooking({
-              type: bookingType,
-              activityId: item.id,
-              activityTitle: item.title,
-              time: item.time || '待确认',
-              location: item.location || '待确认',
-              description: item.description || '',
-              status: 'pending',
-              statusText: '待确认'
-            });
-            
+            return this.saveBooking(bookingPayload);
+          })
+          .then(() => {
             wx.showToast({
               title: item.buttonText === '报名参加' ? '报名成功' : '预约成功',
               icon: 'success'
             });
+            this.loadActivities();
+          })
+          .catch((err) => {
+            console.error('参加活动失败:', err);
+            wx.showToast({
+              title: requestErrorMessage(err),
+              icon: 'none'
+            });
           });
-        }
       }
     });
   },
 
-  // 保存预约信息到后端
   saveBooking: function(bookingData) {
     const user = getCurrentUser();
     if (!user) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      return;
+      return Promise.reject(new Error('请先登录'));
     }
-    
+
     const userId = user.id || user.userId;
     if (!userId) {
-      wx.showToast({
-        title: '无法获取用户信息',
-        icon: 'none'
-      });
-      return;
+      return Promise.reject(new Error('无法获取用户信息'));
     }
-    
-    // 准备发送到后端的数据
+
     const bookingRequest = {
       userId: userId,
       type: bookingData.type,
@@ -164,8 +160,7 @@ Page({
       location: bookingData.location || '待确认',
       contact: bookingData.contact || '待确认'
     };
-    
-    // 根据类型添加不同的字段
+
     if (bookingData.type === 'experience') {
       bookingRequest.masterId = bookingData.masterId;
       bookingRequest.masterName = bookingData.masterName;
@@ -175,24 +170,16 @@ Page({
       bookingRequest.activityId = bookingData.activityId;
       bookingRequest.activityTitle = bookingData.activityTitle;
     }
-    
-    // 调用后端API保存预约
-    request({
+
+    return request({
       url: '/user/bookings',
       method: 'POST',
       data: bookingRequest
-    }).then(res => {
-      if (res.success) {
-        console.log('预约信息已保存到后端:', res.data);
-      } else {
+    }).then((res) => {
+      if (!res.success) {
         throw new Error(res.message || '保存预约失败');
       }
-    }).catch(err => {
-      console.error('保存预约信息失败:', err);
-      wx.showToast({
-        title: err.message || '保存失败，请重试',
-        icon: 'none'
-      });
+      return res;
     });
   }
 })

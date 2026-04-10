@@ -24,8 +24,9 @@ public class UserBookingService {
     }
     
     @Transactional
-    public void deleteUserBooking(Long userId, Long bookingId) {
-        userBookingRepository.deleteByUserIdAndBookingId(userId, bookingId);
+    public boolean deleteUserBooking(Long userId, Long bookingId) {
+        int affected = userBookingRepository.deleteByUserIdAndBookingId(userId, bookingId);
+        return affected > 0;
     }
 }
 

@@ -1,13 +1,25 @@
 // pages/masterList/masterList.js
-import { request } from '../../utils/util.js'
-import { getCurrentUser } from '../../utils/auth.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
+const { buildStaticUrl } = require('../../utils/config.js')
 
 Page({
   data: {
     currentCategory: 'all',
-    masterList: [],
+    /** 接口或兜底全量数据，筛选不修改本数组 */
+    masterListAll: [],
+    /** 当前分类下的展示列表 */
+    displayMasters: [],
     loading: true
+  },
+
+  getFavoriteMasterIds() {
+    const ids = wx.getStorageSync('favoriteMasterIds')
+    return Array.isArray(ids) ? ids.map((n) => Number(n)).filter(Boolean) : []
+  },
+
+  setFavoriteMasterIds(ids) {
+    wx.setStorageSync('favoriteMasterIds', ids)
   },
 
   onLoad: function(options) {
@@ -30,6 +42,7 @@ Page({
 
       const list = res.data?.list || res.data || [];
 
+      const favoriteIds = this.getFavoriteMasterIds()
       // 处理传承人数据
       const masterList = list.map((item, index) => {
         // 处理头像
@@ -51,35 +64,36 @@ Page({
           introduction: item.introduction || item.description || '暂无介绍',
           skill: item.skill || '传统技艺',
           title: item.title || '国家级传承人',
-          isFavorite: false,
+          isFavorite: favoriteIds.includes(Number(item.id)),
           category: this.getCategoryBySkill(item.skill || '传统技艺')
         };
       });
       
-      // 如果后端数据为空，使用默认数据
-      if (masterList.length === 0) {
-        const defaultMasters = this.getDefaultMasters();
-        this.setData({
-          masterList: defaultMasters,
+      const source = masterList.length === 0 ? this.getDefaultMasters() : masterList;
+      this.setData(
+        {
+          masterListAll: source,
           loading: false
-        });
-        this.filterMasters();
-      } else {
-        this.setData({
-          masterList: masterList,
-          loading: false
-        });
-        this.filterMasters();
-      }
+        },
+        () => this.applyCategoryFilter()
+      );
     }).catch(err => {
       console.error('获取传承人失败:', err);
-      // 使用默认数据
-      const defaultMasters = this.getDefaultMasters();
-      this.setData({
-        masterList: defaultMasters,
-        loading: false
+      wx.showToast({
+        title: requestErrorMessage(err),
+        icon: 'none'
       });
-      this.filterMasters();
+      const defaultMasters = this.getDefaultMasters().map((item) => ({
+        ...item,
+        isFavorite: this.getFavoriteMasterIds().includes(Number(item.id))
+      }));
+      this.setData(
+        {
+          masterListAll: defaultMasters,
+          loading: false
+        },
+        () => this.applyCategoryFilter()
+      );
     });
   },
 
@@ -93,27 +107,18 @@ Page({
     return 'all';
   },
 
-  // 筛选传承人
-  filterMasters: function() {
-    const { currentCategory, masterList } = this.data;
-    let filteredList = masterList;
-    
-    if (currentCategory !== 'all') {
-      filteredList = masterList.filter(item => item.category === currentCategory);
-    }
-    
-    this.setData({
-      masterList: filteredList
-    });
+  applyCategoryFilter: function() {
+    const { currentCategory, masterListAll } = this.data;
+    const filtered =
+      currentCategory === 'all'
+        ? masterListAll.slice()
+        : masterListAll.filter(item => item.category === currentCategory);
+    this.setData({ displayMasters: filtered });
   },
 
-  // 分类筛选
   onCategoryFilter: function(e) {
     const category = e.currentTarget.dataset.category;
-    this.setData({
-      currentCategory: category
-    });
-    this.filterMasters();
+    this.setData({ currentCategory: category }, () => this.applyCategoryFilter());
   },
 
   // 获取默认传承人数据
@@ -173,77 +178,78 @@ Page({
     ];
   },
 
-  // 传承人点击
   onMasterTap: function(e) {
     const item = e.currentTarget.dataset.item;
-    wx.showModal({
-      title: item.name,
-      content: `${item.title}\n${item.skill}\n\n${item.introduction}`,
-      showCancel: true,
-      cancelText: '取消',
-      confirmText: '预约体验',
-      success: (res) => {
-        if (res.confirm) {
-          this.bookExperience({ currentTarget: { dataset: { item: item } } });
-        }
-      }
-    });
+    if (!item || !item.id) {
+      return
+    }
+    wx.navigateTo({
+      url: `/pages/inheritorDetail/inheritorDetail?id=${item.id}`
+    })
   },
 
-  // 预约体验
   bookExperience: function(e) {
     const item = e.currentTarget.dataset.item;
+    this.confirmAndSubmitBooking(item);
+  },
+
+  confirmAndSubmitBooking: function(item) {
+    if (!isLoggedIn()) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后再预约体验',
+        confirmText: '去登录',
+        success: (r) => {
+          if (r.confirm) wx.navigateTo({ url: '/pages/login/login' });
+        }
+      });
+      return;
+    }
     wx.showModal({
       title: '预约体验',
-      content: `确定要预约${item.name}的${item.skill}体验吗？`,
+      content: `确定要预约「${item.name}」的「${item.skill}」体验吗？`,
       showCancel: true,
       cancelText: '取消',
       confirmText: '确定预约',
       success: (res) => {
-        if (res.confirm) {
-          // 保存预约信息到本地存储
-          this.saveBooking({
-            type: 'experience', // 预约类型：体验
-            masterId: item.id,
-            masterName: item.name,
-            skill: item.skill,
-            masterAvatar: item.avatar || item.image || '',
-            time: this.formatBookingTime(), // 生成预约时间
-            location: '待确认',
-            status: 'pending',
-            statusText: '待确认'
+        if (!res.confirm) return;
+        this.saveBooking({
+          type: 'experience',
+          masterId: item.id,
+          masterName: item.name,
+          skill: item.skill,
+          masterAvatar: item.avatar || item.image || '',
+          time: this.formatBookingTime(),
+          location: '待确认',
+          status: 'pending',
+          statusText: '待确认'
+        })
+          .then(() => {
+            wx.showToast({ title: '预约成功', icon: 'success' });
+          })
+          .catch((err) => {
+            wx.showToast({
+              title: requestErrorMessage(err),
+              icon: 'none'
+            });
           });
-          
-          wx.showToast({
-            title: '预约成功',
-            icon: 'success'
-          });
-        }
       }
     });
   },
 
-  // 保存预约信息到后端
   saveBooking: function(bookingData) {
     const user = getCurrentUser();
     if (!user) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      return;
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return Promise.reject(new Error('未登录'));
     }
-    
+
     const userId = user.id || user.userId;
     if (!userId) {
-      wx.showToast({
-        title: '无法获取用户信息',
-        icon: 'none'
-      });
-      return;
+      wx.showToast({ title: '无法获取用户信息', icon: 'none' });
+      return Promise.reject(new Error('无用户ID'));
     }
-    
-    // 准备发送到后端的数据
+
     const bookingRequest = {
       userId: userId,
       type: bookingData.type,
@@ -252,8 +258,7 @@ Page({
       location: bookingData.location || '待确认',
       contact: bookingData.contact || '待确认'
     };
-    
-    // 根据类型添加不同的字段
+
     if (bookingData.type === 'experience') {
       bookingRequest.masterId = bookingData.masterId;
       bookingRequest.masterName = bookingData.masterName;
@@ -263,24 +268,16 @@ Page({
       bookingRequest.activityId = bookingData.activityId;
       bookingRequest.activityTitle = bookingData.activityTitle;
     }
-    
-    // 调用后端API保存预约
-    request({
+
+    return request({
       url: '/user/bookings',
       method: 'POST',
       data: bookingRequest
-    }).then(res => {
-      if (res.success) {
-        console.log('预约信息已保存到后端:', res.data);
-      } else {
+    }).then((res) => {
+      if (!res.success) {
         throw new Error(res.message || '保存预约失败');
       }
-    }).catch(err => {
-      console.error('保存预约信息失败:', err);
-      wx.showToast({
-        title: err.message || '保存失败，请重试',
-        icon: 'none'
-      });
+      return res;
     });
   },
 
@@ -301,20 +298,18 @@ Page({
     return `${year}-${month}-${day} ${timeSlot}`;
   },
 
-  // 切换收藏状态
   toggleFavorite: function(e) {
     const item = e.currentTarget.dataset.item;
-    const masterList = this.data.masterList;
-    const index = masterList.findIndex(master => master.id === item.id);
-    
-    if (index !== -1) {
-      masterList[index].isFavorite = !masterList[index].isFavorite;
-      this.setData({
-        masterList: masterList
-      });
-      
+    const masterListAll = this.data.masterListAll.map((m) =>
+      m.id === item.id ? { ...m, isFavorite: !m.isFavorite } : m
+    );
+    const next = masterListAll.find((m) => m.id === item.id);
+    const favoriteIds = masterListAll.filter((m) => m.isFavorite).map((m) => Number(m.id));
+    this.setFavoriteMasterIds(favoriteIds);
+    this.setData({ masterListAll }, () => this.applyCategoryFilter());
+    if (next) {
       wx.showToast({
-        title: masterList[index].isFavorite ? '已收藏' : '已取消收藏',
+        title: next.isFavorite ? '已标记喜欢' : '已取消标记',
         icon: 'success'
       });
     }

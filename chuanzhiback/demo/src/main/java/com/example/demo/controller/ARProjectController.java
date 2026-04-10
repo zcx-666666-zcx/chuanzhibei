@@ -32,18 +32,22 @@ public class ARProjectController {
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
+        int safePage = normalizePage(page);
+        int safeSize = normalizeSize(size);
 
         List<ARProject> all = arProjectService.list(category, keyword);
-        int from = Math.max((page - 1) * size, 0);
-        int to = Math.min(from + size, all.size());
+        int from = Math.max((safePage - 1) * safeSize, 0);
+        int to = Math.min(from + safeSize, all.size());
         List<ARProject> pageList = from < to ? all.subList(from, to) : List.of();
+        boolean hasMore = to < all.size();
 
         Map<String, Object> data = new HashMap<>();
         data.put("list", pageList);
         data.put("total", all.size());
-        data.put("page", page);
-        data.put("size", size);
-        data.put("hasNext", to < all.size());
+        data.put("page", safePage);
+        data.put("size", safeSize);
+        data.put("hasMore", hasMore);
+        data.put("hasNext", hasMore);
         return Result.success("获取成功", data);
     }
 
@@ -60,25 +64,28 @@ public class ARProjectController {
     }
 
     /**
+     * 3D 模型清单（用于 xrDemo3D 模型选择器）
+     */
+    @GetMapping("/models")
+    public Result<Map<String, Object>> listModels() {
+        List<Map<String, Object>> list = arProjectService.listModelCatalog();
+        Map<String, Object> data = new HashMap<>();
+        data.put("list", list);
+        data.put("total", list.size());
+        return Result.success("获取成功", data);
+    }
+
+    /**
      * 记录 AR 体验历史
      */
     @PostMapping("/history")
     public Result<String> addHistory(@RequestBody Map<String, Object> payload) {
         Long userId = AuthUtils.currentUserId();
-
-        Object projectIdObj = payload.get("projectId");
-        if (projectIdObj == null) {
+        Long projectId = parseLongField(payload.get("projectId"), "projectId");
+        if (projectId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "缺少 projectId");
         }
-        Long projectId = Long.valueOf(projectIdObj.toString());
-
-        Integer duration = null;
-        Object durationObj = payload.get("duration");
-        if (durationObj != null) {
-            try {
-                duration = Integer.valueOf(durationObj.toString());
-            } catch (NumberFormatException ignored) {}
-        }
+        Integer duration = parseIntegerField(payload.get("duration"), "duration");
 
         arProjectService.addHistory(userId, projectId, duration);
         return Result.success("记录成功", "");
@@ -92,6 +99,8 @@ public class ARProjectController {
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
+        int safePage = normalizePage(page);
+        int safeSize = normalizeSize(size);
         Long currentUserId = AuthUtils.currentUserId();
         if (userId != null && !userId.equals(currentUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权访问其他用户记录");
@@ -99,9 +108,10 @@ public class ARProjectController {
         userId = currentUserId;
         List<ARExperienceRecord> all = arProjectService.getHistoryByUserId(userId);
 
-        int from = Math.max((page - 1) * size, 0);
-        int to = Math.min(from + size, all.size());
+        int from = Math.max((safePage - 1) * safeSize, 0);
+        int to = Math.min(from + safeSize, all.size());
         List<ARExperienceRecord> pageList = from < to ? all.subList(from, to) : List.of();
+        boolean hasMore = to < all.size();
 
         Map<String, Object> data = new HashMap<>();
         data.put("list", pageList.stream().map(r -> {
@@ -115,9 +125,10 @@ public class ARProjectController {
             return m;
         }).collect(Collectors.toList()));
         data.put("total", all.size());
-        data.put("page", page);
-        data.put("size", size);
-        data.put("hasNext", to < all.size());
+        data.put("page", safePage);
+        data.put("size", safeSize);
+        data.put("hasMore", hasMore);
+        data.put("hasNext", hasMore);
         return Result.success("获取成功", data);
     }
 
@@ -143,12 +154,13 @@ public class ARProjectController {
     public Result<String> cleanupHistory(
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "keepCount", required = false, defaultValue = "4") Integer keepCount) {
+        int safeKeepCount = keepCount == null ? 4 : Math.max(0, keepCount);
         Long currentUserId = AuthUtils.currentUserId();
         if (userId != null && !userId.equals(currentUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权清理其他用户记录");
         }
         userId = currentUserId;
-        arProjectService.deleteHistoryExceptRecent(userId, keepCount);
+        arProjectService.deleteHistoryExceptRecent(userId, safeKeepCount);
         return Result.success("清理成功", "");
     }
 
@@ -163,5 +175,61 @@ public class ARProjectController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "记录不存在或无权限删除");
         }
         return Result.success("删除成功", "");
+    }
+
+    private int normalizePage(Integer page) {
+        if (page == null || page < 1) {
+            return 1;
+        }
+        return page;
+    }
+
+    private int normalizeSize(Integer size) {
+        if (size == null || size < 1) {
+            return 10;
+        }
+        return Math.min(size, 100);
+    }
+
+    private Long parseLongField(Object raw, String fieldName) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Number) {
+            return ((Number) raw).longValue();
+        }
+        if (raw instanceof String) {
+            String text = ((String) raw).trim();
+            if (text.isEmpty()) {
+                return null;
+            }
+            try {
+                return Long.parseLong(text);
+            } catch (NumberFormatException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
+    }
+
+    private Integer parseIntegerField(Object raw, String fieldName) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Number) {
+            return ((Number) raw).intValue();
+        }
+        if (raw instanceof String) {
+            String text = ((String) raw).trim();
+            if (text.isEmpty()) {
+                return null;
+            }
+            try {
+                return Integer.parseInt(text);
+            } catch (NumberFormatException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
     }
 }

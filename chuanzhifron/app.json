@@ -5,9 +5,8 @@
     "pages/register/register",
     "pages/Heritage/Heritage",
     "pages/ARExperience/ARExperience",
-    "pages/InheritorCommunity/InheritorCommunity",
+    "pages/xrDemo3D/xrDemo3D",
     "pages/PersonalCenter/PersonalCenter",
-    "pages/inheritorPost/inheritorPost",
     "pages/logs/logs",
     "pages/learning/learning",
     "pages/newsDetail/newsDetail",
@@ -17,6 +16,7 @@
     "pages/nationalHeritageList/nationalHeritageList",
     "pages/provincialHeritageList/provincialHeritageList",
     "pages/masterList/masterList",
+    "pages/inheritorDetail/inheritorDetail",
     "pages/skillVideoList/skillVideoList",
     "pages/activityList/activityList",
     "pages/ARProjectList/ARProjectList",
@@ -40,12 +40,8 @@
         "text": "首页"
       },
       {
-        "pagePath": "pages/InheritorCommunity/InheritorCommunity",
-        "text": "传承"
-      },
-      {
         "pagePath": "pages/ARExperience/ARExperience",
-        "text": "AR"
+        "text": "沉浸"
       },
       {
         "pagePath": "pages/PersonalCenter/PersonalCenter",

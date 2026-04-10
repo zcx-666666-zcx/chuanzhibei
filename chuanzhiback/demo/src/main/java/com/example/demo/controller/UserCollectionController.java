@@ -63,13 +63,7 @@ public class UserCollectionController {
         UserCollection userCollection = new UserCollection();
         userCollection.setUser(user);
 
-        Long heritageId = null;
-        Object heritageIdObj = collectionData.get("heritageId");
-        if (heritageIdObj instanceof Number) {
-            heritageId = ((Number) heritageIdObj).longValue();
-        } else if (heritageIdObj instanceof String) {
-            heritageId = Long.parseLong((String) heritageIdObj);
-        }
+        Long heritageId = parseLongField(collectionData.get("heritageId"), "heritageId");
 
         if (heritageId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "非遗项目ID不能为空");
@@ -96,14 +90,20 @@ public class UserCollectionController {
         if (!currentUserId.equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权删除其他用户收藏");
         }
-        userCollectionService.deleteUserCollection(userId, heritageId);
+        boolean deleted = userCollectionService.deleteUserCollection(userId, heritageId);
+        if (!deleted) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "收藏记录不存在");
+        }
         return ResponseEntity.ok(Result.success("取消收藏成功", ""));
     }
 
     @DeleteMapping("/me/heritage/{heritageId}")
     public ResponseEntity<Result<String>> deleteMyCollection(@PathVariable Long heritageId) {
         Long currentUserId = AuthUtils.currentUserId();
-        userCollectionService.deleteUserCollection(currentUserId, heritageId);
+        boolean deleted = userCollectionService.deleteUserCollection(currentUserId, heritageId);
+        if (!deleted) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "收藏记录不存在");
+        }
         return ResponseEntity.ok(Result.success("取消收藏成功", ""));
     }
     
@@ -122,5 +122,26 @@ public class UserCollectionController {
         Long currentUserId = AuthUtils.currentUserId();
         boolean isCollected = userCollectionService.isHeritageCollected(currentUserId, heritageId);
         return ResponseEntity.ok(Result.success(isCollected));
+    }
+
+    private Long parseLongField(Object raw, String fieldName) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Number) {
+            return ((Number) raw).longValue();
+        }
+        if (raw instanceof String) {
+            String text = ((String) raw).trim();
+            if (text.isEmpty()) {
+                return null;
+            }
+            try {
+                return Long.parseLong(text);
+            } catch (NumberFormatException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
     }
 }

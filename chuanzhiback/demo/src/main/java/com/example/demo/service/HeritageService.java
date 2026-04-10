@@ -128,6 +128,16 @@ public class HeritageService {
 
             // ========== 传统技艺 (craft) ==========
             list.add(embroidery);  // 国家级
+
+            Heritage cloisonne = new Heritage(
+                "景泰蓝制作技艺",
+                "景泰蓝又称铜胎掐丝珐琅，以铜胎为底、掐丝填釉后经多次烧制磨光而成，色彩富丽、纹样严谨，是北京宫廷工艺的重要代表。",
+                "/uploads/heritage_index/recommend_heritage_jingtai.jpg",
+                "北京",
+                "craft",
+                1
+            );
+            list.add(cloisonne);
             
             // 紫砂陶制作技艺（省级）
             Heritage purpleClayPottery = new Heritage(
@@ -184,7 +194,7 @@ public class HeritageService {
             Heritage jiangnanSizhu = new Heritage(
                 "江南丝竹",
                 "江南丝竹是流行于江苏、浙江、上海等地的传统器乐合奏形式，以丝弦乐器和竹管乐器为主，曲调优美婉转，具有浓郁的江南水乡特色，常与民间节庆、婚丧嫁娶等民俗活动相结合。",
-                "/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg",
+                "/uploads/heritage_index/recommend_heritage_zishatao.jpg",
                 "江苏、浙江、上海",
                 "music",
                 2  // 省级
@@ -196,7 +206,7 @@ public class HeritageService {
             Heritage beijingOpera = new Heritage(
                 "京剧",
                 "京剧是中国戏曲艺术的集大成者，形成于清代，以唱、念、做、打为主要表演手段，角色行当分工明确，脸谱、服饰、程式动作等都有严格的规范，被誉为“国粹”，在国内外享有盛誉。",
-                "/uploads/heritage_index/recommend_heritage_jingtai.jpg",
+                "/uploads/heritage_index/recommend_heritage_jingjumei.jpg",
                 "北京、天津、上海等地",
                 "drama",
                 1  // 国家级

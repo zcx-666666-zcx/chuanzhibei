@@ -69,7 +69,7 @@ public class InheritorService {
             inheritor2.setName("李静美");
             inheritor2.setSkill("景泰蓝工艺");
             inheritor2.setDescription("景泰蓝工艺大师，作品多次获得国家级奖项");
-            inheritor2.setImageUrl("/uploads/masters_InheritorCommunit/master_jingjumei.jpg");
+            inheritor2.setImageUrl("/uploads/masters_InheritorCommunit/master_jingtai.jpg");
             inheritor2.setLevel("省级传承人");
             saveInheritor(inheritor2);
             
@@ -77,7 +77,7 @@ public class InheritorService {
             inheritor3.setName("王景泰");
             inheritor3.setSkill("京绣工艺");
             inheritor3.setDescription("京绣传统工艺传承者，致力于推广传统刺绣文化");
-            inheritor3.setImageUrl("/uploads/masters_InheritorCommunit/master_jingtai.jpg");
+            inheritor3.setImageUrl("/uploads/masters_InheritorCommunit/master_suxiu.jpg");
             inheritor3.setLevel("市级传承人");
             saveInheritor(inheritor3);
             

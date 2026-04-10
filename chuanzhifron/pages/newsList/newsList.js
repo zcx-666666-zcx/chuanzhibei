@@ -1,93 +1,106 @@
 // pages/newsList/newsList.js
-import { request } from '../../utils/util.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { normalizeNewsResponseData, mapNewsItem } = require('../../utils/newsDisplay.js')
+
+const PAGE_SIZE = 10
 
 Page({
   data: {
     newsList: [],
     loading: true,
-    keyword: ''
+    loadingMore: false,
+    keyword: '',
+    page: 0,
+    hasMore: false,
+    total: 0,
+    loadError: false,
+    loadErrorText: ''
   },
 
-  onLoad: function (options) {
-    const keyword = (options.keyword || '').trim();
-    this.setData({ keyword });
-    this.loadNewsData(keyword);
+  onLoad(options) {
+    const keyword = (options.keyword || '').trim()
+    this.setData({ keyword })
+    this.loadNewsData({ reset: true })
   },
 
-  // 加载新闻数据
-  loadNewsData: function(keyword = '') {
-    const url = keyword ? `/news/search?keyword=${encodeURIComponent(keyword)}` : '/news/recent';
-    request({
-      url
-    }).then(res => {
-      // 与后端 Result<T> 结构对齐：{ success, message, data }
-      if (!res.success) {
-        throw new Error(res.message || '获取新闻失败');
-      }
+  onReachBottom() {
+    const { keyword, hasMore, loading, loadingMore } = this.data
+    if (!hasMore || loading || loadingMore) {
+      return
+    }
+    this.loadNewsData({ reset: false })
+  },
 
-      const list = res.data || [];
+  onPullDownRefresh() {
+    this.loadNewsData({ reset: true }).finally(() => {
+      wx.stopPullDownRefresh()
+    })
+  },
 
-      // 处理新闻数据：补充图片与日期字段
-      const newsList = list.map(item => {
-        // 处理封面图：取 imageUrls 中第一张，没有则按 id 兜底
-        let image = '';
-        if (item.imageUrls) {
-          const first = item.imageUrls.split(',')[0].trim();
-          image = first.startsWith('http')
-            ? first
-            : buildStaticUrl(first);
-        } else if (item.id != null) {
-          image = buildStaticUrl(`/uploads/news_index/news_${item.id}.jpg`);
+  buildListUrl(page, keyword) {
+    if (keyword) {
+      return `/news/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${PAGE_SIZE}`
+    }
+    return `/news/recent?page=${page}&size=${PAGE_SIZE}`
+  },
+
+  loadNewsData({ reset }) {
+    const { keyword, page, newsList } = this.data
+    const nextPage = reset ? 0 : page
+
+    if (reset) {
+      this.setData({ loading: true, page: 0, loadError: false, loadErrorText: '' })
+    } else {
+      this.setData({ loadingMore: true })
+    }
+
+    return request({
+      url: this.buildListUrl(nextPage, keyword)
+    })
+      .then((res) => {
+        if (!res.success) {
+          throw new Error(res.message || '获取新闻失败')
         }
 
-        // 处理发布日期，转换为字符串，供界面展示
-        let dateStr = '';
-        let publishTime = item.publishTime;
-        if (publishTime) {
-          if (typeof publishTime === 'object' && publishTime.year) {
-            // Java LocalDateTime 对象
-            dateStr = `${publishTime.year}-${String(publishTime.monthValue).padStart(2, '0')}-${String(publishTime.dayOfMonth).padStart(2, '0')}`;
-          } else if (typeof publishTime === 'object' && Object.prototype.hasOwnProperty.call(publishTime, 'time')) {
-            // 时间戳对象
-            const d = new Date(publishTime.time);
-            dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          } else if (typeof publishTime === 'string') {
-            // 已经是字符串，按"日期 时间"拆分，只取日期部分
-            dateStr = publishTime.split(' ')[0];
-          }
-        }
+        const { list: rawList, total, page: serverPage, hasMore } = normalizeNewsResponseData(res.data)
+        const mapped = rawList.map(mapNewsItem)
+        const merged = reset ? mapped : newsList.concat(mapped)
 
-        return {
-          ...item,
-          image,
-          date: dateStr
-        };
-      });
-      
-      this.setData({
-        newsList,
-        loading: false
-      });
-    }).catch(err => {
-      console.error('获取新闻失败:', err);
-      this.setData({
-        loading: false
-      });
-      wx.showToast({
-        title: '加载新闻失败',
-        icon: 'none'
-      });
-    });
+        this.setData({
+          newsList: merged,
+          loading: false,
+          loadingMore: false,
+          loadError: false,
+          loadErrorText: '',
+          page: (serverPage != null ? serverPage : nextPage) + 1,
+          total: typeof total === 'number' ? total : merged.length,
+          hasMore: Boolean(hasMore)
+        })
+      })
+      .catch((err) => {
+        console.error('获取新闻失败:', err)
+        const msg = requestErrorMessage(err)
+        this.setData({
+          loading: false,
+          loadingMore: false,
+          loadError: reset,
+          loadErrorText: reset ? msg : this.data.loadErrorText
+        })
+        wx.showToast({
+          title: msg,
+          icon: 'none'
+        })
+      })
   },
 
-  // 新闻点击
-  onNewsTap: function(e) {
+  onRetryLoad() {
+    this.loadNewsData({ reset: true })
+  },
+
+  onNewsTap(e) {
     const item = e.currentTarget.dataset.item
-    // 跳转到新闻详情页面
     wx.navigateTo({
       url: `/pages/newsDetail/newsDetail?id=${item.id}`
     })
   }
 })
-

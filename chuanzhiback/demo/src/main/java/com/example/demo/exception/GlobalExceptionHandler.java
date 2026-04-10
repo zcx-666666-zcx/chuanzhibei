@@ -1,6 +1,8 @@
 package com.example.demo.exception;
 
 import com.example.demo.common.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,6 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Result<String>> handleResponseStatusException(ResponseStatusException ex) {
@@ -23,6 +27,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<String>> handleException(Exception ex) {
+        log.warn("未处理异常: {}", ex.toString());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Result.error("系统繁忙，请稍后重试"));
     }
 }

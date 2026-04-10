@@ -32,6 +32,13 @@
   background-color: #c41e3a;
 }
 
+.page-sub {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #888;
+}
+
 .loading {
   text-align: center;
   padding: 100rpx 0;
@@ -95,3 +102,36 @@
   color: #999;
 }
 
+.news-byline {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.empty {
+  text-align: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.error-block {
+  padding-top: 80rpx;
+}
+
+.retry-btn {
+  margin-top: 28rpx;
+}
+
+.list-footer {
+  text-align: center;
+  padding: 32rpx 0 48rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.list-footer.muted {
+  color: #aaa;
+}

@@ -1,32 +1,49 @@
 <!--pages/newsList/newsList.wxml-->
 <view class="container">
-  <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-title">非遗动态</text>
+    <text class="page-title">{{keyword ? '搜索结果' : '非遗动态'}}</text>
+    <text wx:if="{{keyword}}" class="page-sub">关键词：{{keyword}}</text>
   </view>
 
-  <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="loading">
     <text>加载中...</text>
   </view>
 
-  <!-- 新闻列表 -->
-  <view wx:else class="news-list">
-    <view class="news-card card card-hover" wx:for="{{newsList}}" wx:key="id" bindtap="onNewsTap" data-item="{{item}}">
-      <image src="{{item.image}}" class="news-img" mode="aspectFill"></image>
-      <view class="news-content">
-        <text class="news-title">{{item.title}}</text>
-        <text class="news-desc">{{item.description}}</text>
-        <view class="news-footer">
-          <text class="news-date">{{item.date}}</text>
+  <view wx:elif="{{loadError}}" class="empty error-block">
+    <text class="empty-text">{{loadErrorText || '加载失败'}}</text>
+    <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重新加载</button>
+  </view>
+
+  <block wx:elif="{{newsList.length === 0}}">
+    <view class="empty">
+      <text class="empty-text">{{keyword ? '未找到相关资讯' : '暂无新闻动态'}}</text>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="news-list">
+      <view
+        class="news-card card card-hover"
+        wx:for="{{newsList}}"
+        wx:key="id"
+        bindtap="onNewsTap"
+        data-item="{{item}}"
+      >
+        <image src="{{item.image}}" class="news-img" mode="aspectFill" lazy-load="{{true}}"></image>
+        <view class="news-content">
+          <text class="news-title">{{item.title}}</text>
+          <text class="news-desc">{{item.description}}</text>
+          <view class="news-footer">
+            <text class="news-byline">{{item.authorDisplay}} · {{item.relTime}}</text>
+          </view>
         </view>
       </view>
     </view>
-  </view>
-
-  <!-- 空状态 -->
-  <view wx:if="{{!loading && newsList.length === 0}}" class="empty">
-    <text class="empty-text">暂无新闻动态</text>
-  </view>
+    <view wx:if="{{loadingMore}}" class="list-footer">
+      <text>加载更多…</text>
+    </view>
+    <view wx:elif="{{!hasMore && newsList.length > 0}}" class="list-footer muted">
+      <text>已加载全部 {{total}} 条</text>
+    </view>
+  </block>
 </view>
-

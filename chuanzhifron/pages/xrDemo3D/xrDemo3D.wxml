@@ -1,0 +1,28 @@
+<view class="xr-wrap">
+  <block wx:if="{{!modelReady}}">
+    <view class="xr-gate">
+      <text class="xr-title">3D 演示准备就绪</text>
+      <text class="xr-sub">网络：{{networkType || 'unknown'}} · 渲染：{{renderWidth}} x {{renderHeight}}</text>
+      <text wx:if="{{isSlowNetwork}}" class="xr-tip">当前为慢网模式，已自动降低渲染分辨率以减少卡顿</text>
+      <picker wx:if="{{modelNames.length}}" class="xr-picker-wrap" mode="selector" range="{{modelNames}}" value="{{modelIndex}}" bindchange="onModelChange">
+        <view class="xr-picker">当前模型：{{modelNames[modelIndex]}}</view>
+      </picker>
+      <text wx:if="{{modelHint}}" class="xr-hint">{{modelHint}}</text>
+      <button class="xr-btn" bindtap="onStartRender">开始加载 3D 场景</button>
+    </view>
+  </block>
+
+  <block wx:else>
+    <picker wx:if="{{modelNames.length}}" class="xr-picker-fixed" mode="selector" range="{{modelNames}}" value="{{modelIndex}}" bindchange="onModelChange">
+      <view class="xr-picker-fixed-inner">模型：{{modelNames[modelIndex]}}</view>
+    </picker>
+    <xr-demo-viewer
+      disable-scroll
+      id="xr-frame"
+      width="{{renderWidth}}"
+      height="{{renderHeight}}"
+      modelSrc="{{selectedModelSrc}}"
+      style="width:{{width}}px;height:{{height}}px;"
+    />
+  </block>
+</view>

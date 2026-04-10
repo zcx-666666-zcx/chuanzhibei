@@ -14,12 +14,23 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
+
+    private static final int USERNAME_MIN_LEN = 2;
+    private static final int USERNAME_MAX_LEN = 20;
+    private static final int PASSWORD_MIN_LEN = 6;
+    private static final int PASSWORD_MAX_LEN = 64;
+    private static final int NICKNAME_MAX_LEN = 32;
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_\\u4e00-\\u9fa5]{2,20}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z]{2,}$");
 
     @Autowired
     private UserService userService;
@@ -33,33 +44,121 @@ public class AuthController {
     @Autowired
     private TokenService tokenService;
 
+    private void assertUsernameFormat(String username) {
+        if (username == null || username.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "用户名不能为空");
+        }
+        String u = username.trim();
+        if (u.length() < USERNAME_MIN_LEN || u.length() > USERNAME_MAX_LEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "用户名长度需在 " + USERNAME_MIN_LEN + "-" + USERNAME_MAX_LEN + " 个字符之间");
+        }
+        if (!USERNAME_PATTERN.matcher(u).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "用户名仅支持中文、字母、数字与下划线");
+        }
+    }
+
+    private void assertPasswordFormat(String password) {
+        if (password == null || password.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "密码不能为空");
+        }
+        if (password.length() < PASSWORD_MIN_LEN || password.length() > PASSWORD_MAX_LEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "密码长度需在 " + PASSWORD_MIN_LEN + "-" + PASSWORD_MAX_LEN + " 位之间");
+        }
+    }
+
+    private void assertEmailOptional(String email) {
+        if (email == null || email.isBlank()) {
+            return;
+        }
+        String e = email.trim();
+        if (!EMAIL_PATTERN.matcher(e).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "邮箱格式不正确");
+        }
+    }
+
+    private void assertNicknameOptional(String nickname) {
+        if (nickname == null || nickname.isBlank()) {
+            return;
+        }
+        if (nickname.trim().length() > NICKNAME_MAX_LEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "昵称最长 32 个字符");
+        }
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String resolveOpenid(String openid, String wxCode) {
+        String normalizedOpenid = normalize(openid);
+        if (!normalizedOpenid.isEmpty()) {
+            return normalizedOpenid;
+        }
+        String code = normalize(wxCode);
+        if (!code.isEmpty()) {
+            // 演示环境下以微信 code 构造稳定标识；生产应改为 code2session 获取真实 openid
+            return "wx_" + code;
+        }
+        return "";
+    }
+
+    private String normalizeNickname(String nickname, String fallback) {
+        String value = normalize(nickname);
+        if (value.isEmpty()) {
+            value = fallback;
+        }
+        if (value.length() > NICKNAME_MAX_LEN) {
+            value = value.substring(0, NICKNAME_MAX_LEN);
+        }
+        return value;
+    }
+
+    private Map<String, Object> buildUserPayload(User user) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("id", user.getId());
+        payload.put("userId", user.getId());
+        payload.put("username", user.getUsername());
+        payload.put("nickname", user.getNickname());
+        payload.put("nickName", user.getNickname());
+        payload.put("avatarUrl", user.getAvatarUrl());
+        payload.put("signature", user.getSignature());
+        payload.put("email", user.getEmail());
+        payload.put("openid", user.getOpenid());
+        payload.put("gender", user.getGender());
+        payload.put("country", user.getCountry());
+        payload.put("province", user.getProvince());
+        payload.put("city", user.getCity());
+        payload.put("language", user.getLanguage());
+        payload.put("createTime", user.getCreateTime());
+        payload.put("updateTime", user.getUpdateTime());
+        return payload;
+    }
+
     @PostMapping("/login")
     public ResponseEntity<Result<Map<String, Object>>> login(@RequestBody Map<String, String> loginData) {
-        String username = loginData.get("username");
-        String password = loginData.get("password");
-        String openid = loginData.get("openid");
-        String wxCode = loginData.get("wxCode");
-        if ((openid == null || openid.isEmpty()) && wxCode != null && !wxCode.isEmpty()) {
-            // 演示环境下以微信 code 构造稳定标识；生产应改为 code2session 获取真实 openid
-            openid = "wx_" + wxCode;
-        }
+        String username = normalize(loginData.get("username"));
+        String password = loginData.getOrDefault("password", "");
+        String openid = resolveOpenid(loginData.get("openid"), loginData.get("wxCode"));
         
         User user = null;
         
         // 如果提供了openid，使用微信登录方式
-        if (openid != null && !openid.isEmpty()) {
+        if (!openid.isEmpty()) {
             user = userService.getUserByOpenid(openid);
             
             // 如果用户不存在，则创建新用户
             if (user == null) {
                 user = new User();
                 user.setOpenid(openid);
-                String nickname = loginData.getOrDefault("nickname", "默认用户");
+                String nickname = normalizeNickname(loginData.get("nickname"), "默认用户");
                 user.setNickname(nickname);
                 // 如果提供了头像URL，使用提供的；否则生成新头像
-                String providedAvatarUrl = loginData.getOrDefault("avatarUrl", "");
+                String providedAvatarUrl = normalize(loginData.get("avatarUrl"));
                 String avatarUrl = "";
-                if (providedAvatarUrl != null && !providedAvatarUrl.isEmpty()) {
+                if (!providedAvatarUrl.isEmpty()) {
                     avatarUrl = providedAvatarUrl;
                 } else {
                     // 使用 openid 或 nickname 作为种子生成头像
@@ -77,7 +176,9 @@ public class AuthController {
             }
         } 
         // 如果提供了用户名和密码，使用传统登录方式
-        else if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+        else if (!username.isEmpty()) {
+            assertUsernameFormat(username);
+            assertPasswordFormat(password);
             // 先尝试用username登录
             user = userService.getUserByUsername(username);
             
@@ -86,8 +187,10 @@ public class AuthController {
                 user = userService.getUserByNickname(username);
             }
             
-            // 检查用户是否存在以及密码是否正确
-            if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
+            // 检查用户是否存在以及密码是否正确（微信-only 用户可能没有本地密码）
+            String stored = user != null ? user.getPassword() : null;
+            if (user == null || stored == null || stored.isEmpty()
+                    || !passwordEncoder.matches(password, stored)) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
             }
         } 
@@ -100,29 +203,30 @@ public class AuthController {
         
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("token", token);
-        responseData.put("user", user);
+        responseData.put("user", buildUserPayload(user));
         
         return ResponseEntity.ok(Result.success("登录成功", responseData));
     }
 
     @PostMapping("/register")
     public ResponseEntity<Result<Map<String, Object>>> register(@RequestBody Map<String, String> registerData) {
-        String username = registerData.get("username");
-        String password = registerData.get("password");
-        String email = registerData.get("email");
-        String openid = registerData.get("openid");
+        String username = normalize(registerData.get("username"));
+        String password = registerData.getOrDefault("password", "");
+        String email = normalize(registerData.get("email"));
+        String openid = resolveOpenid(registerData.get("openid"), registerData.get("wxCode"));
+        String nickname = normalize(registerData.get("nickname"));
 
-        if ((openid == null || openid.isEmpty()) && (username == null || username.isEmpty())) {
+        if (openid.isEmpty() && username.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "用户名不能为空");
         }
-        if (openid == null || openid.isEmpty()) {
-            if (password == null || password.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "密码不能为空");
-            }
+        if (openid.isEmpty()) {
+            assertUsernameFormat(username);
+            assertPasswordFormat(password);
         }
+        assertNicknameOptional(nickname);
         
         // 检查用户名是否已存在
-        if (username != null && !username.isEmpty()) {
+        if (!username.isEmpty()) {
             User existingUser = userService.getUserByUsername(username);
             if (existingUser != null) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "用户名已存在");
@@ -130,7 +234,7 @@ public class AuthController {
         }
         
         // 检查openid是否已存在（微信登录用户）
-        if (openid != null && !openid.isEmpty()) {
+        if (!openid.isEmpty()) {
             User existingUser = userService.getUserByOpenid(openid);
             if (existingUser != null) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "用户已存在");
@@ -141,18 +245,18 @@ public class AuthController {
         User newUser = new User();
         String avatarUrl = "";
         
-        if (openid != null && !openid.isEmpty()) {
+        if (!openid.isEmpty()) {
             // 微信登录注册
             newUser.setOpenid(openid);
-            String nickname = registerData.getOrDefault("nickname", "默认用户");
-            newUser.setNickname(nickname);
+            String wxNick = normalizeNickname(nickname, "默认用户");
+            newUser.setNickname(wxNick);
             // 如果提供了头像URL，使用提供的；否则生成新头像
-            String providedAvatarUrl = registerData.getOrDefault("avatarUrl", "");
-            if (providedAvatarUrl != null && !providedAvatarUrl.isEmpty()) {
+            String providedAvatarUrl = normalize(registerData.get("avatarUrl"));
+            if (!providedAvatarUrl.isEmpty()) {
                 avatarUrl = providedAvatarUrl;
             } else {
-                // 使用 openid 或 nickname 作为种子生成头像
-                avatarUrl = avatarService.generateAndSaveAvatar(openid + nickname);
+                // 使用 openid 或昵称作为种子生成头像
+                avatarUrl = avatarService.generateAndSaveAvatar(openid + wxNick);
             }
             newUser.setAvatarUrl(avatarUrl);
             newUser.setGender(registerData.getOrDefault("gender", ""));
@@ -165,12 +269,21 @@ public class AuthController {
             newUser.setUsername(username);
             // 使用BCrypt加密密码
             newUser.setPassword(passwordEncoder.encode(password));
-            newUser.setNickname(username); // 默认使用用户名作为昵称
+            String displayName = nickname.isEmpty() ? username : nickname;
+            newUser.setNickname(displayName);
             // 使用用户名作为种子生成头像
             avatarUrl = avatarService.generateAndSaveAvatar(username);
             newUser.setAvatarUrl(avatarUrl);
         }
-        newUser.setEmail(email);
+        if (!email.isEmpty()) {
+            assertEmailOptional(email);
+            if (userService.existsByEmail(email)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "该邮箱已被注册");
+            }
+            newUser.setEmail(email);
+        } else {
+            newUser.setEmail(null);
+        }
         newUser.setCreateTime(LocalDateTime.now());
         newUser.setUpdateTime(LocalDateTime.now());
         
@@ -181,7 +294,7 @@ public class AuthController {
         
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("token", token);
-        responseData.put("user", savedUser);
+        responseData.put("user", buildUserPayload(savedUser));
         
         return ResponseEntity.ok(Result.success("注册成功", responseData));
     }

@@ -45,11 +45,11 @@
   <!-- 传承人列表 -->
   <view wx:else class="master-grid">
     <view class="master-card card card-hover" 
-          wx:for="{{masterList}}" 
+          wx:for="{{displayMasters}}" 
           wx:key="id" 
           bindtap="onMasterTap" 
           data-item="{{item}}">
-      <image src="{{item.avatar || item.image}}" class="master-image" mode="aspectFill"></image>
+      <image src="{{item.avatar || item.image}}" class="master-image" mode="aspectFill" lazy-load="{{true}}"></image>
       <view class="master-content">
         <view class="master-header">
           <text class="master-name">{{item.name}}</text>
@@ -71,9 +71,8 @@
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <view wx:if="{{!loading && masterList.length === 0}}" class="empty">
-    <text class="empty-text">暂无传承人信息</text>
+  <view wx:if="{{!loading && displayMasters.length === 0}}" class="empty">
+    <text class="empty-text">{{currentCategory === 'all' ? '暂无传承人信息' : '该分类下暂无传承人'}}</text>
   </view>
 </view>
 

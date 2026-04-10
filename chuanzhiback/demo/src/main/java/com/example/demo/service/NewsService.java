@@ -4,11 +4,15 @@ import com.example.demo.entity.News;
 import com.example.demo.repository.NewsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -156,6 +160,76 @@ public class NewsService {
             System.out.println("获取所有新闻时发生异常: " + e.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * 全部新闻按发布时间倒序（新在前），publishTime 为空时按 id 倒序兜底。
+     */
+    public List<News> listAllSortedByNewestFirst() {
+        Sort sort = Sort.by(Sort.Order.desc("publishTime"), Sort.Order.desc("id"));
+        try {
+            return newsRepository.findAll(sort);
+        } catch (Exception e) {
+            List<News> fallback = getAllNews();
+            Comparator<News> byTime = Comparator
+                .comparing(News::getPublishTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                .reversed();
+            Comparator<News> byId = Comparator
+                .comparing(News::getId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .reversed();
+            fallback.sort(byTime.thenComparing(byId));
+            return fallback;
+        }
+    }
+
+    /**
+     * 近期新闻分页：page 从 0 开始，size 建议 1～50。
+     */
+    public Map<String, Object> getRecentPage(int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        int safePage = Math.max(page, 0);
+        List<News> sorted = listAllSortedByNewestFirst();
+        return sliceAsPage(sorted, safePage, safeSize);
+    }
+
+    /**
+     * 关键词搜索后按发布时间倒序分页。
+     */
+    public Map<String, Object> searchPage(String keyword, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        int safePage = Math.max(page, 0);
+        String normalized = keyword == null ? "" : keyword.trim();
+        if (normalized.isEmpty()) {
+            return getRecentPage(safePage, safeSize);
+        }
+        List<News> matches = searchByKeyword(normalized);
+        Comparator<News> byTime = Comparator
+            .comparing(News::getPublishTime, Comparator.nullsLast(Comparator.naturalOrder()))
+            .reversed();
+        Comparator<News> byId = Comparator
+            .comparing(News::getId, Comparator.nullsLast(Comparator.naturalOrder()))
+            .reversed();
+        matches.sort(byTime.thenComparing(byId));
+        return sliceAsPage(matches, safePage, safeSize);
+    }
+
+    private Map<String, Object> sliceAsPage(List<News> ordered, int page, int size) {
+        int total = ordered.size();
+        int from = page * size;
+        List<News> slice;
+        if (from >= total) {
+            slice = new ArrayList<>();
+        } else {
+            int to = Math.min(from + size, total);
+            slice = ordered.subList(from, to);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("list", new ArrayList<>(slice));
+        body.put("total", total);
+        body.put("page", page);
+        body.put("size", size);
+        body.put("hasMore", (page + 1) * size < total);
+        return body;
     }
     
     /**

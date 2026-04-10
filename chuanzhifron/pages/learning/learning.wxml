@@ -2,7 +2,51 @@
 <view class="wrap">
   <view class="card">
     <text class="title">学习中心</text>
-    <text class="desc">在此集纳课程、研学手册与互动答题，为走近非遗提供一条温柔的学习路径。</text>
-    <button class="btn" bindtap="goHeritage">去「探索」浏览非遗名录</button>
+    <text class="desc">在此集纳资讯、视频与活动入口，为走近非遗提供一条清晰路径。后续可扩展章节学习与答题进度。</text>
+    <view class="progress-box">
+      <view class="progress-meta">
+        <text class="progress-title">学习进度</text>
+        <text class="progress-num">{{completedCount}} / {{totalChapters}}</text>
+      </view>
+      <view class="progress-track">
+        <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
+      </view>
+      <text class="progress-tip">完成度 {{progressPercent}}%</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="state">学习路径加载中...</view>
+    <view wx:elif="{{loadError}}" class="state state-error">
+      <text>{{loadErrorText || '学习路径加载失败'}}</text>
+      <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重试</button>
+    </view>
+
+    <view wx:else class="chapter-list">
+      <view class="chapter-item" wx:for="{{chapters}}" wx:key="id" bindtap="onChapterTap" data-item="{{item}}">
+        <view class="chapter-head">
+          <text class="chapter-title">{{item.title}}</text>
+          <text class="chapter-duration">{{item.duration}}</text>
+        </view>
+        <text class="chapter-desc">{{item.description}}</text>
+        <view class="chapter-foot">
+          <text wx:if="{{item.isFallback}}" class="fallback-text">演示兜底</text>
+          <button
+            class="chapter-btn"
+            size="mini"
+            bindtap="markChapterDone"
+            data-chapter-id="{{item.id}}"
+            catchtap="true"
+          >
+            {{completedChapterIds.indexOf(item.id) >= 0 ? '取消完成' : '标记完成'}}
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <view class="btn-col">
+      <button class="btn" bindtap="goHeritage">浏览非遗名录</button>
+      <button class="btn btn-secondary" bindtap="goNewsList">非遗动态</button>
+      <button class="btn btn-secondary" bindtap="goSkillVideo">技艺视频</button>
+      <button class="btn btn-secondary" bindtap="goActivityList">近期活动</button>
+    </view>
   </view>
 </view>

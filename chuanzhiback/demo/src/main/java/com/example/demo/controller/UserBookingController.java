@@ -75,22 +75,20 @@ public class UserBookingController {
         userBooking.setContact((String) bookingData.getOrDefault("contact", "待确认"));
 
         if ("experience".equals(type)) {
-            Object masterIdObj = bookingData.get("masterId");
-            if (masterIdObj instanceof Number) {
-                userBooking.setMasterId(((Number) masterIdObj).longValue());
-            } else if (masterIdObj instanceof String) {
-                userBooking.setMasterId(Long.parseLong((String) masterIdObj));
+            Long masterId = parseLongField(bookingData.get("masterId"), "masterId");
+            if (masterId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "体验预约缺少 masterId");
             }
+            userBooking.setMasterId(masterId);
             userBooking.setMasterName((String) bookingData.get("masterName"));
             userBooking.setSkill((String) bookingData.get("skill"));
             userBooking.setMasterAvatar((String) bookingData.get("masterAvatar"));
         } else if ("activity".equals(type) || "watch".equals(type)) {
-            Object activityIdObj = bookingData.get("activityId");
-            if (activityIdObj instanceof Number) {
-                userBooking.setActivityId(((Number) activityIdObj).longValue());
-            } else if (activityIdObj instanceof String) {
-                userBooking.setActivityId(Long.parseLong((String) activityIdObj));
+            Long activityId = parseLongField(bookingData.get("activityId"), "activityId");
+            if (activityId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "活动预约缺少 activityId");
             }
+            userBooking.setActivityId(activityId);
             userBooking.setActivityTitle((String) bookingData.get("activityTitle"));
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "不支持的预约类型");
@@ -106,15 +104,42 @@ public class UserBookingController {
         if (!currentUserId.equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权删除其他用户预约");
         }
-        userBookingService.deleteUserBooking(userId, bookingId);
+        boolean deleted = userBookingService.deleteUserBooking(userId, bookingId);
+        if (!deleted) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "预约记录不存在");
+        }
         return ResponseEntity.ok(Result.success("取消预约成功", ""));
     }
 
     @DeleteMapping("/me/booking/{bookingId}")
     public ResponseEntity<Result<String>> deleteMyBooking(@PathVariable Long bookingId) {
         Long currentUserId = AuthUtils.currentUserId();
-        userBookingService.deleteUserBooking(currentUserId, bookingId);
+        boolean deleted = userBookingService.deleteUserBooking(currentUserId, bookingId);
+        if (!deleted) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "预约记录不存在");
+        }
         return ResponseEntity.ok(Result.success("取消预约成功", ""));
+    }
+
+    private Long parseLongField(Object raw, String fieldName) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Number) {
+            return ((Number) raw).longValue();
+        }
+        if (raw instanceof String) {
+            String text = ((String) raw).trim();
+            if (text.isEmpty()) {
+                return null;
+            }
+            try {
+                return Long.parseLong(text);
+            } catch (NumberFormatException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " 格式错误");
     }
 }
 

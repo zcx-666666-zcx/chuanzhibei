@@ -22,6 +22,8 @@ public interface NewsRepository extends JpaRepository<News, Long> {
      * @param keyword 搜索关键词
      * @return 包含关键词的新闻列表
      */
-    @Query("SELECT n FROM News n WHERE n.title LIKE CONCAT('%', :keyword, '%') OR n.content LIKE CONCAT('%', :keyword, '%')")
+    @Query("SELECT n FROM News n WHERE n.title LIKE CONCAT('%', :keyword, '%') "
+        + "OR n.description LIKE CONCAT('%', :keyword, '%') "
+        + "OR n.content LIKE CONCAT('%', :keyword, '%')")
     List<News> findByKeyword(String keyword);
 }

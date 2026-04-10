@@ -27,6 +27,42 @@ const formatNumber = n => {
 const { buildApiUrl } = require('./config')
 const { mockRequest } = require('./mockApi.js')
 
+let loginRedirectScheduled = false
+
+/**
+ * 将请求异常转为用户可读短文案（超时、网络、HTTP、业务 message）
+ */
+function requestErrorMessage(err) {
+  const status = err && err.statusCode
+  const msg = (err && err.message) || ''
+  if (status === 401) {
+    return '登录已失效，请重新登录'
+  }
+  if (/timed?\s*out|超时/i.test(msg)) {
+    return '请求超时，请检查网络后重试'
+  }
+  if (/网络请求失败|request:fail|连接|CONNECTION/i.test(msg)) {
+    return '网络不可用，请稍后重试'
+  }
+  if (/HTTP 5\d\d/.test(msg)) {
+    return '服务暂时不可用，请稍后重试'
+  }
+  const stripped = msg.replace(/^HTTP \d+:\s*/, '').trim()
+  return stripped || '请求失败，请稍后重试'
+}
+
+function scheduleReloginNavigation() {
+  if (loginRedirectScheduled) {
+    return
+  }
+  loginRedirectScheduled = true
+  wx.showToast({ title: '登录已过期', icon: 'none', duration: 2000 })
+  setTimeout(() => {
+    loginRedirectScheduled = false
+    wx.navigateTo({ url: '/pages/login/login' })
+  }, 500)
+}
+
 /**
  * 网络请求工具函数
  * @param {Object} options 请求参数
@@ -70,16 +106,36 @@ const request = (options) => {
           return
         }
 
-        if (res.statusCode === 401 || res.statusCode === 403) {
-          wx.removeStorageSync('token')
-          wx.removeStorageSync('userInfo')
+        const message = (res.data && (res.data.message || res.data.error)) || res.errMsg || '请求失败'
+
+        if (res.statusCode === 401) {
+          const error = new Error(`HTTP 401: ${message}`)
+          error.statusCode = 401
+          reject(error)
+          // 登录/注册接口的 401（如密码错误）不应清 token、不应跳转登录页
+          if (!options.skipAuthRedirect) {
+            wx.removeStorageSync('token')
+            wx.removeStorageSync('userInfo')
+            scheduleReloginNavigation()
+          }
+          return
         }
 
-        const message = (res.data && (res.data.message || res.data.error)) || res.errMsg || '请求失败'
-        reject(new Error(`HTTP ${res.statusCode}: ${message}`))
+        if (res.statusCode === 403) {
+          const error = new Error(`HTTP 403: ${message}`)
+          error.statusCode = 403
+          reject(error)
+          return
+        }
+
+        const httpError = new Error(`HTTP ${res.statusCode}: ${message}`)
+        httpError.statusCode = res.statusCode
+        reject(httpError)
       },
       fail(err) {
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
+        const error = new Error(`网络请求失败: ${err.errMsg || 'unknown'}`)
+        error.requestFail = true
+        reject(error)
       }
     })
   })
@@ -87,5 +143,6 @@ const request = (options) => {
 
 module.exports = {
   formatTime,
-  request
+  request,
+  requestErrorMessage
 }

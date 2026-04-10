@@ -1,21 +1,23 @@
 // PersonalCenter.js
-import { request } from '../../utils/util.js'
-import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
-import { buildApiUrl, buildStaticUrl } from '../../utils/config.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
+const { buildApiUrl, buildStaticUrl, DEFAULT_IMAGE_DATA_URI } = require('../../utils/config.js')
+
+const DEFAULT_AVATAR = DEFAULT_IMAGE_DATA_URI
+const NICKNAME_MAX_LEN = 32
+const SIGNATURE_MAX_LEN = 50
 
 Page({
   data: {
     userInfo: {
       name: '访客',
       title: '非遗文化爱好者',
-      avatar: 'https://picsum.photos/seed/profile-avatar/400/400'
+      avatar: DEFAULT_AVATAR
     },
     userStats: {
       collections: 0,
       bookings: 0
     },
-    // 是否已通过非遗传承人认证（基于本地标记 isInheritor）
-    isInheritor: false,
     collections: [],
     displayCollections: [], // 首页显示的收藏列表（只显示前几条）
     bookings: [],
@@ -32,26 +34,22 @@ Page({
     // 页面加载时的初始化
     // 检查用户登录状态
     const user = getCurrentUser();
-    const defaultAvatar = 'https://picsum.photos/seed/profile-avatar/400/400';
-    const isInheritor = !!wx.getStorageSync('isInheritor');
-    
+
     if (user) {
       // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
       const userName = user.nickname || user.nickName || user.username || user.name || '访客';
-      const userAvatar = user.avatarUrl || user.avatar || defaultAvatar;
+      const userAvatar = user.avatarUrl || user.avatar || DEFAULT_AVATAR;
       const userTitle = user.signature || '非遗文化爱好者';
       
       this.setData({
         'userInfo.name': userName,
         'userInfo.avatar': userAvatar,
-        'userInfo.title': userTitle,
-        isInheritor
+        'userInfo.title': userTitle
       });
     } else {
       // 如果没有登录用户，确保使用默认头像
       this.setData({
-        'userInfo.avatar': defaultAvatar,
-        isInheritor
+        'userInfo.avatar': DEFAULT_AVATAR
       });
     }
     
@@ -62,28 +60,24 @@ Page({
   onShow: function() {
     // 页面显示时刷新用户信息，确保显示最新的用户名
     const user = getCurrentUser();
-    const defaultAvatar = 'https://picsum.photos/seed/profile-avatar/400/400';
-    const isInheritor = !!wx.getStorageSync('isInheritor');
-    
+
     if (user) {
       // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
       const userName = user.nickname || user.nickName || user.username || user.name || '访客';
-      const userAvatar = user.avatarUrl || user.avatar || defaultAvatar;
+      const userAvatar = user.avatarUrl || user.avatar || DEFAULT_AVATAR;
       const userTitle = user.signature || '非遗文化爱好者';
       
       this.setData({
         'userInfo.name': userName,
         'userInfo.avatar': userAvatar,
-        'userInfo.title': userTitle,
-        isInheritor
+        'userInfo.title': userTitle
       });
     } else {
       // 如果没有登录用户，使用默认值
       this.setData({
         'userInfo.name': '访客',
-        'userInfo.avatar': defaultAvatar,
-        'userInfo.title': '非遗文化爱好者',
-        isInheritor
+        'userInfo.avatar': DEFAULT_AVATAR,
+        'userInfo.title': '非遗文化爱好者'
       });
     }
     
@@ -102,7 +96,7 @@ Page({
         'userStats.collections': 0,
         loading: false
       });
-      return;
+      return Promise.resolve();
     }
     
     // 获取当前用户ID
@@ -114,7 +108,7 @@ Page({
         'userStats.collections': 0,
         loading: false
       });
-      return;
+      return Promise.resolve();
     }
     
     const userId = user.id || user.userId;
@@ -126,10 +120,10 @@ Page({
         'userStats.collections': 0,
         loading: false
       });
-      return;
+      return Promise.resolve();
     }
     
-    request({
+    return request({
       url: '/user/collections/me'
     }).then(res => {
       if (!res.success) {
@@ -174,10 +168,12 @@ Page({
         'userStats.collections': 0,
         loading: false
       });
-      wx.showToast({
-        title: '加载收藏失败',
-        icon: 'none'
-      });
+      if (err.statusCode !== 401) {
+        wx.showToast({
+          title: requestErrorMessage(err),
+          icon: 'none'
+        });
+      }
     });
   },
 
@@ -190,7 +186,7 @@ Page({
         bookings: [],
         'userStats.bookings': 0
       });
-      return;
+      return Promise.resolve();
     }
     
     // 获取当前用户ID
@@ -200,7 +196,7 @@ Page({
         bookings: [],
         'userStats.bookings': 0
       });
-      return;
+      return Promise.resolve();
     }
     
     const userId = user.id || user.userId;
@@ -210,10 +206,10 @@ Page({
         bookings: [],
         'userStats.bookings': 0
       });
-      return;
+      return Promise.resolve();
     }
     
-    request({
+    return request({
       url: '/user/bookings/me'
     }).then(res => {
       if (!res.success) {
@@ -270,6 +266,12 @@ Page({
         bookings: [],
         'userStats.bookings': 0
       });
+      if (err.statusCode !== 401) {
+        wx.showToast({
+          title: requestErrorMessage(err),
+          icon: 'none'
+        });
+      }
     });
   },
 
@@ -286,9 +288,8 @@ Page({
 
   // 头像加载失败时使用默认头像
   onAvatarError: function(e) {
-    const defaultAvatar = 'https://picsum.photos/seed/profile-avatar/400/400';
     this.setData({
-      'userInfo.avatar': defaultAvatar
+      'userInfo.avatar': DEFAULT_AVATAR
     });
   },
 
@@ -406,8 +407,6 @@ Page({
                 data = uploadRes.data;
               }
               
-              console.log('上传响应:', data);
-              
               if (data && data.success && data.data) {
                 let imageUrl = data.data.url || data.data;
                 if (imageUrl && !imageUrl.startsWith('http')) {
@@ -471,18 +470,38 @@ Page({
     }
     
     const editForm = this.data.editForm;
+    const nickname = (editForm.name || '').trim()
+    const signature = (editForm.signature || '').trim()
+
+    if (!nickname) {
+      wx.showToast({
+        title: '用户名称不能为空',
+        icon: 'none'
+      });
+      return;
+    }
+    if (nickname.length > NICKNAME_MAX_LEN) {
+      wx.showToast({
+        title: '用户名称最长 32 字',
+        icon: 'none'
+      });
+      return;
+    }
+    if (signature.length > SIGNATURE_MAX_LEN) {
+      wx.showToast({
+        title: '个人签名最长 50 字',
+        icon: 'none'
+      });
+      return;
+    }
     
     // 准备更新数据
     const updateData = {};
-    if (editForm.name) {
-      updateData.nickname = editForm.name;
-    }
+    updateData.nickname = nickname;
     if (editForm.avatar) {
       updateData.avatarUrl = editForm.avatar;
     }
-    if (editForm.signature !== undefined) {
-      updateData.signature = editForm.signature;
-    }
+    updateData.signature = signature;
     
     // 调用后端API更新用户信息
     request({
@@ -492,12 +511,18 @@ Page({
     }).then(res => {
       if (res.success) {
         // 更新本地存储的用户信息
-        const updatedUser = res.data;
+        const updatedUser = { ...(res.data || {}) };
+        if (!updatedUser.userId && updatedUser.id) {
+          updatedUser.userId = updatedUser.id;
+        }
+        if (!updatedUser.nickName && updatedUser.nickname) {
+          updatedUser.nickName = updatedUser.nickname;
+        }
         wx.setStorageSync('userInfo', updatedUser);
         
         // 更新页面显示 - 优先使用nickname（用户设置的昵称）
         const userName = updatedUser.nickname || updatedUser.nickName || updatedUser.username || updatedUser.name || '访客';
-        const userAvatar = updatedUser.avatarUrl || updatedUser.avatar || buildStaticUrl('/uploads/login-bg.png.png');
+        const userAvatar = updatedUser.avatarUrl || updatedUser.avatar || DEFAULT_AVATAR;
         const userTitle = updatedUser.signature || '非遗文化爱好者';
         
         this.setData({
@@ -520,7 +545,7 @@ Page({
     }).catch(err => {
       console.error('保存用户信息失败:', err);
       wx.showToast({
-        title: '保存失败，请重试',
+        title: requestErrorMessage(err),
         icon: 'none'
       });
     });
@@ -641,7 +666,7 @@ Page({
           }).catch(err => {
             console.error('移除收藏失败:', err);
             wx.showToast({
-              title: '移除收藏失败，请重试',
+              title: requestErrorMessage(err),
               icon: 'none'
             });
           });
@@ -712,7 +737,7 @@ Page({
           }).catch(err => {
             console.error('取消预约失败:', err);
             wx.showToast({
-              title: '取消预约失败，请重试',
+              title: requestErrorMessage(err),
               icon: 'none'
             });
           });
@@ -773,87 +798,6 @@ Page({
     // 跳转到预约体验列表页面
     wx.navigateTo({
       url: '/pages/bookingList/bookingList'
-    });
-  },
-
-  // 进入传承人社区
-  goInheritorCommunity: function() {
-    // 未登录先提示登录
-    if (!isLoggedIn()) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录后再进入传承人社区',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({ url: '/pages/login/login' });
-          }
-        }
-      });
-      return;
-    }
-    wx.navigateTo({
-      url: '/pages/InheritorCommunity/InheritorCommunity'
-    });
-  },
-
-  // 申请成为非遗传承人（前端示意：本地状态）
-  applyAsInheritor: function() {
-    if (!isLoggedIn()) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录，再申请成为非遗传承人',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({ url: '/pages/login/login' });
-          }
-        }
-      });
-      return;
-    }
-
-    wx.showModal({
-      title: '申请成为传承人',
-      content: '在实际系统中，需要提交资质材料并由平台审核。本版将直接开通传承人社区发布权限，用于完整呈现体验流程。',
-      confirmText: '确认开通',
-      cancelText: '暂不',
-      success: (res) => {
-        if (!res.confirm) return;
-        wx.setStorageSync('isInheritor', true);
-        this.setData({ isInheritor: true });
-        wx.showToast({
-          title: '已开通传承人社区',
-          icon: 'success'
-        });
-      }
-    });
-  },
-
-  // 进入传承人发帖页
-  goInheritorPost: function() {
-    const isInheritor = !!wx.getStorageSync('isInheritor');
-    if (!isInheritor) {
-      wx.showModal({
-        title: '提示',
-        content: '请先在本页申请成为非遗传承人，审核通过后即可发布社区动态。',
-        showCancel: true,
-        cancelText: '知道了',
-        confirmText: '去申请',
-        success: (res) => {
-          if (res.confirm) {
-            // 滚动到认证区域由用户自行点击按钮
-          }
-        }
-      });
-      return;
-    }
-    wx.navigateTo({
-      url: '/pages/inheritorPost/inheritorPost'
     });
   },
 
@@ -934,17 +878,16 @@ Page({
       loading: true
     });
     
-    // 重新加载数据
-    this.loadCollections();
-    this.loadBookings();
-    
-    setTimeout(() => {
+    Promise.all([
+      this.loadCollections().catch(() => {}),
+      this.loadBookings().catch(() => {})
+    ]).finally(() => {
       wx.stopPullDownRefresh();
       wx.showToast({
         title: '刷新成功',
         icon: 'success'
       });
-    }, 1000);
+    });
   },
 
 })

@@ -3,7 +3,7 @@
   <view class="bg-layer" aria-hidden="true"></view>
 
   <!-- 顶区：品牌 -->
-  <view class="hero">
+  <view class="hero" style="height: 379rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">
     <view class="hero-deco" aria-hidden="true"></view>
     <view class="hero-inner">
       <text class="hero-kicker">INTANGIBLE CULTURAL HERITAGE</text>
@@ -23,7 +23,7 @@
   </view>
 
   <!-- 寻迹导航 -->
-  <view class="sheet sheet-tight">
+  <view class="sheet sheet-tight" style="height: 707rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">
     <view class="sheet-head">
       <view class="sheet-head-left">
         <text class="sheet-en">NAVIGATION</text>
@@ -37,11 +37,7 @@
         <text class="diamond-name">新闻列表</text>
         <text class="diamond-sub">二级列表页</text>
       </view>
-      <view class="diamond-item" bindtap="goNewsDetailDemo">
-        <view class="diamond-icon bg-b">📄</view>
-        <text class="diamond-name">新闻详情</text>
-        <text class="diamond-sub">示例资讯</text>
-      </view>
+      
       <!-- Tab 级别入口（探索 / AR / 我的）改用底部栏承载，这里不再重复 -->
       <view class="diamond-item" bindtap="goNational">
         <view class="diamond-icon bg-d">▣</view>
@@ -53,17 +49,7 @@
         <text class="diamond-name">省级名录</text>
         <text class="diamond-sub">列表页</text>
       </view>
-      <view class="diamond-item" bindtap="goFlowDetailDirect">
-        <view class="diamond-icon bg-f">❖</view>
-        <text class="diamond-name">非遗详情</text>
-        <text class="diamond-sub">示例项目</text>
-      </view>
-      
-      <view class="diamond-item" bindtap="goCommunity">
-        <view class="diamond-icon bg-i">👤</view>
-        <text class="diamond-name">传承人社区</text>
-        <text class="diamond-sub">社区首页</text>
-      </view>
+
       <view class="diamond-item" bindtap="goMasterList">
         <view class="diamond-icon bg-j">✦</view>
         <text class="diamond-name">传承人名录</text>
@@ -89,11 +75,6 @@
         <text class="diamond-name">我的预约</text>
         <text class="diamond-sub">预约列表</text>
       </view>
-      <view class="diamond-item" bindtap="goLearning">
-        <view class="diamond-icon bg-o">📖</view>
-        <text class="diamond-name">学习中心</text>
-        <text class="diamond-sub">研学模块</text>
-      </view>
     </view>
   </view>
 
@@ -115,7 +96,7 @@
         <view class="route-card r2" bindtap="goFlowHeritage">
           <text class="route-tag">链 B</text>
           <text class="route-name">名录与筛选</text>
-          <text class="route-path">首页 → 探索 → 详情</text>
+          <text class="route-path">首页 → 非遗名录页 → 详情</text>
         </view>
         <view class="route-card r3" bindtap="goFlowDetailDirect">
           <text class="route-tag">链 C</text>
@@ -146,7 +127,7 @@
       <block wx:for="{{bannerList}}" wx:key="id">
         <swiper-item bindtap="onBannerTap" data-item="{{item}}">
           <view class="swiper-card">
-            <image src="{{item.image}}" class="swiper-img" mode="aspectFill" binderror="onBannerImageError" data-index="{{index}}"></image>
+            <image src="{{item.image}}" class="swiper-img" mode="aspectFill" binderror="onBannerImageError" data-index="{{index}}" lazy-load="{{true}}"></image>
             <view class="swiper-mask"></view>
             <view class="swiper-copy">
               <text class="swiper-title">{{item.title}}</text>
@@ -158,23 +139,31 @@
     </swiper>
   </view>
 
-  <!-- 文化热点：左图右文 -->
+  <!-- 寻迹 · 文化热点：左图右文（近期资讯） -->
   <view class="sheet">
     <view class="sheet-head row-between">
       <view class="sheet-head-left">
         <text class="sheet-en">STORIES</text>
-        <text class="sheet-cn">文化热点</text>
+        <text class="sheet-cn">寻迹 · 文化热点</text>
       </view>
       <navigator url="/pages/newsList/newsList" class="sheet-more" hover-class="sheet-more-hover">全部</navigator>
     </view>
-    <view class="article-list">
+    <view wx:if="{{newsLoading}}" class="article-loading">
+      <text class="article-loading-text">资讯加载中…</text>
+    </view>
+    <view wx:elif="{{!newsLoading && displayNewsList.length === 0}}" class="article-empty">
+      <text class="article-empty-title">暂无资讯</text>
+      <text class="article-empty-hint">{{newsLoadError ? '网络异常，请下拉重试' : '稍后再来看看遗韵动态'}}</text>
+      <navigator url="/pages/newsList/newsList" class="article-empty-link">前往新闻列表</navigator>
+    </view>
+    <view wx:else class="article-list">
       <view class="article-row" wx:for="{{displayNewsList}}" wx:key="id" bindtap="onNewsTap" data-item="{{item}}">
-        <image src="{{item.image}}" class="article-cover" mode="aspectFill" binderror="onNewsImageError" data-index="{{index}}"></image>
+        <image src="{{item.image}}" class="article-cover" mode="aspectFill" binderror="onNewsImageError" data-index="{{index}}" lazy-load="{{true}}"></image>
         <view class="article-main">
           <text class="article-title">{{item.title}}</text>
           <text class="article-lead">{{item.description}}</text>
           <view class="article-meta">
-            <text class="article-date">{{item.date}}</text>
+            <text class="article-byline">{{item.authorDisplay}} · {{item.relTime}}</text>
             <text class="article-go">阅读全文 →</text>
           </view>
         </view>
@@ -193,7 +182,7 @@
     <scroll-view class="pick-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
       <view class="pick-track">
         <view class="pick-card" wx:for="{{recommendList}}" wx:key="id" bindtap="onRecommendTap" data-item="{{item}}">
-          <image src="{{item.image}}" class="pick-img" mode="aspectFill" binderror="onRecommendImageError" data-index="{{index}}"></image>
+          <image src="{{item.image}}" class="pick-img" mode="aspectFill" binderror="onRecommendImageError" data-index="{{index}}" lazy-load="{{true}}"></image>
           <view class="pick-body">
             <text class="pick-name">{{item.name}}</text>
             <text class="pick-region">{{item.region}}</text>

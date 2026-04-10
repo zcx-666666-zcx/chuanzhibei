@@ -10,6 +10,11 @@
     <text>加载中...</text>
   </view>
 
+  <view wx:elif="{{loadError}}" class="empty">
+    <text class="empty-text">{{loadErrorText || '预约列表加载失败'}}</text>
+    <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重试</button>
+  </view>
+
   <!-- 预约列表 -->
   <view wx:else class="booking-list">
     <view class="booking-item card card-hover" 

@@ -1,12 +1,14 @@
 // pages/collectionList/collectionList.js
-import { request } from '../../utils/util.js'
-import { getCurrentUser, isLoggedIn } from '../../utils/auth.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { request, requestErrorMessage } = require('../../utils/util.js')
+const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
+const { buildStaticUrl } = require('../../utils/config.js')
 
 Page({
   data: {
     collections: [],
-    loading: true
+    loading: true,
+    loadError: false,
+    loadErrorText: ''
   },
 
   onLoad: function() {
@@ -36,11 +38,14 @@ Page({
 
   // 加载收藏数据
   loadCollections: function() {
+    this.setData({ loading: true, loadError: false, loadErrorText: '' })
     const user = getCurrentUser();
     if (!user) {
       this.setData({
         collections: [],
-        loading: false
+        loading: false,
+        loadError: true,
+        loadErrorText: '用户信息缺失，请重新登录'
       });
       return;
     }
@@ -50,7 +55,9 @@ Page({
       console.error('无法获取用户ID');
       this.setData({
         collections: [],
-        loading: false
+        loading: false,
+        loadError: true,
+        loadErrorText: '无法获取用户信息'
       });
       wx.showToast({
         title: '无法获取用户信息',
@@ -88,16 +95,21 @@ Page({
       
       this.setData({
         collections: collections,
-        loading: false
+        loading: false,
+        loadError: false,
+        loadErrorText: ''
       });
     }).catch(err => {
       console.error('获取收藏失败:', err);
+      const msg = requestErrorMessage(err)
       this.setData({
         collections: [],
-        loading: false
+        loading: false,
+        loadError: true,
+        loadErrorText: msg
       });
       wx.showToast({
-        title: err.message || '加载收藏失败',
+        title: msg,
         icon: 'none'
       });
     });
@@ -197,7 +209,7 @@ Page({
           }).catch(err => {
             console.error('移除收藏失败:', err);
             wx.showToast({
-              title: '移除收藏失败，请重试',
+              title: requestErrorMessage(err),
               icon: 'none'
             });
           });
@@ -211,6 +223,10 @@ Page({
     this.loadCollections().finally(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onRetryLoad() {
+    this.loadCollections()
   }
 })
 

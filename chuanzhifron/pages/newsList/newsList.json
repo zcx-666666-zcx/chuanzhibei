@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "非遗动态",
-  "usingComponents": {}
+  "usingComponents": {},
+  "onReachBottomDistance": 80,
+  "enablePullDownRefresh": true
 }
 

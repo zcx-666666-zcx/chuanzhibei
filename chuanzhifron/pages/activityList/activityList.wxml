@@ -5,12 +5,15 @@
     <text class="page-title">近期活动</text>
   </view>
 
-  <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="loading">
     <text>加载中...</text>
   </view>
 
-  <!-- 活动列表 -->
+  <view wx:elif="{{loadError}}" class="empty">
+    <text class="empty-text">{{loadErrorText || '活动列表加载失败'}}</text>
+    <button class="retry-btn" bindtap="onRetryLoadActivities" size="mini" type="primary">重试</button>
+  </view>
+
   <view wx:else class="activity-list">
     <view class="activity-item" wx:for="{{activities}}" wx:key="id">
       <view class="activity-date">
@@ -28,8 +31,7 @@
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <view wx:if="{{!loading && activities.length === 0}}" class="empty">
+  <view wx:if="{{!loading && !loadError && activities.length === 0}}" class="empty">
     <text class="empty-text">暂无活动信息</text>
   </view>
 </view>

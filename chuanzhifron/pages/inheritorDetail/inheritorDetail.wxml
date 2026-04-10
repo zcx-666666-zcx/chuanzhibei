@@ -1,0 +1,21 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{loadError}}" class="error">
+    <text class="error-text">{{loadErrorText || '加载失败'}}</text>
+    <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重试</button>
+  </view>
+
+  <view wx:else class="detail-card">
+    <image class="avatar" src="{{inheritor.avatar}}" mode="aspectFill"></image>
+    <view class="meta">
+      <text class="name">{{inheritor.name}}</text>
+      <text class="title">{{inheritor.title || inheritor.level || '传承人'}}</text>
+      <text class="skill">{{inheritor.skill}}</text>
+    </view>
+    <view class="intro-box">
+      <text class="intro-title">传承人简介</text>
+      <text class="intro-content">{{inheritor.introduction}}</text>
+    </view>
+  </view>
+</view>

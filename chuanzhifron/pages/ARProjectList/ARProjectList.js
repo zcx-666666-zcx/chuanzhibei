@@ -1,26 +1,40 @@
 // pages/ARProjectList/ARProjectList.js
-import { request } from '../../utils/util.js'
-import { buildStaticUrl } from '../../utils/config.js'
+const { request } = require('../../utils/util.js')
+const { buildStaticUrl } = require('../../utils/config.js')
+const { getVideoPreloadMode } = require('../../utils/resourceProfile.js')
 
 Page({
   data: {
     arProjects: [],
     loading: true,
-    // 统一使用在线占位图，保障演示场景下有稳定封面
-    defaultArImage: 'https://picsum.photos/seed/ar-list/800/520'
+    videoPreload: 'metadata',
+    arPlaceholderImage: buildStaticUrl('/uploads/photo_ARExperience.png')
   },
 
   getArVideoList() {
+    // 与后端 AR 项目 id 1~4 顺序一致：景德镇 → 苏绣 → 青铜器 → 少林
     return [
+      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
       '/uploads/video_ARExperinece/苏绣双面绣AR体验视频.mp4',
       '/uploads/video_ARExperinece/青铜器纹样AR体验视频.mp4',
-      '/uploads/video_ARExperinece/景德镇青花瓷.mp4',
       '/uploads/video_ARExperinece/少林武术AR体验视频生成.mp4'
     ];
   },
 
   onLoad: function() {
+    this.initResourceProfile();
     this.loadArProjects();
+  },
+
+  initResourceProfile() {
+    wx.getNetworkType({
+      success: ({ networkType }) => {
+        this.setData({ videoPreload: getVideoPreloadMode(networkType) });
+      },
+      fail: () => {
+        this.setData({ videoPreload: 'metadata' });
+      }
+    });
   },
 
   // 加载AR项目数据
@@ -35,17 +49,19 @@ Page({
     }).then(res => {
       const list = res.data?.list || res.data || [];
       const videoList = this.getArVideoList();
-      // 确保图片路径正确处理：统一使用在线占位封面，避免本地资源缺失导致黑屏
+      const ph = this.data.arPlaceholderImage;
       const processedList = list.map((item, index) => {
-        const rawVideoPath = videoList[index] || item.videoUrl || '';
+        const rawVideoPath = item.videoUrl || videoList[index] || '';
+        const cover = item.coverImage
+          ? (item.coverImage.startsWith('http') ? item.coverImage : buildStaticUrl(item.coverImage))
+          : ph;
+        const marker = item.markerImage
+          ? (item.markerImage.startsWith('http') ? item.markerImage : buildStaticUrl(item.markerImage))
+          : cover;
         return {
           ...item,
-          coverImage: item.coverImage && item.coverImage.startsWith('http')
-            ? item.coverImage
-            : (this.data.defaultArImage || 'https://picsum.photos/seed/ar-list-'+index+'/800/520'),
-          markerImage: item.markerImage && item.markerImage.startsWith('http')
-            ? item.markerImage
-            : 'https://picsum.photos/seed/ar-marker-list-'+index+'/640/360',
+          coverImage: cover,
+          markerImage: marker,
           videoUrl: rawVideoPath && rawVideoPath.startsWith('http')
             ? rawVideoPath
             : (rawVideoPath ? buildStaticUrl(rawVideoPath) : '')

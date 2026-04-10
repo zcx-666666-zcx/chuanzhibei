@@ -20,6 +20,8 @@
   - 统一错误处理
 - `chuanzhifron/utils/auth.js` 已改为复用统一请求层，移除认证链路硬编码地址
 - `pages/login/login.js`、`pages/register/register.js`、`pages/PersonalCenter/PersonalCenter.js` 已接入统一 URL 组装
+- `utils/env.js` 支持开发/生产双域名配置（`DEVELOPMENT_API_BASE_URL` / `PRODUCTION_API_BASE_URL`），当前联调示例为 `https://1151290dt34oy.vicp.fun`
+- `buildStaticUrl` 增加绝对地址重写兜底：历史 `http` 或 `localhost` 资源会自动改写到当前 `https` 基础域名，减少真机图片/视频加载失败
 
 ### 2) 后端配置外置化
 
@@ -43,6 +45,7 @@
 - 新增首页通知接口：`GET /api/home/notifications`
 - 新增联调状态接口：`GET /api/home/debug-info`
 - 首页搜索、通知、新闻列表关键词过滤、个人中心菜单已改为可执行逻辑
+- 后端静态资源映射增加多路径候选（`WebConfig`），降低因启动目录差异造成的 `/uploads/**` 资源 500 风险
 
 ## 快速启动
 
@@ -75,7 +78,10 @@ cd chuanzhiback/demo
 - `GET /actuator/health/liveness`
 - `GET /actuator/health/readiness`
 
-生产环境部署细节请参考：`生产部署指南.md`
+生产环境部署细节请参考：`生产部署指南.md`（含后端 `prod` 启动校验、`utils/env.js` 发布开关、小程序合法域名）。
+
+- 小程序：`chuanzhifron/utils/env.js` 中 `APP_ENV` / `PRODUCTION_API_BASE_URL`
+- 后端：`SPRING_PROFILES_ACTIVE=prod` 且满足 `TOKEN_SECRET`、`PUBLIC_BASE_URL`（https）、`CORS_ALLOWED_ORIGIN_PATTERNS`（禁止 `*`）
 
 ## 前端
 
@@ -83,25 +89,31 @@ cd chuanzhiback/demo
 2. 如需真机联调，请在小程序运行时设置：
 
 ```js
-wx.setStorageSync('apiBaseUrl', 'http://你的局域网IP:8001')
+wx.setStorageSync('apiBaseUrl', 'https://你的可访问域名')
 ```
 
-### 前端页面结构与传承人社区
+### 前端页面结构与导航
 
-- 一级 Tab 页：
-  - 首页：`pages/index/index`（遗韵长卷 · 寻迹导航 · 文化热点与精选非遗）
-  - 探索：`pages/Heritage/Heritage`（国家级 / 省级非遗名录 + 分类筛选）
-  - AR：`pages/ARExperience/ARExperience`（AR 项目列表 + 体验记录）
-  - 我的：`pages/PersonalCenter/PersonalCenter`（收藏、预约、传承人认证入口）
+**完整产品说明**（首页区块、九宫格、沉浸 Tab、个人中心细则）见 [`chuanzhifron/README.md`](chuanzhifron/README.md) 中的「小程序功能说明」。
 
-- 传承人社区链路（本地数据模式下可先离线体验）：
-  1. 用户在「我的」页点击「申请成为非遗传承人」（本地 `isInheritor` 标记，用于呈现完整流程）
-  2. 认证后，可：
-     - 进入 `pages/InheritorCommunity/InheritorCommunity` 查看传承人、技艺视频、活动
-     - 进入 `pages/inheritorPost/inheritorPost` 发布「传承人动态」（文章 + 可选视频链接）
-  3. 发布的动态缓存在本地存储中，并在传承人社区页的「传承人动态」分区统一展示，形成「我的 → 认证 → 社区 → 发布 → 社区展示」闭环
+- **底部 Tab（与 `app.json` 一致）**：
+  - **首页** `pages/index/index`：遗韵区（**搜索资讯**标题模糊匹配、**通知**）；**寻迹导航**八宫格（与 `index.wxml` 一致）：新闻列表、国家级名录、省级名录、传承人名录、技艺视频、活动列表、我的收藏、我的预约；**推荐跳转链**链 A～D；**轮播**；**文化热点**；**精选非遗**；通栏 **switchTab** 至沉浸 Tab。
+  - **沉浸** `pages/ARExperience/ARExperience`：引导文案；**3D 沉浸演示**（`pages/xrDemo3D` + `components/xr-demo-viewer`）；横向体验项目（`GET /ar/projects`，「全部」→ `ARProjectList` → `ARPlay`）；**我的体验记录**（`GET /ar/history` 等）。
+  - **我的** `pages/PersonalCenter/PersonalCenter`：简介与统计、编辑资料（含头像上传）；最近收藏/预约摘要与列表入口。
 
-> 说明：`app.js` 中 `globalData.localDataMode` 为 `true` 时，请求由 `utils/mockApi.js` 本地适配；接入真实后端后将其设为 `false` 即可。
+- **非 Tab 二级页**：以 `app.json` 的 `pages` 为准，主要包括：登录/注册、非遗名录与详情、国家/省级列表、新闻列表/详情、传承人列表与 `inheritorDetail`、技艺视频、活动、收藏/预约列表、`ARProjectList`、`ARPlay`、`xrDemo3D` 等。
+- **已注册但当前无首页入口的页面**：`pages/learning/learning`（学习中心，后端已有 `GET/POST /api/learning/*`，竞赛主链路暂缓）；`pages/logs/logs`（仅展示 `app.js` 写入的本地时间戳，无业务跳转）。
+- **未写入 `app.json` 的占位目录**（打包不收录，演示中不可用）：`pages/Admin/`、`pages/bannerManagement/`。
+- **未接入的组件**：`components/news-card`（新闻列表页使用内联结构，未在 `usingComponents` 中引用）。
+
+> 说明：`app.js` 中 `globalData.localDataMode` 与 `utils/env.js` 的 `useMockApi()` 一致；为 `true` 时 `request` 走 `utils/mockApi.js`。生产环境 `APP_ENV=production` 时 mock 强制关闭。联调默认见 `utils/env.js` 中 `USE_MOCK_IN_DEVELOPMENT`。
+
+## 当前状态（2026-04-05）
+
+- 核心链路（登录/注册、资讯、非遗详情、收藏、预约、沉浸项目、AR 历史）联调通过，可用于比赛演示。
+- 图片/视频在 `https` 域名下已可正常访问（配合小程序合法域名配置）。
+- 3D 页已具备进入、模型切换与基础渲染能力；高质量模型效果与视觉调优待后续补充。
+- 根目录与各子文档已按当前代码（页面注册、八宫格、接口与遗留模块）统一更新，详见 `开发日志-2026-03-24.md` 中「文档与代码全量对齐」一节。
 
 ## 联调稳定性检查清单
 

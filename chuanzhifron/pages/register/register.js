@@ -1,95 +1,109 @@
 // pages/register/register.js
-const { registerUser } = require('../../utils/auth.js');
-const { buildStaticUrl } = require('../../utils/config.js');
+const {
+  registerUser,
+  validateUsername,
+  validatePassword,
+  validateEmail,
+  validateNickname
+} = require('../../utils/auth.js')
+const { buildStaticUrl, DEFAULT_IMAGE_DATA_URI } = require('../../utils/config.js')
 
 Page({
   data: {
     username: '',
+    nickname: '',
     password: '',
     confirmPassword: '',
     email: '',
-    logoUrl: buildStaticUrl('/uploads/login-bg.png.png')
+    logoUrl: buildStaticUrl('/uploads/login-bg.png.png'),
+    submitting: false
   },
 
-  onUsernameInput: function(e) {
-    this.setData({
-      username: e.detail.value
-    });
+  onLogoError() {
+    this.setData({ logoUrl: DEFAULT_IMAGE_DATA_URI })
   },
 
-  onPasswordInput: function(e) {
-    this.setData({
-      password: e.detail.value
-    });
+  onUsernameInput(e) {
+    this.setData({ username: e.detail.value })
   },
 
-  onConfirmPasswordInput: function(e) {
-    this.setData({
-      confirmPassword: e.detail.value
-    });
+  onNicknameInput(e) {
+    this.setData({ nickname: e.detail.value })
   },
 
-  onEmailInput: function(e) {
-    this.setData({
-      email: e.detail.value
-    });
+  onPasswordInput(e) {
+    this.setData({ password: e.detail.value })
   },
 
-  goToLogin: function() {
-    wx.navigateBack();
+  onConfirmPasswordInput(e) {
+    this.setData({ confirmPassword: e.detail.value })
   },
 
-  onRegister: function() {
-    const { username, password, confirmPassword, email } = this.data;
-    
-    // 基本验证
-    if (!username) {
-      wx.showToast({
-        title: '请输入用户名',
-        icon: 'none'
-      });
-      return;
+  onEmailInput(e) {
+    this.setData({ email: e.detail.value })
+  },
+
+  goToLogin() {
+    wx.navigateBack()
+  },
+
+  onRegister() {
+    const { username, nickname, password, confirmPassword, email, submitting } = this.data
+    if (submitting) return
+
+    const u = (username || '').trim()
+    const usernameError = validateUsername(u)
+    if (usernameError) {
+      wx.showToast({ title: usernameError, icon: 'none' })
+      return
     }
-    
-    if (!password) {
-      wx.showToast({
-        title: '请输入密码',
-        icon: 'none'
-      });
-      return;
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      wx.showToast({ title: passwordError, icon: 'none' })
+      return
     }
-    
     if (password !== confirmPassword) {
-      wx.showToast({
-        title: '两次输入的密码不一致',
-        icon: 'none'
-      });
-      return;
+      wx.showToast({ title: '两次密码不一致', icon: 'none' })
+      return
     }
-    
-    // 发送注册请求到后端
+
+    const em = (email || '').trim()
+    const emailError = validateEmail(em)
+    if (emailError) {
+      wx.showToast({ title: emailError, icon: 'none' })
+      return
+    }
+
+    const nick = (nickname || '').trim()
+    const nicknameError = validateNickname(nick)
+    if (nicknameError) {
+      wx.showToast({ title: nicknameError, icon: 'none' })
+      return
+    }
+
+    this.setData({ submitting: true })
     registerUser({
-      username: username,
-      password: password,
-      email: email
-    }).then((res) => {
-      wx.showToast({
-        title: '注册成功',
-        icon: 'success'
-      });
-      
-      // 延迟跳转到登录页
-      setTimeout(() => {
-        wx.redirectTo({
-          url: '../login/login'
-        });
-      }, 1500);
-    }).catch((err) => {
-      console.error('注册请求失败', err);
-      wx.showToast({
-        title: err.error || err.message || '注册失败，请检查网络',
-        icon: 'none'
-      });
-    });
+      username: u,
+      password,
+      email: em,
+      nickname: nick
+    })
+      .then(() => {
+        wx.showToast({ title: '注册成功', icon: 'success' })
+        setTimeout(() => {
+          wx.redirectTo({
+            url: `/pages/login/login?username=${encodeURIComponent(u)}`
+          })
+        }, 600)
+      })
+      .catch((err) => {
+        wx.showToast({
+          title: err.message || '注册失败',
+          icon: 'none'
+        })
+      })
+      .finally(() => {
+        this.setData({ submitting: false })
+      })
   }
-});
+})

@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "3D 沉浸演示",
+  "navigationBarBackgroundColor": "#1a1410",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#1a1410",
+  "usingComponents": {
+    "xr-demo-viewer": "../../components/xr-demo-viewer/index"
+  },
+  "disableScroll": true
+}

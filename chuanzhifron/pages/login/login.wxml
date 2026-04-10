@@ -2,43 +2,58 @@
 <view class="page">
   <view class="content">
     <view class="brand">
-      <image class="logo" src="{{logoUrl}}" mode="aspectFill"></image>
-      <text class="title" style="width: 529rpx; display: block; box-sizing: border-box">欢迎回来</text>
+      <image class="logo" src="{{logoUrl}}" mode="aspectFill" binderror="onLogoError"></image>
+      <text class="title">欢迎回来</text>
       <text class="subtitle">登录后继续探索非遗文化</text>
     </view>
 
     <view class="card">
       <view class="tabs">
-        <view class="tab {{currentTab === 0 ? 'active' : ''}}" data-tab="0" bindtap="switchTab">账号登录</view>
-        <view class="tab {{currentTab === 1 ? 'active' : ''}}" data-tab="1" bindtap="switchTab">微信登录</view>
+        <view class="tab {{currentTab === 0 ? 'active' : ''}}" data-tab="0" bindtap="switchTabHandler">账号登录</view>
+        <view class="tab {{currentTab === 1 ? 'active' : ''}}" data-tab="1" bindtap="switchTabHandler">微信登录</view>
       </view>
 
       <view class="form-content" wx:if="{{currentTab === 0}}">
         <view class="input-group">
           <text class="input-label">用户名</text>
-          <input class="form-input" placeholder="请输入用户名" bindinput="onUsernameInput" />
+          <input
+            class="form-input"
+            placeholder="2～20 位，中文、字母、数字或下划线"
+            value="{{username}}"
+            bindinput="onUsernameInput"
+          />
         </view>
 
         <view class="input-group">
           <text class="input-label">密码</text>
-          <input class="form-input" placeholder="请输入密码" password bindinput="onPasswordInput" />
+          <input
+            class="form-input"
+            placeholder="至少 6 位"
+            password
+            value="{{password}}"
+            bindinput="onPasswordInput"
+          />
         </view>
 
-        <button class="primary-btn" bindtap="onLogin">登录</button>
+        <button class="primary-btn" bindtap="onLogin" loading="{{submitting}}" disabled="{{submitting}}">
+          {{submitting ? '登录中…' : '登录'}}
+        </button>
 
         <view class="footer">
           <text class="link" bindtap="goToRegister">立即注册</text>
           <text class="divider">|</text>
-          <text class="muted-text">忘记密码</text>
+          <text class="muted-text">忘记密码请联系管理员</text>
         </view>
       </view>
 
       <view class="form-content wechat-area" wx:if="{{currentTab === 1}}">
-        <view class="wechat-badge">微信</view>
-        <text class="wechat-title">一键授权登录</text>
-        <text class="wechat-desc">使用微信账号快速登录，流程更轻快</text>
-        <button class="wechat-btn" bindtap="onWechatLogin">微信登录</button>
-        <text class="link center-link" bindtap="switchTab" data-tab="0">使用账号密码登录</text>
+        <view class="wechat-badge">微</view>
+        <text class="wechat-title">微信快速登录</text>
+        <text class="wechat-desc">演示环境将使用登录凭证生成账号；正式环境需配置 code2Session</text>
+        <button class="wechat-btn" bindtap="onWechatLogin" loading="{{submitting}}" disabled="{{submitting}}">
+          微信登录
+        </button>
+        <text class="link center-link" bindtap="switchTabHandler" data-tab="0">使用账号密码登录</text>
       </view>
     </view>
   </view>

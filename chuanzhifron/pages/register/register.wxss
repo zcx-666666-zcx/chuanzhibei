@@ -1,7 +1,7 @@
 /* pages/register/register.wxss */
 .page {
   min-height: 100vh;
-  background: #f5f7fb;
+  background: var(--rice-paper, #f4efe8);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -82,7 +82,7 @@
   line-height: 88rpx;
   border-radius: 22rpx;
   border: none;
-  background: #1677ff;
+  background: linear-gradient(135deg, var(--primary-red, #b83232), #c94a4a);
   color: #ffffff;
   font-size: 32rpx;
   font-weight: 600;
@@ -103,7 +103,7 @@
 }
 
 .link {
-  color: #1677ff;
+  color: var(--primary-red, #b83232);
   font-size: 26rpx;
   margin-left: 8rpx;
 }

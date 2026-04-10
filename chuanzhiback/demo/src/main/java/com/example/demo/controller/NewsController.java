@@ -53,34 +53,30 @@ public class NewsController {
     }
 
     /**
-     * 获取最近新闻列表
-     *
-     * @return 最近新闻列表
+     * 近期新闻列表（按发布时间倒序），分页参数：page 从 0 起，size 默认 20、最大 50。
+     * data 形态：{ list, total, page, size, hasMore }。
      */
     @GetMapping("/recent")
-    public Result<List<Map<String, Object>>> getRecentNews() {
+    public Result<Map<String, Object>> getRecentNews(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size) {
         try {
-            List<News> newsList = newsService.getAllNews();
-            System.out.println("获取到的新闻列表: " + newsList);
-            
-            // 按ID排序确保顺序一致
-            List<News> sortedNews = newsList.stream()
-                .sorted((n1, n2) -> n1.getId().compareTo(n2.getId()))
-                .collect(java.util.stream.Collectors.toList());
-            
-            List<Map<String, Object>> result = new ArrayList<>();
-            for (News news : sortedNews) {
-                Map<String, Object> item = new HashMap<>();
-                item.put("id", news.getId());
-                item.put("title", news.getTitle());
-                item.put("description", news.getDescription());
-                item.put("imageUrls", news.getImageUrls());
-                item.put("publishTime", news.getPublishTime());
-                item.put("author", news.getAuthor());
-                result.add(item);
+            Map<String, Object> pageBody = newsService.getRecentPage(page, size);
+            @SuppressWarnings("unchecked")
+            List<News> slice = (List<News>) pageBody.get("list");
+            List<Map<String, Object>> mapped = new ArrayList<>();
+            if (slice != null) {
+                for (News news : slice) {
+                    mapped.add(toSummaryMap(news));
+                }
             }
-            
-            return Result.success(result);
+            Map<String, Object> data = new HashMap<>();
+            data.put("list", mapped);
+            data.put("total", pageBody.get("total"));
+            data.put("page", pageBody.get("page"));
+            data.put("size", pageBody.get("size"));
+            data.put("hasMore", pageBody.get("hasMore"));
+            return Result.success(data);
         } catch (Exception e) {
             System.err.println("获取新闻列表时发生错误: " + e.getMessage());
             return Result.error("获取新闻列表时发生错误: " + e.getMessage());
@@ -94,28 +90,40 @@ public class NewsController {
      * @return 匹配新闻
      */
     @GetMapping("/search")
-    public Result<List<Map<String, Object>>> searchNews(@RequestParam("keyword") String keyword) {
+    public Result<Map<String, Object>> searchNews(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size) {
         try {
-            String normalizedKeyword = keyword == null ? "" : keyword.trim();
-            if (normalizedKeyword.isEmpty()) {
-                return getRecentNews();
+            Map<String, Object> pageBody = newsService.searchPage(keyword, page, size);
+            @SuppressWarnings("unchecked")
+            List<News> slice = (List<News>) pageBody.get("list");
+            List<Map<String, Object>> mapped = new ArrayList<>();
+            if (slice != null) {
+                for (News news : slice) {
+                    mapped.add(toSummaryMap(news));
+                }
             }
-
-            List<News> newsList = newsService.searchByKeyword(normalizedKeyword);
-            List<Map<String, Object>> result = new ArrayList<>();
-            for (News news : newsList) {
-                Map<String, Object> item = new HashMap<>();
-                item.put("id", news.getId());
-                item.put("title", news.getTitle());
-                item.put("description", news.getDescription());
-                item.put("imageUrls", news.getImageUrls());
-                item.put("publishTime", news.getPublishTime());
-                item.put("author", news.getAuthor());
-                result.add(item);
-            }
-            return Result.success(result);
+            Map<String, Object> data = new HashMap<>();
+            data.put("list", mapped);
+            data.put("total", pageBody.get("total"));
+            data.put("page", pageBody.get("page"));
+            data.put("size", pageBody.get("size"));
+            data.put("hasMore", pageBody.get("hasMore"));
+            return Result.success(data);
         } catch (Exception e) {
             return Result.error("搜索新闻失败: " + e.getMessage());
         }
+    }
+
+    private Map<String, Object> toSummaryMap(News news) {
+        Map<String, Object> item = new HashMap<>();
+        item.put("id", news.getId());
+        item.put("title", news.getTitle());
+        item.put("description", news.getDescription());
+        item.put("imageUrls", news.getImageUrls());
+        item.put("publishTime", news.getPublishTime());
+        item.put("author", news.getAuthor());
+        return item;
     }
 }

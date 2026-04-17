@@ -234,3 +234,4 @@ page {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+@import 'app-wxa-auto-dark.wxss'

@@ -1,66 +1,21 @@
 <!--
-  3D 演示：环境贴图 + 主光/补光 + 展台基座 + 四角装饰柱 + 地面
-  中央模型默认走本地 uploads（可通过 modelSrc 属性覆盖），可 orbit 环视
+  纯净 3D：仅模型 + 简单光照 + 轨道相机（无展台/地面/装饰几何体、无 IBL 环境球）
 -->
 <xr-scene>
   <xr-assets>
-    <xr-asset-load
-      type="gltf"
-      asset-id="heroModel"
-      src="{{modelSrc}}"
-    />
+    <xr-asset-load type="gltf" asset-id="heroModel" src="{{modelSrc}}" />
   </xr-assets>
 
-  <xr-env env-data="xr-frame-team-workspace-day" />
+  <xr-light type="ambient" color="1 1 1" intensity="0.65" />
+  <xr-light type="directional" rotation="32 48 0" color="1 0.99 0.96" intensity="1.35" />
 
-  <xr-light type="ambient" color="1 1 1" intensity="0.45" />
-  <xr-light type="directional" rotation="38 62 0" color="1 0.96 0.92" intensity="2.8" cast-shadow />
-  <xr-light type="directional" rotation="-25 -50 0" color="0.75 0.82 1" intensity="0.85" />
-
-  <!-- 地面 -->
-  <xr-mesh
-    position="0 -0.42 0"
-    scale="5 1 5"
-    receive-shadow
-    geometry="plane"
-    uniforms="u_baseColorFactor:0.86 0.82 0.76 1"
-  />
-
-  <!-- 展台：下层台基 -->
-  <xr-mesh
-    position="0 -0.12 0"
-    scale="0.62 0.06 0.62"
-    cast-shadow
-    geometry="cube"
-    uniforms="u_baseColorFactor:0.32 0.29 0.26 1"
-  />
-  <!-- 展台：上层柱体（朱砂色） -->
-  <xr-mesh
-    position="0 0.02 0"
-    scale="0.42 0.28 0.42"
-    cast-shadow
-    geometry="cube"
-    uniforms="u_baseColorFactor:0.55 0.2 0.18 1"
-  />
-
-  <!-- 四角装饰柱 -->
-  <xr-mesh position="-0.58 0.12 -0.58" scale="0.07 0.4 0.07" cast-shadow geometry="cube" uniforms="u_baseColorFactor:0.68 0.58 0.42 1" />
-  <xr-mesh position="0.58 0.12 -0.58" scale="0.07 0.4 0.07" cast-shadow geometry="cube" uniforms="u_baseColorFactor:0.68 0.58 0.42 1" />
-  <xr-mesh position="-0.58 0.12 0.58" scale="0.07 0.4 0.07" cast-shadow geometry="cube" uniforms="u_baseColorFactor:0.68 0.58 0.42 1" />
-  <xr-mesh position="0.58 0.12 0.58" scale="0.07 0.4 0.07" cast-shadow geometry="cube" uniforms="u_baseColorFactor:0.68 0.58 0.42 1" />
-
-  <!-- 悬浮点缀：小立方体（增加层次） -->
-  <xr-mesh position="-0.35 0.55 0.2" scale="0.06 0.06 0.06" cast-shadow geometry="cube" uniforms="u_baseColorFactor:0.85 0.72 0.4 1" />
-  <xr-mesh position="0.32 0.48 -0.25" scale="0.05 0.05 0.05" cast-shadow geometry="cube" uniforms="u_baseColorFactor:0.45 0.55 0.75 1" />
-
-  <!-- 主体：glTF + 自动播放动画 -->
-  <xr-node node-id="hero" position="0 0.38 0">
-    <xr-gltf model="heroModel" anim-autoplay scale="0.2 0.2 0.2" cast-shadow />
+  <xr-node node-id="hero" position="0 0 0">
+    <xr-gltf model="heroModel" anim-autoplay scale="0.84 0.84 0.84" />
   </xr-node>
 
   <xr-camera
-    clear-color="0.93 0.9 0.84 1"
-    position="1.15 1.25 2.35"
+    clear-color="0.93 0.905 0.875 1"
+    position="0.38 0.52 1.12"
     target="hero"
     camera-orbit-control
   />

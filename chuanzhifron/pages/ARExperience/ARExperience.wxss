@@ -235,3 +235,5 @@
     gap: 28rpx;
   }
 }
+
+@import 'ARExperience-wxa-auto-dark.wxss'

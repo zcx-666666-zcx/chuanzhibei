@@ -91,23 +91,23 @@ const AR_PROJECTS = [
 
 const XR_MODELS = [
   {
-    id: 'jingde',
-    name: '青花瓷（本地示例）',
-    modelUrl: '/uploads/xr-demo/cool-star.glb',
-    coverImage: '/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg',
-    source: 'mock'
-  },
-  {
-    id: 'bronze',
-    name: '青铜器（待替换）',
-    modelUrl: '/uploads/xr-demo/bronze-vessel.glb',
+    id: 'stone-stele',
+    name: '古代石碑',
+    modelUrl: '/uploads/3D/ancient-stone-stele.glb',
     coverImage: '/uploads/ar_index/ar_bronze1.jpg',
     source: 'mock'
   },
   {
-    id: 'embroidery',
-    name: '苏绣纹样（待替换）',
-    modelUrl: '/uploads/xr-demo/embroidery-frame.glb',
+    id: 'manuscript-cylinder',
+    name: '古代经卷轴筒',
+    modelUrl: '/uploads/3D/ancient-manuscript-cylinder.glb',
+    coverImage: '/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg',
+    source: 'mock'
+  },
+  {
+    id: 'cloisonne-vase',
+    name: '景泰蓝花瓶',
+    modelUrl: '/uploads/3D/cloisonne-vase.glb',
     coverImage: '/uploads/masters_InheritorCommunit/master_suxiu.jpg',
     source: 'mock'
   }

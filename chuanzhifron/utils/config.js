@@ -1,4 +1,11 @@
-const { isProduction, DEVELOPMENT_API_BASE_URL, PRODUCTION_API_BASE_URL } = require('./env.js')
+const {
+  isProduction,
+  DEVELOPMENT_API_BASE_URL,
+  DEVELOPMENT_DEVICE_BASE_URL,
+  DEVELOPMENT_DEVICE_BASE_URL_HTTPS,
+  DEVELOPMENT_DEVTOOLS_HTTPS_BASE_URL,
+  PRODUCTION_API_BASE_URL
+} = require('./env.js')
 
 const DEFAULT_BASE_URL = 'http://localhost:8001'
 const API_PREFIX = '/api'
@@ -16,6 +23,60 @@ function ensureLeadingSlash(path) {
   return path.startsWith('/') ? path : `/${path}`;
 }
 
+function isLocalhostBaseUrl(url) {
+  try {
+    const m = String(url || '')
+      .replace(/\/+$/, '')
+      .match(/^https?:\/\/([^/:]+)/i)
+    if (!m) return false
+    const host = (m[1] || '').toLowerCase()
+    return host === 'localhost' || host === '127.0.0.1'
+  } catch (e) {
+    return false
+  }
+}
+
+function getRuntimePlatform() {
+  try {
+    return wx.getSystemInfoSync().platform || 'unknown'
+  } catch (e) {
+    return 'unknown'
+  }
+}
+
+/**
+ * 开发态根地址：
+ * - devtools：可选走 DEVELOPMENT_DEVTOOLS_HTTPS_BASE_URL，避免 https 壳子请求 http 资源触发 Mixed Content
+ * - 真机：可选 https，否则 http 局域网，否则回退到 DEVELOPMENT_API_BASE_URL（localhost 仅本机调试用）
+ */
+function resolveDevelopmentBaseUrl(dev) {
+  const trimmed = (dev || '').trim()
+  if (!trimmed) return trimmed
+
+  const platform = getRuntimePlatform()
+
+  if (platform === 'devtools') {
+    const httpsTools = (DEVELOPMENT_DEVTOOLS_HTTPS_BASE_URL || '').trim()
+    if (httpsTools) {
+      return trimTrailingSlash(httpsTools)
+    }
+    return trimTrailingSlash(trimmed)
+  }
+
+  if (platform === 'ios' || platform === 'android' || platform === 'ohos') {
+    const httpsDevice = (DEVELOPMENT_DEVICE_BASE_URL_HTTPS || '').trim()
+    if (httpsDevice) {
+      return trimTrailingSlash(httpsDevice)
+    }
+    const lan = (DEVELOPMENT_DEVICE_BASE_URL || '').trim()
+    if (lan) {
+      return trimTrailingSlash(lan)
+    }
+  }
+
+  return trimTrailingSlash(trimmed)
+}
+
 function getBaseUrl() {
   const custom = wx.getStorageSync('apiBaseUrl')
   if (custom) {
@@ -24,7 +85,7 @@ function getBaseUrl() {
   if (!isProduction()) {
     const dev = (DEVELOPMENT_API_BASE_URL || '').trim()
     if (dev) {
-      return trimTrailingSlash(dev)
+      return trimTrailingSlash(resolveDevelopmentBaseUrl(dev))
     }
   }
   if (isProduction()) {

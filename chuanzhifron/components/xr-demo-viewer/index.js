@@ -4,7 +4,7 @@ Component({
   properties: {
     modelSrc: {
       type: String,
-      value: buildStaticUrl('/uploads/xr-demo/cool-star.glb')
+      value: buildStaticUrl('/uploads/3D/ancient-stone-stele.glb')
     }
   },
   data: {},

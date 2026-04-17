@@ -644,3 +644,5 @@
 .footer-space {
   height: 48rpx;
 }
+
+@import 'index-wxa-auto-dark.wxss'

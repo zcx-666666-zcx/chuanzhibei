@@ -3,21 +3,21 @@ const { buildStaticUrl } = require('./config.js')
 function getLocalFallbackModels() {
   return [
     {
-      id: 'jingde',
-      name: '青花瓷（本地示例）',
-      modelUrl: buildStaticUrl('/uploads/xr-demo/cool-star.glb'),
+      id: 'stone-stele',
+      name: '古代石碑',
+      modelUrl: buildStaticUrl('/uploads/3D/ancient-stone-stele.glb'),
       source: 'local'
     },
     {
-      id: 'bronze',
-      name: '青铜器（待替换）',
-      modelUrl: buildStaticUrl('/uploads/xr-demo/bronze-vessel.glb'),
+      id: 'manuscript-cylinder',
+      name: '古代经卷轴筒',
+      modelUrl: buildStaticUrl('/uploads/3D/ancient-manuscript-cylinder.glb'),
       source: 'local'
     },
     {
-      id: 'embroidery',
-      name: '苏绣纹样（待替换）',
-      modelUrl: buildStaticUrl('/uploads/xr-demo/embroidery-frame.glb'),
+      id: 'cloisonne-vase',
+      name: '景泰蓝花瓶',
+      modelUrl: buildStaticUrl('/uploads/3D/cloisonne-vase.glb'),
       source: 'local'
     }
   ]

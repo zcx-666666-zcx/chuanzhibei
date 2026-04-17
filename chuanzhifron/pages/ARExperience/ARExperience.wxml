@@ -78,10 +78,10 @@
         <text class="sheet-cn">3D 沉浸演示</text>
       </view>
     </view>
-    <text class="demo-desc">基于微信 xr-frame：展台场景 + 官方示例 glTF 模型（含动画）+ 多光源与阴影。单指旋转视角，双指缩放。</text>
+    <text class="demo-desc">基于微信 xr-frame：展台场景 + 服务端 uploads/3D 目录下的自有 glb（经卷轴筒、石碑、景泰蓝花瓶等）+ 多光源与阴影。单指旋转视角，双指缩放。</text>
     <navigator url="/pages/xrDemo3D/xrDemo3D" class="demo-nav demo-nav-primary" hover-class="demo-nav-hover">
       <text class="demo-nav-title">进入 3D 演示</text>
-      <text class="demo-nav-sub">可替换为自有非遗 glb 模型</text>
+      <text class="demo-nav-sub">页内可切换模型</text>
     </navigator>
   </view>
 

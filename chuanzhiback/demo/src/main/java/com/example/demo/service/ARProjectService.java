@@ -186,9 +186,9 @@ public class ARProjectService {
 
     public List<Map<String, Object>> listModelCatalog() {
         List<Map<String, Object>> models = new ArrayList<>();
-        models.add(buildModel("jingde", "青花瓷（本地示例）", "/uploads/xr-demo/cool-star.glb", "/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg"));
-        models.add(buildModel("bronze", "青铜器（待替换）", "/uploads/xr-demo/bronze-vessel.glb", "/uploads/ar_index/ar_bronze1.jpg"));
-        models.add(buildModel("embroidery", "苏绣纹样（待替换）", "/uploads/xr-demo/embroidery-frame.glb", "/uploads/masters_InheritorCommunit/master_suxiu.jpg"));
+        models.add(buildModel("stone-stele", "古代石碑", "/uploads/3D/ancient-stone-stele.glb", "/uploads/ar_index/ar_bronze1.jpg"));
+        models.add(buildModel("manuscript-cylinder", "古代经卷轴筒", "/uploads/3D/ancient-manuscript-cylinder.glb", "/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg"));
+        models.add(buildModel("cloisonne-vase", "景泰蓝花瓶", "/uploads/3D/cloisonne-vase.glb", "/uploads/masters_InheritorCommunit/master_suxiu.jpg"));
         return models;
     }
 

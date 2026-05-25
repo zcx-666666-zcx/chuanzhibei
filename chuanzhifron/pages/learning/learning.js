@@ -1,45 +1,11 @@
 // pages/learning/learning.js
-const { request, requestErrorMessage } = require('../../utils/util.js')
 const { isLoggedIn } = require('../../utils/auth.js')
-
-const FALLBACK_CHAPTERS = [
-  {
-    id: 'chapter-1',
-    title: '非遗入门导览',
-    duration: '15分钟',
-    type: 'guide',
-    description: '先了解非遗定义、门类与保护体系。',
-    path: '/pages/newsList/newsList',
-    isFallback: true
-  },
-  {
-    id: 'chapter-2',
-    title: '名录与地域认知',
-    duration: '20分钟',
-    type: 'heritage',
-    description: '通过名录认识地域差异与代表性项目。',
-    path: '/pages/Heritage/Heritage',
-    isFallback: true
-  },
-  {
-    id: 'chapter-3',
-    title: '技艺案例学习',
-    duration: '25分钟',
-    type: 'video',
-    description: '观看技艺演示视频，理解工艺流程。',
-    path: '/pages/skillVideoList/skillVideoList',
-    isFallback: true
-  },
-  {
-    id: 'chapter-4',
-    title: '活动实践体验',
-    duration: '20分钟',
-    type: 'activity',
-    description: '报名活动并进行线下互动体验。',
-    path: '/pages/activityList/activityList',
-    isFallback: true
-  }
-]
+const {
+  getFallbackLearningChapters,
+  loadLearningPath,
+  loadLearningProgress,
+  updateLearningProgress
+} = require('../../services/content.service.js')
 
 Page({
   data: {
@@ -65,29 +31,24 @@ Page({
 
   loadLearningData() {
     this.setData({ loading: true, loadError: false, loadErrorText: '' })
-    return request({
-      url: '/learning/path'
-    }).then((res) => {
-      if (!res.success) {
-        throw new Error(res.message || '获取学习路径失败')
-      }
-      const chapters = Array.isArray(res.data) ? res.data : []
+    return loadLearningPath().then((chapters) => {
       this.setData({
-        chapters: chapters.length > 0 ? chapters : FALLBACK_CHAPTERS.slice(),
-        totalChapters: chapters.length > 0 ? chapters.length : FALLBACK_CHAPTERS.length,
+        chapters,
+        totalChapters: chapters.length,
         loading: false,
         loadError: false,
         loadErrorText: ''
       })
       return this.loadProgress().catch(() => {})
     }).catch((err) => {
-      const msg = requestErrorMessage(err)
+      const fallbackChapters = getFallbackLearningChapters()
+      const msg = err.message || '获取学习路径失败'
       this.setData({
         loading: false,
         loadError: true,
         loadErrorText: msg,
-        chapters: FALLBACK_CHAPTERS.slice(),
-        totalChapters: FALLBACK_CHAPTERS.length
+        chapters: fallbackChapters,
+        totalChapters: fallbackChapters.length
       })
       wx.showToast({ title: msg, icon: 'none' })
       return this.loadProgress().catch(() => {})
@@ -103,22 +64,16 @@ Page({
       })
       return Promise.resolve()
     }
-    return request({
-      url: '/learning/progress'
-    }).then((res) => {
-      if (!res.success || !res.data) {
-        throw new Error(res.message || '获取学习进度失败')
-      }
-      const data = res.data
+    return loadLearningProgress().then((data) => {
       this.setData({
-        progressPercent: Number(data.progressPercent || 0),
-        completedCount: Number(data.completedCount || 0),
+        progressPercent: data.progressPercent,
+        completedCount: data.completedCount,
         totalChapters: Number(data.totalChapters || this.data.totalChapters || 0),
-        completedChapterIds: Array.isArray(data.completedChapterIds) ? data.completedChapterIds : []
+        completedChapterIds: data.completedChapterIds
       })
     }).catch((err) => {
-      const msg = requestErrorMessage(err)
-      if (err.statusCode !== 401) {
+      const msg = err.message || '获取学习进度失败'
+      if (!/登录已失效/.test(msg)) {
         wx.showToast({ title: msg, icon: 'none' })
       }
     })
@@ -152,17 +107,10 @@ Page({
       return
     }
     const completed = !this.data.completedChapterIds.includes(chapterId)
-    request({
-      url: '/learning/progress',
-      method: 'POST',
-      data: {
+    updateLearningProgress({
         chapterId,
         completed
-      }
-    }).then((res) => {
-      if (!res.success) {
-        throw new Error(res.message || '更新学习进度失败')
-      }
+      }).then(() => {
       return this.loadProgress()
     }).then(() => {
       wx.showToast({
@@ -171,7 +119,7 @@ Page({
       })
     }).catch((err) => {
       wx.showToast({
-        title: requestErrorMessage(err),
+        title: err.message || '更新学习进度失败',
         icon: 'none'
       })
     })

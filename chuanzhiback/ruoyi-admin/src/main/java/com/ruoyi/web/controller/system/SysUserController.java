@@ -1,5 +1,6 @@
 package com.ruoyi.web.controller.system;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruoyi.common.core.AjaxResult;
 import com.ruoyi.common.core.TableDataInfo;
@@ -7,12 +8,17 @@ import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysRole;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.mapper.SysDeptMapper;
+import com.ruoyi.system.mapper.SysUserMapper;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.ISysRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -31,13 +37,41 @@ public class SysUserController {
     @Autowired
     private SysDeptMapper deptMapper;
 
+    @Autowired
+    private SysUserMapper userMapper;
+
     /** 用户列表（分页） */
     @GetMapping("/list")
     @PreAuthorize("@ss.hasPermi('system:user:list')")
-    public TableDataInfo<SysUser> list(SysUser user) {
-        Page<SysUser> page = new Page<>(1, 10);
-        List<SysUser> list = userService.selectUserList(user);
-        return TableDataInfo.build(list, list.size());
+    public TableDataInfo<SysUser> list(
+            SysUser user,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Long deptId,
+            @RequestParam(value = "params[beginTime]", required = false) String beginTime,
+            @RequestParam(value = "params[endTime]", required = false) String endTime
+    ) {
+        Page<SysUser> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(hasText(user.getUserName()), SysUser::getUserName, user.getUserName())
+                .like(hasText(user.getPhoneNumber()), SysUser::getPhoneNumber, user.getPhoneNumber())
+                .eq(hasText(user.getStatus()), SysUser::getStatus, user.getStatus())
+                .eq(deptId != null, SysUser::getDeptId, deptId)
+                .ge(parseBeginDate(beginTime) != null, SysUser::getCreateTime, parseBeginDate(beginTime))
+                .le(parseEndDate(endTime) != null, SysUser::getCreateTime, parseEndDate(endTime))
+                .eq(SysUser::getDelFlag, "0")
+                .orderByDesc(SysUser::getCreateTime);
+        Page<SysUser> result = userMapper.selectPage(page, wrapper);
+        List<SysUser> records = result.getRecords();
+        for (SysUser item : records) {
+            if (item.getDeptId() != null) {
+                SysDept dept = deptMapper.selectById(item.getDeptId());
+                if (dept != null) {
+                    item.setDeptName(dept.getDeptName());
+                }
+            }
+        }
+        return TableDataInfo.build(records, result.getTotal());
     }
 
     /** 获取用户详情 */
@@ -133,5 +167,23 @@ public class SysUserController {
             }
         }
         return children;
+    }
+
+    private Date parseBeginDate(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return Date.from(LocalDate.parse(value).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    private Date parseEndDate(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return Date.from(LocalDate.parse(value).atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

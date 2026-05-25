@@ -17,7 +17,9 @@ function mapCollection(item) {
 }
 
 function mapBooking(item) {
-  return Object.assign({}, item)
+  return Object.assign({}, item, {
+    masterAvatar: resolveStaticUrl(item.masterAvatar || '')
+  })
 }
 
 function loadMyOverview() {
@@ -84,8 +86,105 @@ function removeMyCollection(heritageId) {
   })
 }
 
+function listMyCollections() {
+  return request({
+    url: '/user/collections/me'
+  }).then((res) => {
+    if (!res.success) {
+      throw new Error(res.message || '获取收藏失败')
+    }
+    const list = Array.isArray(res.data) ? res.data : []
+    return list.map((item) => {
+      const mapped = mapCollection(item)
+      mapped.name = item.heritageName || item.name || ''
+      mapped.level = item.heritageLevel || item.level || ''
+      mapped.description = item.heritageDescription || item.description || ''
+      mapped.heritageId = item.heritageId || item.id
+      return mapped
+    })
+  }).catch((err) => {
+    throw new Error(requestErrorMessage(err))
+  })
+}
+
+function listMyBookings() {
+  return request({
+    url: '/user/bookings/me'
+  }).then((res) => {
+    if (!res.success) {
+      throw new Error(res.message || '获取预约失败')
+    }
+    const list = Array.isArray(res.data) ? res.data : []
+    return list.map((booking) => {
+      const item = mapBooking(booking)
+      return {
+        id: item.id,
+        status: item.status || 'pending',
+        statusText: resolveStatusText(item.status || 'pending'),
+        time: item.time || '待确认',
+        location: item.location || '待确认',
+        contact: item.contact || '待确认',
+        masterId: item.masterId,
+        masterName: item.type === 'experience' ? (item.masterName || '') : (item.activityTitle || ''),
+        skill: item.type === 'experience' ? (item.skill || '') : (item.type === 'activity' ? '活动报名' : '预约观看'),
+        masterAvatar: item.masterAvatar || '',
+        type: item.type || 'experience',
+        activityId: item.activityId,
+        activityTitle: item.activityTitle || ''
+      }
+    })
+  }).catch((err) => {
+    throw new Error(requestErrorMessage(err))
+  })
+}
+
+function addMyCollection(payload) {
+  return request({
+    url: '/user/collections',
+    method: 'POST',
+    data: payload
+  }).then((res) => {
+    if (!res.success) {
+      throw new Error(res.message || '收藏失败')
+    }
+    return res.data || true
+  }).catch((err) => {
+    throw new Error(requestErrorMessage(err))
+  })
+}
+
+function checkMyCollection(heritageId) {
+  return request({
+    url: `/user/collections/me/check/${heritageId}`
+  }).then((res) => {
+    if (!res.success) {
+      return false
+    }
+    return Boolean(res.data)
+  }).catch((err) => {
+    throw new Error(requestErrorMessage(err))
+  })
+}
+
+function resolveStatusText(status) {
+  switch (status) {
+    case 'confirmed':
+      return '已确认'
+    case 'cancelled':
+      return '已取消'
+    case 'completed':
+      return '已完成'
+    default:
+      return '待确认'
+  }
+}
+
 module.exports = {
+  addMyCollection,
   cancelMyBooking,
+  checkMyCollection,
+  listMyBookings,
+  listMyCollections,
   loadMyOverview,
   removeMyCollection,
   updateMyProfile

@@ -41,10 +41,7 @@ public class SchemaBootstrapRunner implements ApplicationRunner {
             return;
         }
 
-        Path sqlPath = Paths.get(System.getProperty("user.dir"), "chuanzhiback", "demo", "src", "main", "resources", "schema-bootstrap.sql");
-        if (!Files.exists(sqlPath)) {
-            sqlPath = Paths.get(System.getProperty("user.dir"), "demo", "src", "main", "resources", "schema-bootstrap.sql");
-        }
+        Path sqlPath = resolveSqlPath();
         if (!Files.exists(sqlPath)) {
             log.warn("未找到统一 SQL 文件 schema-bootstrap.sql，跳过数据库初始化");
             return;
@@ -63,5 +60,22 @@ public class SchemaBootstrapRunner implements ApplicationRunner {
         } catch (Exception e) {
             log.error("执行 schema-bootstrap.sql 失败: {}", e.getMessage(), e);
         }
+    }
+
+    private Path resolveSqlPath() {
+        Path userDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath().normalize();
+        Path[] candidates = new Path[] {
+                userDir.resolve("chuanzhiback").resolve("demo").resolve("src").resolve("main").resolve("resources").resolve("schema-bootstrap.sql"),
+                userDir.resolve("demo").resolve("src").resolve("main").resolve("resources").resolve("schema-bootstrap.sql"),
+                userDir.resolve("..").resolve("demo").resolve("src").resolve("main").resolve("resources").resolve("schema-bootstrap.sql"),
+                userDir.resolve("..").resolve("chuanzhiback").resolve("demo").resolve("src").resolve("main").resolve("resources").resolve("schema-bootstrap.sql")
+        };
+        for (Path candidate : candidates) {
+            Path normalized = candidate.normalize();
+            if (Files.exists(normalized)) {
+                return normalized;
+            }
+        }
+        return candidates[0].normalize();
     }
 }

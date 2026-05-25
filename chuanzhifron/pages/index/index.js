@@ -48,7 +48,7 @@ Page({
         userInfo: user || {},
         hasUserInfo: !!user
       })
-    } catch (e) {
+    } catch (_e) {
       this.setData({
         userInfo: {},
         hasUserInfo: false

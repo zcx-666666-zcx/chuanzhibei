@@ -210,6 +210,34 @@ CREATE TABLE IF NOT EXISTS app_client_config (
     UNIQUE KEY uk_app_client_config_key (config_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='小程序客户端配置表';
 
+CREATE TABLE IF NOT EXISTS learning_progress (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    chapter_id VARCHAR(64) NOT NULL,
+    completed TINYINT(1) NOT NULL DEFAULT 1,
+    create_time DATETIME(6) NULL,
+    update_time DATETIME(6) NULL,
+    KEY idx_learning_progress_user (user_id),
+    KEY idx_learning_progress_user_completed (user_id, completed),
+    CONSTRAINT fk_learning_progress_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户学习进度表';
+
+SET @uk_learning_progress_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'learning_progress'
+      AND INDEX_NAME = 'uk_learning_progress_user_chapter'
+);
+SET @uk_learning_progress_sql := IF(
+    @uk_learning_progress_exists = 0,
+    'ALTER TABLE learning_progress ADD CONSTRAINT uk_learning_progress_user_chapter UNIQUE (user_id, chapter_id)',
+    'SELECT 1'
+);
+PREPARE stmt_uk_learning_progress FROM @uk_learning_progress_sql;
+EXECUTE stmt_uk_learning_progress;
+DEALLOCATE PREPARE stmt_uk_learning_progress;
+
 SET @idx_uc_user_time_exists := (
     SELECT COUNT(*)
     FROM information_schema.STATISTICS

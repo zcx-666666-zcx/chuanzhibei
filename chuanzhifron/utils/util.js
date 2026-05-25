@@ -74,7 +74,7 @@ const request = (options) => {
     if (app && app.globalData && app.globalData.localDataMode) {
       return mockRequest(options)
     }
-  } catch (e) {
+  } catch (_e) {
     // getApp 在极少数初始化时序下不可用，继续走真实请求
   }
 

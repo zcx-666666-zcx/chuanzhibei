@@ -1,0 +1,16 @@
+<view class="state-shell {{compact ? 'compact' : ''}}">
+  <view class="state-badge state-{{type}}">
+    <text wx:if="{{type === 'loading'}}">加载中</text>
+    <text wx:elif="{{type === 'error'}}">加载失败</text>
+    <text wx:elif="{{type === 'empty'}}">暂无内容</text>
+    <text wx:else>状态提示</text>
+  </view>
+
+  <text class="state-title">{{title || (type === 'loading' ? '内容准备中…' : (type === 'error' ? '当前内容暂时不可用' : '还没有相关内容'))}}</text>
+  <text wx:if="{{description}}" class="state-desc">{{description}}</text>
+
+  <view wx:if="{{actionText || secondaryActionText}}" class="state-actions">
+    <button wx:if="{{actionText}}" class="state-btn primary" size="mini" bindtap="onPrimaryAction">{{actionText}}</button>
+    <button wx:if="{{secondaryActionText}}" class="state-btn ghost" size="mini" bindtap="onSecondaryAction">{{secondaryActionText}}</button>
+  </view>
+</view>

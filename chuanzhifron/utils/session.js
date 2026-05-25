@@ -43,7 +43,7 @@ function setCurrentUser(user) {
     if (app && app.globalData) {
       app.globalData.userInfo = normalized
     }
-  } catch (e) {
+  } catch (_e) {
     // ignore
   }
   return normalized
@@ -79,7 +79,7 @@ function clearSession() {
     if (app && app.globalData) {
       app.globalData.userInfo = null
     }
-  } catch (e) {
+  } catch (_e) {
     // ignore
   }
 }
@@ -110,7 +110,7 @@ function bootstrapSession() {
     if (app && app.globalData) {
       app.globalData.userInfo = user
     }
-  } catch (e) {
+  } catch (_e) {
     // ignore
   }
   return loadClientConfig(false)

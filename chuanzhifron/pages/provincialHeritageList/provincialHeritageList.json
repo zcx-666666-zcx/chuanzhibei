@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "省级非遗项目",
-  "usingComponents": {}
+  "usingComponents": {
+    "app-state": "/components/app-state/index"
+  }
 }
-

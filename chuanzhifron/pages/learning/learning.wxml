@@ -14,11 +14,22 @@
       <text class="progress-tip">完成度 {{progressPercent}}%</text>
     </view>
 
-    <view wx:if="{{loading}}" class="state">学习路径加载中...</view>
-    <view wx:elif="{{loadError}}" class="state state-error">
-      <text>{{loadErrorText || '学习路径加载失败'}}</text>
-      <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重试</button>
-    </view>
+    <app-state
+      wx:if="{{loading}}"
+      type="loading"
+      title="学习路径加载中"
+      description="正在准备学习章节与进度信息。"
+      compact="{{true}}"
+    />
+    <app-state
+      wx:elif="{{loadError}}"
+      type="error"
+      title="学习路径加载失败"
+      description="{{loadErrorText || '请稍后重试'}}"
+      actionText="重新加载"
+      compact="{{true}}"
+      bind:action="onRetryLoad"
+    />
 
     <view wx:else class="chapter-list">
       <view class="chapter-item" wx:for="{{chapters}}" wx:key="id" bindtap="onChapterTap" data-item="{{item}}">

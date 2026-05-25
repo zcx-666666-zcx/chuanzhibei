@@ -1,14 +1,15 @@
 const KEYS = {
   token: 'token',
   userInfo: 'userInfo',
-  clientConfig: 'clientConfig'
+  clientConfig: 'clientConfig',
+  favoriteMasterIds: 'favoriteMasterIds'
 }
 
 function get(key, fallback) {
   try {
     const value = wx.getStorageSync(key)
     return value === '' || value === undefined ? fallback : value
-  } catch (e) {
+  } catch (_e) {
     return fallback
   }
 }

@@ -3,9 +3,11 @@ package com.ruoyi.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.security.LoginUser;
+import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysMenu;
 import com.ruoyi.system.domain.SysRole;
 import com.ruoyi.system.domain.SysUser;
+import com.ruoyi.system.mapper.SysDeptMapper;
 import com.ruoyi.system.mapper.SysMenuMapper;
 import com.ruoyi.system.mapper.SysRoleMapper;
 import com.ruoyi.system.mapper.SysUserMapper;
@@ -20,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +39,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Autowired
     private SysMenuMapper menuMapper;
+
+    @Autowired
+    private SysDeptMapper deptMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -69,7 +75,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public SysUser selectUserDetailById(Long userId) {
-        SysUser user = userMapper.selectById(userId);
+        SysUser user = userMapper.selectDetailById(userId);
         if (user != null) {
             user.setRoleIds(userMapper.selectRoleIdsByUserId(userId));
         }
@@ -89,7 +95,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                .eq(user.getStatus() != null, SysUser::getStatus, user.getStatus())
                .eq(SysUser::getDelFlag, "0")
                .orderByDesc(SysUser::getCreateTime);
-        return userMapper.selectList(wrapper);
+        List<SysUser> users = userMapper.selectList(wrapper);
+        fillDeptName(users);
+        return users;
+    }
+
+    @Override
+    public List<SysUser> selectUserPage(SysUser user, Long deptId, Date beginTime, Date endTime) {
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(hasText(user.getUserName()), SysUser::getUserName, user.getUserName())
+                .like(hasText(user.getPhoneNumber()), SysUser::getPhoneNumber, user.getPhoneNumber())
+                .eq(hasText(user.getStatus()), SysUser::getStatus, user.getStatus())
+                .eq(deptId != null, SysUser::getDeptId, deptId)
+                .ge(beginTime != null, SysUser::getCreateTime, beginTime)
+                .le(endTime != null, SysUser::getCreateTime, endTime)
+                .eq(SysUser::getDelFlag, "0")
+                .orderByDesc(SysUser::getCreateTime);
+        List<SysUser> users = userMapper.selectList(wrapper);
+        fillDeptName(users);
+        return users;
     }
 
     @Override
@@ -152,6 +176,29 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public boolean checkUserNameUnique(String userName) {
         return userMapper.selectByUserName(userName) == null;
+    }
+
+    private void fillDeptName(List<SysUser> users) {
+        if (users == null || users.isEmpty()) {
+            return;
+        }
+        java.util.Set<Long> deptIds = users.stream()
+                .map(SysUser::getDeptId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        java.util.Map<Long, String> deptNameMap = deptIds.isEmpty()
+                ? java.util.Collections.emptyMap()
+                : deptMapper.selectBatchIds(deptIds).stream()
+                        .collect(Collectors.toMap(SysDept::getDeptId, SysDept::getDeptName, (a, b) -> a));
+        for (SysUser item : users) {
+            if (item.getDeptId() != null) {
+                item.setDeptName(deptNameMap.get(item.getDeptId()));
+            }
+        }
+    }
+
+    private boolean hasText(String value) {
+        return StringUtils.hasText(value);
     }
 
     private void syncUserRoles(SysUser user) {

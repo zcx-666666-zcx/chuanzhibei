@@ -1,12 +1,19 @@
 <view class="container">
-  <view wx:if="{{loading}}" class="state-wrap">
-    <text class="state-text">加载项目中…</text>
-  </view>
+  <app-state
+    wx:if="{{loading}}"
+    type="loading"
+    title="AR 项目加载中"
+    description="正在准备识别图、讲解视频与体验说明。"
+  />
 
-  <view wx:elif="{{loadFailed}}" class="state-wrap state-fail">
-    <text class="state-text">{{loadErrorText}}</text>
-    <button class="state-btn" bindtap="onRetryLoadProject" size="mini" type="primary">重新加载</button>
-  </view>
+  <app-state
+    wx:elif="{{loadFailed}}"
+    type="error"
+    title="AR 项目加载失败"
+    description="{{loadErrorText}}"
+    actionText="重新加载"
+    bind:action="onRetryLoadProject"
+  />
 
   <block wx:else>
     <view class="header">

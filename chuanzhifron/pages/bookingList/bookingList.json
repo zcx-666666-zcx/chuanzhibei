@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "预约体验",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "app-state": "/components/app-state/index"
+  }
 }
-

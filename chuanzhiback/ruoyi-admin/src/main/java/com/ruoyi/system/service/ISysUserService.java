@@ -5,6 +5,7 @@ import com.ruoyi.security.LoginUser;
 import com.ruoyi.system.domain.SysUser;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -26,6 +27,9 @@ public interface ISysUserService extends IService<SysUser>, UserDetailsService {
 
     /** 查询用户列表 */
     List<SysUser> selectUserList(SysUser user);
+
+    /** 按分页查询用户列表 */
+    List<SysUser> selectUserPage(SysUser user, Long deptId, Date beginTime, Date endTime);
 
     /** 新增用户 */
     int insertUser(SysUser user);

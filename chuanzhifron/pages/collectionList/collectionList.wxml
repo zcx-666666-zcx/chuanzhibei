@@ -6,14 +6,21 @@
   </view>
 
   <!-- 加载状态 -->
-  <view wx:if="{{loading}}" class="loading">
-    <text>加载中...</text>
-  </view>
+  <app-state
+    wx:if="{{loading}}"
+    type="loading"
+    title="收藏列表加载中"
+    description="正在整理你已收藏的非遗项目。"
+  />
 
-  <view wx:elif="{{loadError}}" class="empty">
-    <text class="empty-text">{{loadErrorText || '收藏列表加载失败'}}</text>
-    <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重试</button>
-  </view>
+  <app-state
+    wx:elif="{{loadError}}"
+    type="error"
+    title="收藏列表加载失败"
+    description="{{loadErrorText || '请检查网络后重试'}}"
+    actionText="重新加载"
+    bind:action="onRetryLoad"
+  />
 
   <!-- 收藏列表 -->
   <view wx:else class="collection-list">
@@ -33,8 +40,10 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:if="{{!loading && collections.length === 0}}" class="empty">
-    <text class="empty-text">暂无收藏</text>
-  </view>
+  <app-state
+    wx:if="{{!loading && !loadError && collections.length === 0}}"
+    type="empty"
+    title="还没有收藏内容"
+    description="浏览非遗项目后可将感兴趣的内容加入收藏。"
+  />
 </view>
-

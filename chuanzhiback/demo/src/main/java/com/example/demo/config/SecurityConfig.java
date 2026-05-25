@@ -43,6 +43,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/app/config", "/api/app/home").permitAll()
                 .requestMatchers("/api/news/**").permitAll()
                 .requestMatchers("/api/heritage/**").permitAll()
                 .requestMatchers("/api/inheritor/**").permitAll()
@@ -54,7 +55,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/banners/**").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
-                .requestMatchers("/api/user/**", "/api/files/**", "/api/ar/history/**", "/api/ar/statistics", "/api/activity/join").authenticated()
+                .requestMatchers("/api/app/me/**", "/api/user/**", "/api/files/**", "/api/ar/history/**", "/api/ar/statistics", "/api/activity/join").authenticated()
                 .requestMatchers("/actuator/**").authenticated()
                 .anyRequest().permitAll()
             )

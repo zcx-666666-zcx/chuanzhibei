@@ -8,12 +8,12 @@
     </view>
 
     <view class="card">
-      <view class="tabs">
+      <view class="tabs" wx:if="{{clientConfig.usernameLoginEnabled !== false && clientConfig.wechatLoginEnabled !== false}}">
         <view class="tab {{currentTab === 0 ? 'active' : ''}}" data-tab="0" bindtap="switchTabHandler">账号登录</view>
         <view class="tab {{currentTab === 1 ? 'active' : ''}}" data-tab="1" bindtap="switchTabHandler">微信登录</view>
       </view>
 
-      <view class="form-content" wx:if="{{currentTab === 0}}">
+      <view class="form-content" wx:if="{{clientConfig.usernameLoginEnabled !== false && currentTab === 0}}">
         <view class="input-group">
           <text class="input-label">用户名</text>
           <input
@@ -46,14 +46,14 @@
         </view>
       </view>
 
-      <view class="form-content wechat-area" wx:if="{{currentTab === 1}}">
+      <view class="form-content wechat-area" wx:if="{{clientConfig.wechatLoginEnabled !== false && currentTab === 1}}">
         <view class="wechat-badge">微</view>
         <text class="wechat-title">微信快速登录</text>
         <text class="wechat-desc">演示环境将使用登录凭证生成账号；正式环境需配置 code2Session</text>
         <button class="wechat-btn" bindtap="onWechatLogin" loading="{{submitting}}" disabled="{{submitting}}">
           微信登录
         </button>
-        <text class="link center-link" bindtap="switchTabHandler" data-tab="0">使用账号密码登录</text>
+        <text class="link center-link" bindtap="switchTabHandler" data-tab="0" wx:if="{{clientConfig.usernameLoginEnabled !== false}}">使用账号密码登录</text>
       </view>
     </view>
   </view>

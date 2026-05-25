@@ -42,27 +42,32 @@ public class BannerService {
             list.add(new Banner(
                     "2024年全国非遗文化节",
                     "传承经典，弘扬中华文化",
-                    "/uploads/banners_index/banner_1.jpg"
+                    "/uploads/banners_index/banner_1.jpg",
+                    1L
             ));
             list.add(new Banner(
                     "陶瓷技艺入选世界非遗名录",
                     "景德镇陶瓷烧制技艺列入人类非遗代表作名录",
-                    "/uploads/banners_index/banner_2.jpg"
+                    "/uploads/banners_index/banner_2.jpg",
+                    2L
             ));
             list.add(new Banner(
                     "剪纸艺术进校园活动",
                     "全国范围内开展剪纸艺术进校园系列活动",
-                    "/uploads/banners_index/banner_3.png"
+                    "/uploads/banners_index/banner_3.png",
+                    3L
             ));
             list.add(new Banner(
                     "传统工艺创新大赛",
                     "展现新时代工匠精神",
-                    "/uploads/banners_index/banner_4.jpg"
+                    "/uploads/banners_index/banner_4.jpg",
+                    4L
             ));
             list.add(new Banner(
                     "非遗文化宣传周",
                     "让更多人了解和热爱传统文化",
-                    "/uploads/banners_index/banner_5.jpg"
+                    "/uploads/banners_index/banner_5.jpg",
+                    5L
             ));
 
             bannerRepository.saveAll(list);

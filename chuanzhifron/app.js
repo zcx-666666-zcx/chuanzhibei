@@ -1,6 +1,7 @@
 // app.js
 const { buildStaticUrl } = require('./utils/config.js')
 const { useMockApi } = require('./utils/env.js')
+const { bootstrapSession, setCurrentUser } = require('./utils/session.js')
 
 App({
   /**
@@ -14,7 +15,7 @@ App({
     // mock 模式：见 utils/env.js（生产环境强制关闭）
     if (this.globalData.localDataMode) {
       wx.setStorageSync('token', 'local-session-token')
-      wx.setStorageSync('userInfo', {
+      setCurrentUser({
         id: 1,
         userId: 1,
         nickname: '云窗客',
@@ -26,12 +27,10 @@ App({
       return
     }
 
-    const token = wx.getStorageSync('token')
-    if (!token) {
-      wx.redirectTo({
-        url: '/pages/login/login'
-      })
-    }
+    bootstrapSession().then(({ user, clientConfig }) => {
+      this.globalData.userInfo = user || null
+      this.globalData.clientConfig = clientConfig || {}
+    })
   },
 
   /**
@@ -40,6 +39,7 @@ App({
   globalData: {
     /** 与 utils/env.js 中 useMockApi() 一致；生产环境为 false */
     localDataMode: useMockApi(),
-    userInfo: null
+    userInfo: null,
+    clientConfig: {}
   }
 })

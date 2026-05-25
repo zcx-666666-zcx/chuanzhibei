@@ -183,6 +183,24 @@ function buildBookings() {
   ]
 }
 
+function buildOverviewProfile() {
+  const user = wx.getStorageSync('userInfo') || {}
+  const nickname = user.nickname || user.nickName || user.username || '遗韵体验用户'
+  const signature = user.signature || '遗韵随行，技艺入心'
+  const avatarUrl = user.avatarUrl || buildStaticUrl('/uploads/login-bg.png.png')
+  return {
+    id: user.id || 1,
+    userId: user.userId || user.id || 1,
+    username: user.username || 'demo_user',
+    nickname,
+    nickName: nickname,
+    avatarUrl,
+    signature,
+    displayName: nickname,
+    displayTitle: signature
+  }
+}
+
 function ok(data) {
   return Promise.resolve({ success: true, data })
 }
@@ -289,6 +307,44 @@ function mockRequest(options) {
   if (method === 'GET' && path === '/banners') {
     return ok(BANNERS)
   }
+  if (method === 'GET' && path === '/app/config') {
+    return ok({
+      appName: '传之贝',
+      homeNewsSize: 5,
+      homeRecommendSize: 4,
+      profileCollectionPreviewSize: 3,
+      profileBookingPreviewSize: 3,
+      wechatLoginEnabled: true,
+      usernameLoginEnabled: true,
+      supportPhone: '400-800-2026',
+      helpMessage: '建议先启动后端和 Redis，再打开微信开发者工具联调。',
+      miniProgramVersion: 'mock-enterprise-preview'
+    })
+  }
+  if (method === 'GET' && path === '/app/home') {
+    const newsList = sortNewsNewestFirst(NEWS).slice(0, 5)
+    return ok({
+      bannerList: BANNERS.map((item) => ({
+        ...item,
+        image: item.imageUrl
+      })),
+      newsList,
+      recommendList: HERITAGE.slice(0, 4).map((item) => ({
+        ...item,
+        image: item.imageUrl
+      })),
+      notifications: newsList.map((item) => ({
+        id: item.id,
+        title: item.title,
+        content: item.description,
+        time: item.publishTime,
+        type: 'news'
+      })),
+      clientConfig: {
+        appName: '传之贝'
+      }
+    })
+  }
   if (method === 'GET' && path === '/home/notifications') {
     return ok([
       { title: '云上非遗提示', content: '当前为体验数据环境，可顺畅浏览名录、AR、社区与预约等完整流程。' }
@@ -362,6 +418,23 @@ function mockRequest(options) {
   if (method === 'GET' && path === '/user/bookings/me') {
     return ok(buildBookings())
   }
+  if (method === 'GET' && path === '/app/me/overview') {
+    const collections = buildCollections()
+    const bookings = buildBookings()
+    return ok({
+      profile: buildOverviewProfile(),
+      stats: {
+        collections: collections.length,
+        bookings: bookings.length
+      },
+      collectionPreview: collections.slice(0, 3),
+      bookingPreview: bookings.slice(0, 3),
+      preferences: {
+        privacyEnabled: true,
+        notificationEnabled: true
+      }
+    })
+  }
   if (method === 'POST' && path === '/user/bookings') {
     mockBookingSeq += 1
     return ok({ id: mockBookingSeq, ...body })
@@ -381,6 +454,20 @@ function mockRequest(options) {
       avatarUrl: body.avatarUrl || buildStaticUrl('/uploads/login-bg.png.png'),
       signature: body.signature || '遗韵随行，技艺入心'
     }
+    return ok(merged)
+  }
+  if (method === 'PATCH' && path === '/app/me/profile') {
+    const current = buildOverviewProfile()
+    const merged = {
+      ...current,
+      nickname: body.nickname || current.nickname,
+      nickName: body.nickname || current.nickname,
+      signature: body.signature || current.signature,
+      avatarUrl: body.avatarUrl || current.avatarUrl
+    }
+    merged.displayName = merged.nickname
+    merged.displayTitle = merged.signature || '非遗文化爱好者'
+    wx.setStorageSync('userInfo', merged)
     return ok(merged)
   }
 

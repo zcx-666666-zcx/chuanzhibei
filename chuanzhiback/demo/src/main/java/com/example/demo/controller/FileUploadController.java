@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.common.Result;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,8 +19,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 public class FileUploadController {
 
-    // 定义文件上传目录
-    private static final String UPLOAD_DIR = "uploads/";
+    @Value("${app.upload.base-dir:../uploads}")
+    private String uploadBaseDir;
 
     /**
      * 上传图片文件（兼容多种路径）
@@ -39,7 +39,7 @@ public class FileUploadController {
 
         try {
             // 检查上传目录是否存在，不存在则创建
-            Path uploadPath = Paths.get(UPLOAD_DIR);
+            Path uploadPath = Paths.get(uploadBaseDir).toAbsolutePath().normalize();
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }

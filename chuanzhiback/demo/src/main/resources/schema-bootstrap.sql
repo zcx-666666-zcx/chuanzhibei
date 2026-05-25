@@ -85,6 +85,22 @@ CREATE TABLE IF NOT EXISTS banner (
     image_url VARCHAR(255) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+SET @banner_news_id_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'banner'
+      AND COLUMN_NAME = 'news_id'
+);
+SET @banner_news_id_sql := IF(
+    @banner_news_id_exists = 0,
+    'ALTER TABLE banner ADD COLUMN news_id BIGINT NULL COMMENT ''关联新闻ID'' AFTER image_url',
+    'SELECT 1'
+);
+PREPARE stmt_banner_news_id FROM @banner_news_id_sql;
+EXECUTE stmt_banner_news_id;
+DEALLOCATE PREPARE stmt_banner_news_id;
+
 CREATE TABLE IF NOT EXISTS user_collections (
     id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -179,6 +195,52 @@ CREATE TABLE IF NOT EXISTS ar_project (
     create_time DATETIME(6) NULL,
     update_time DATETIME(6) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS app_client_config (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    config_key VARCHAR(100) NOT NULL,
+    config_name VARCHAR(100) NOT NULL,
+    config_value VARCHAR(2000) NULL,
+    config_type VARCHAR(32) NOT NULL DEFAULT 'string',
+    status CHAR(1) NOT NULL DEFAULT '0',
+    sort_order INT NOT NULL DEFAULT 0,
+    remark VARCHAR(500) NULL,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_app_client_config_key (config_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='小程序客户端配置表';
+
+SET @idx_uc_user_time_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'user_collections'
+      AND INDEX_NAME = 'idx_user_collections_user_time'
+);
+SET @idx_uc_user_time_sql := IF(
+    @idx_uc_user_time_exists = 0,
+    'CREATE INDEX idx_user_collections_user_time ON user_collections (user_id, create_time)',
+    'SELECT 1'
+);
+PREPARE stmt_idx_uc_user_time FROM @idx_uc_user_time_sql;
+EXECUTE stmt_idx_uc_user_time;
+DEALLOCATE PREPARE stmt_idx_uc_user_time;
+
+SET @idx_ub_user_time_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'user_bookings'
+      AND INDEX_NAME = 'idx_user_bookings_user_time'
+);
+SET @idx_ub_user_time_sql := IF(
+    @idx_ub_user_time_exists = 0,
+    'CREATE INDEX idx_user_bookings_user_time ON user_bookings (user_id, create_time)',
+    'SELECT 1'
+);
+PREPARE stmt_idx_ub_user_time FROM @idx_ub_user_time_sql;
+EXECUTE stmt_idx_ub_user_time;
+DEALLOCATE PREPARE stmt_idx_ub_user_time;
 
 -- -----------------------------------------------------------------------------
 -- 后台管理系统表
@@ -351,6 +413,39 @@ VALUES (100, 0, '0', '传之贝科技', 1, '管理员', '0', NOW()),
        (101, 100, '0,100', '研发部门', 1, '管理员', '0', NOW()),
        (102, 100, '0,100', '运营部门', 2, '管理员', '0', NOW())
 ON DUPLICATE KEY UPDATE update_time = NOW();
+
+INSERT INTO app_client_config (id, config_key, config_name, config_value, config_type, status, sort_order, remark)
+VALUES
+    (1, 'appName', '小程序名称', '传之贝', 'string', '0', 1, '小程序展示名称'),
+    (2, 'homeNewsSize', '首页新闻条数', '5', 'number', '0', 2, '首页聚合资讯数量'),
+    (3, 'homeRecommendSize', '首页推荐条数', '4', 'number', '0', 3, '首页推荐非遗数量'),
+    (4, 'profileCollectionPreviewSize', '个人中心收藏预览数', '3', 'number', '0', 4, '个人中心展示收藏预览数量'),
+    (5, 'profileBookingPreviewSize', '个人中心预约预览数', '3', 'number', '0', 5, '个人中心展示预约预览数量'),
+    (6, 'wechatLoginEnabled', '微信登录开关', 'true', 'boolean', '0', 6, '控制是否展示微信登录入口'),
+    (7, 'usernameLoginEnabled', '账号登录开关', 'true', 'boolean', '0', 7, '控制是否展示账号登录入口'),
+    (8, 'supportPhone', '客服联系电话', '400-800-2026', 'string', '0', 8, '小程序客服联系方式'),
+    (9, 'helpMessage', '帮助文案', '建议先启动后端和 Redis，再打开微信开发者工具进行联调。', 'string', '0', 9, '小程序帮助说明'),
+    (10, 'miniProgramVersion', '小程序版本', 'enterprise-preview-1', 'string', '0', 10, '当前客户端版本标记')
+ON DUPLICATE KEY UPDATE
+    config_name = VALUES(config_name),
+    config_value = VALUES(config_value),
+    config_type = VALUES(config_type),
+    status = VALUES(status),
+    sort_order = VALUES(sort_order),
+    remark = VALUES(remark),
+    update_time = NOW();
+
+UPDATE banner
+SET news_id = CASE id
+    WHEN 1 THEN 1
+    WHEN 2 THEN 2
+    WHEN 3 THEN 3
+    WHEN 4 THEN 4
+    WHEN 5 THEN 5
+    ELSE news_id
+END
+WHERE (news_id IS NULL OR news_id = 0)
+  AND id BETWEEN 1 AND 5;
 
 INSERT INTO sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, menu_type, visible, status, icon, perms)
 VALUES (1, '系统管理', 0, 1, 'system', NULL, 1, 'M', '0', '0', 'system', NULL),

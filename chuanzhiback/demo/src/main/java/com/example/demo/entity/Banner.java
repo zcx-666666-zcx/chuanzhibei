@@ -9,6 +9,7 @@ public class Banner extends BaseEntity {
     private String title;
     private String description;
     private String imageUrl;
+    private Long newsId;
     
     // Constructors
     public Banner() {
@@ -19,6 +20,13 @@ public class Banner extends BaseEntity {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
+    }
+
+    public Banner(String title, String description, String imageUrl, Long newsId) {
+        this.title = title;
+        this.description = description;
+        this.imageUrl = imageUrl;
+        this.newsId = newsId;
     }
     
     // Getters and Setters
@@ -41,8 +49,16 @@ public class Banner extends BaseEntity {
     public String getImageUrl() {
         return imageUrl;
     }
-    
+
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Long getNewsId() {
+        return newsId;
+    }
+
+    public void setNewsId(Long newsId) {
+        this.newsId = newsId;
     }
 }

@@ -90,6 +90,11 @@ logging:
     com.ruoyi: DEBUG
     com.ruoyi.system.mapper: DEBUG
 
+app:
+  db:
+    schema-bootstrap:
+      enabled: true
+
 # SpringDoc / Swagger
 springdoc:
   api-docs:

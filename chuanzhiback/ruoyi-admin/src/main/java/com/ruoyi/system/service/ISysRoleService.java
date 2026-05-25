@@ -14,9 +14,13 @@ public interface ISysRoleService extends IService<SysRole> {
 
     List<SysRole> selectRolesByUserId(Long userId);
 
+    SysRole selectRoleDetailById(Long roleId);
+
     int insertRole(SysRole role);
 
     int updateRole(SysRole role);
+
+    int changeStatus(Long roleId, String status);
 
     int deleteRoleByIds(Long[] roleIds);
 

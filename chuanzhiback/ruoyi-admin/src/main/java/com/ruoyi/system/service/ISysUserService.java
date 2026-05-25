@@ -18,6 +18,9 @@ public interface ISysUserService extends IService<SysUser>, UserDetailsService {
     /** 根据用户ID查询用户 */
     SysUser selectUserById(Long userId);
 
+    /** 根据用户ID查询用户及角色ID */
+    SysUser selectUserDetailById(Long userId);
+
     /** 根据用户名查询用户 */
     SysUser selectUserByUserName(String userName);
 
@@ -29,6 +32,8 @@ public interface ISysUserService extends IService<SysUser>, UserDetailsService {
 
     /** 修改用户 */
     int updateUser(SysUser user);
+
+    int changeStatus(Long userId, String status);
 
     /** 删除用户 */
     int deleteUserByIds(Long[] userIds);

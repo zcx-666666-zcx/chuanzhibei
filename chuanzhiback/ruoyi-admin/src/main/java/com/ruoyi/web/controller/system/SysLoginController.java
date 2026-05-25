@@ -3,10 +3,10 @@ package com.ruoyi.web.controller.system;
 import com.ruoyi.common.core.AjaxResult;
 import com.ruoyi.security.JwtUtils;
 import com.ruoyi.security.LoginUser;
+import com.ruoyi.system.domain.RouterVo;
 import com.ruoyi.system.domain.SysMenu;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysMenuService;
-import com.ruoyi.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,14 +90,34 @@ public class SysLoginController {
      * GET /getRouters
      */
     @GetMapping("/getRouters")
-    public AjaxResult<List<SysMenu>> getRouters() {
+    public AjaxResult<List<RouterVo>> getRouters() {
         LoginUser loginUser = getLoginUser();
         if (loginUser == null) {
             return AjaxResult.error(401, "未登录");
         }
         Long userId = loginUser.getUserId();
-        List<SysMenu> menus = menuService.selectMenuTreeByUserId(userId);
-        return AjaxResult.success(menus);
+        return AjaxResult.success(menuService.buildMenusByUserId(userId));
+    }
+
+    /**
+     * 若依前端登录页默认会拉验证码，这里返回关闭状态，避免前端改太多。
+     */
+    @GetMapping("/captchaImage")
+    public AjaxResult<Map<String, Object>> captchaImage() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("captchaEnabled", false);
+        result.put("uuid", "no-captcha");
+        result.put("img", Base64.getEncoder().encodeToString(new byte[0]));
+        return AjaxResult.success(result);
+    }
+
+    /**
+     * 前端退出登录占位接口。
+     */
+    @PostMapping("/logout")
+    public AjaxResult<Void> logout() {
+        SecurityContextHolder.clearContext();
+        return AjaxResult.success();
     }
 
     private LoginUser getLoginUser() {

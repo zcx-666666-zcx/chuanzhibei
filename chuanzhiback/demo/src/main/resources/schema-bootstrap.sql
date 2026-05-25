@@ -276,8 +276,25 @@ CREATE TABLE IF NOT EXISTS sys_dept (
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_by VARCHAR(64) DEFAULT '' COMMENT '更新者',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    remark VARCHAR(500) DEFAULT NULL COMMENT '备注',
     PRIMARY KEY (dept_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='部门表';
+
+SET @sys_dept_remark_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'sys_dept'
+      AND COLUMN_NAME = 'remark'
+);
+SET @sys_dept_remark_sql := IF(
+    @sys_dept_remark_exists = 0,
+    'ALTER TABLE sys_dept ADD COLUMN remark VARCHAR(500) DEFAULT NULL COMMENT ''备注''',
+    'SELECT 1'
+);
+PREPARE stmt_sys_dept_remark FROM @sys_dept_remark_sql;
+EXECUTE stmt_sys_dept_remark;
+DEALLOCATE PREPARE stmt_sys_dept_remark;
 
 CREATE TABLE IF NOT EXISTS sys_oper_log (
     oper_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '日志主键',
@@ -343,8 +360,8 @@ VALUES (1, '系统管理', 0, 1, 'system', NULL, 1, 'M', '0', '0', 'system', NUL
        (101, '角色管理', 1, 2, 'role', 'system/role/index', 1, 'C', '0', '0', 'peoples', 'system:role:list'),
        (102, '菜单管理', 1, 3, 'menu', 'system/menu/index', 1, 'C', '0', '0', 'tree-table', 'system:menu:list'),
        (103, '部门管理', 1, 4, 'dept', 'system/dept/index', 1, 'C', '0', '0', 'tree', 'system:dept:list'),
-       (104, '操作日志', 1, 6, 'operlog', 'monitor/operlog/index', 1, 'C', '0', '0', 'log', 'monitor:operlog:list'),
-       (105, '登录日志', 1, 7, 'logininfor', 'monitor/logininfor/index', 1, 'C', '0', '0', 'logininfor', 'monitor:logininfor:list'),
+       (104, '操作日志', 3, 1, 'operlog', 'monitor/operlog/index', 1, 'C', '0', '0', 'log', 'monitor:operlog:list'),
+       (105, '登录日志', 3, 2, 'logininfor', 'monitor/logininfor/index', 1, 'C', '0', '0', 'logininfor', 'monitor:logininfor:list'),
        (500, '非遗管理', 2, 1, 'heritage', 'business/heritage/index', 1, 'C', '0', '0', 'education', 'heritage:list'),
        (501, '传承人管理', 2, 2, 'inheritor', 'business/inheritor/index', 1, 'C', '0', '0', 'peoples', 'inheritor:list'),
        (502, '新闻管理', 2, 3, 'news', 'business/news/index', 1, 'C', '0', '0', 'edit', 'news:list'),
@@ -402,6 +419,19 @@ VALUES (1, '系统管理', 0, 1, 'system', NULL, 1, 'M', '0', '0', 'system', NUL
        (5031, '预约修改', 508, 2, '', NULL, 1, 'F', '0', '0', NULL, 'booking:edit'),
        (5032, '预约删除', 508, 3, '', NULL, 1, 'F', '0', '0', NULL, 'booking:remove')
 ON DUPLICATE KEY UPDATE update_time = NOW();
+
+UPDATE sys_menu
+SET parent_id = CASE
+        WHEN menu_id = 104 THEN 3
+        WHEN menu_id = 105 THEN 3
+        ELSE parent_id
+    END,
+    order_num = CASE
+        WHEN menu_id = 104 THEN 1
+        WHEN menu_id = 105 THEN 2
+        ELSE order_num
+    END
+WHERE menu_id IN (104, 105);
 
 INSERT INTO sys_role_menu (role_id, menu_id)
 SELECT 1, menu_id FROM sys_menu

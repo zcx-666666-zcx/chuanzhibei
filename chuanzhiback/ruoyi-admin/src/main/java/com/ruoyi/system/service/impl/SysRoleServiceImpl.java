@@ -33,6 +33,15 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
+    public SysRole selectRoleDetailById(Long roleId) {
+        SysRole role = baseMapper.selectById(roleId);
+        if (role != null) {
+            role.setMenuIds(baseMapper.selectMenuIdsByRoleId(roleId));
+        }
+        return role;
+    }
+
+    @Override
     @Transactional
     public int insertRole(SysRole role) {
         int rows = baseMapper.insert(role);
@@ -50,6 +59,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             syncRoleMenus(role);
         }
         return rows;
+    }
+
+    @Override
+    public int changeStatus(Long roleId, String status) {
+        SysRole role = new SysRole();
+        role.setRoleId(roleId);
+        role.setStatus(status);
+        return baseMapper.updateById(role);
     }
 
     @Override

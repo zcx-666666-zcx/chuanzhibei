@@ -2,6 +2,8 @@ package com.ruoyi.web.controller.system;
 
 import com.ruoyi.common.core.AjaxResult;
 import com.ruoyi.system.domain.SysMenu;
+import com.ruoyi.system.domain.SysRole;
+import com.ruoyi.system.mapper.SysRoleMapper;
 import com.ruoyi.system.service.ISysMenuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +20,9 @@ public class SysMenuController {
 
     @Autowired
     private ISysMenuService menuService;
+
+    @Autowired
+    private SysRoleMapper roleMapper;
 
     /** 获取菜单列表（树形） */
     @GetMapping("/list")
@@ -39,6 +44,24 @@ public class SysMenuController {
     public AjaxResult<List<SysMenu>> treeselect() {
         List<SysMenu> menus = menuService.selectMenuTree();
         return AjaxResult.success(menus);
+    }
+
+    @GetMapping("/roleMenuTreeselect/{roleId}")
+    @PreAuthorize("@ss.hasPermi('system:menu:list')")
+    public AjaxResult<java.util.Map<String, Object>> roleMenuTreeselect(@PathVariable Long roleId) {
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("menus", menuService.selectMenuTree());
+        result.put("checkedKeys", roleMapper.selectMenuIdsByRoleId(roleId));
+        return AjaxResult.success(result);
+    }
+
+    @PutMapping("/updateSort")
+    @PreAuthorize("@ss.hasPermi('system:menu:edit')")
+    public AjaxResult<Void> updateSort(@RequestBody List<SysMenu> menus) {
+        for (SysMenu menu : menus) {
+            menuService.updateMenu(menu);
+        }
+        return AjaxResult.success();
     }
 
     /** 新增菜单 */

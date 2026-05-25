@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.ruoyi.system.domain.RouterVo;
 import com.ruoyi.system.domain.SysMenu;
 
 import java.util.List;
@@ -15,6 +16,9 @@ public interface ISysMenuService extends IService<SysMenu> {
 
     /** 根据用户ID查询菜单树 */
     List<SysMenu> selectMenuTreeByUserId(Long userId);
+
+    /** 根据用户ID查询前端路由 */
+    List<RouterVo> buildMenusByUserId(Long userId);
 
     /** 查询所有正常菜单（树形） */
     List<SysMenu> selectMenuTree();

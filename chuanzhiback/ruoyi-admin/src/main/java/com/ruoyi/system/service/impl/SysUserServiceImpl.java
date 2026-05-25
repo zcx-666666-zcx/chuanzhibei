@@ -68,6 +68,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    public SysUser selectUserDetailById(Long userId) {
+        SysUser user = userMapper.selectById(userId);
+        if (user != null) {
+            user.setRoleIds(userMapper.selectRoleIdsByUserId(userId));
+        }
+        return user;
+    }
+
+    @Override
     public SysUser selectUserByUserName(String userName) {
         return userMapper.selectByUserName(userName);
     }
@@ -107,6 +116,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             syncUserRoles(user);
         }
         return rows;
+    }
+
+    @Override
+    public int changeStatus(Long userId, String status) {
+        SysUser user = new SysUser();
+        user.setUserId(userId);
+        user.setStatus(status);
+        return userMapper.updateById(user);
     }
 
     @Override

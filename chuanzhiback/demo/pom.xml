@@ -3,16 +3,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.8</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>com.zzuli</groupId>
+        <artifactId>chuanzhibei-parent</artifactId>
+        <version>1.0.0</version>
     </parent>
     <groupId>com.zzuli</groupId>
     <artifactId>demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>demo</name>
-    <description>demo</description>
+    <description>传之贝 - 微信小程序后端 API</description>
     <url/>
     <licenses>
         <license/>
@@ -27,7 +26,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>17</java.version>
+        <!-- 继承父工程 java.version，如需覆盖可在此添加 -->
     </properties>
     <dependencies>
         <dependency>

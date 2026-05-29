@@ -1,5 +1,4 @@
-const { request, requestErrorMessage } = require('../../utils/util.js')
-const { buildStaticUrl } = require('../../utils/config.js')
+const { loadInheritorDetail } = require('../../services/content.service.js')
 
 Page({
   data: {
@@ -26,20 +25,9 @@ Page({
 
   loadInheritor(id) {
     this.setData({ loading: true, loadError: false, loadErrorText: '' })
-    return request({
-      url: `/inheritor/${id}`
-    }).then((res) => {
-      if (!res.success || !res.data) {
-        throw new Error(res.message || '传承人不存在')
-      }
-      const item = res.data
-      const avatar = item.avatar || item.imageUrl || ''
+    return loadInheritorDetail(id).then((inheritor) => {
       this.setData({
-        inheritor: {
-          ...item,
-          avatar: avatar.startsWith('http') ? avatar : buildStaticUrl(avatar || ''),
-          introduction: item.introduction || item.description || '暂无介绍'
-        },
+        inheritor,
         loading: false,
         loadError: false,
         loadErrorText: ''
@@ -48,7 +36,7 @@ Page({
       this.setData({
         loading: false,
         loadError: true,
-        loadErrorText: requestErrorMessage(err)
+        loadErrorText: err.message || '加载传承人失败'
       })
     })
   },

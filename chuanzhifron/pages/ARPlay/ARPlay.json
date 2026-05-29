@@ -1,6 +1,8 @@
 {
-  "navigationBarTitleText": "AR 文物体验",
+  "navigationBarTitleText": "沉浸讲解演示",
   "enablePullDownRefresh": false,
-  "backgroundTextStyle": "dark"
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "app-state": "/components/app-state/index"
+  }
 }
-

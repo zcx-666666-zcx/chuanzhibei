@@ -2,5 +2,8 @@
   "navigationBarTitleText": "传承人详情",
   "navigationBarBackgroundColor": "#1a1410",
   "navigationBarTextStyle": "white",
-  "backgroundColor": "#f4efe8"
+  "backgroundColor": "#f4efe8",
+  "usingComponents": {
+    "app-state": "/components/app-state/index"
+  }
 }

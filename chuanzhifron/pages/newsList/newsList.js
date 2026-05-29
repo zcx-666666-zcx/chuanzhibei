@@ -1,6 +1,4 @@
-// pages/newsList/newsList.js
-const { request, requestErrorMessage } = require('../../utils/util.js')
-const { normalizeNewsResponseData, mapNewsItem } = require('../../utils/newsDisplay.js')
+const { loadNewsList } = require('../../services/content.service.js')
 
 const PAGE_SIZE = 10
 
@@ -24,7 +22,7 @@ Page({
   },
 
   onReachBottom() {
-    const { keyword, hasMore, loading, loadingMore } = this.data
+    const { hasMore, loading, loadingMore } = this.data
     if (!hasMore || loading || loadingMore) {
       return
     }
@@ -37,13 +35,6 @@ Page({
     })
   },
 
-  buildListUrl(page, keyword) {
-    if (keyword) {
-      return `/news/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${PAGE_SIZE}`
-    }
-    return `/news/recent?page=${page}&size=${PAGE_SIZE}`
-  },
-
   loadNewsData({ reset }) {
     const { keyword, page, newsList } = this.data
     const nextPage = reset ? 0 : page
@@ -54,43 +45,34 @@ Page({
       this.setData({ loadingMore: true })
     }
 
-    return request({
-      url: this.buildListUrl(nextPage, keyword)
+    return loadNewsList({
+      keyword,
+      page: nextPage,
+      pageSize: PAGE_SIZE
+    }).then((payload) => {
+      const merged = reset ? payload.list : newsList.concat(payload.list)
+      this.setData({
+        newsList: merged,
+        loading: false,
+        loadingMore: false,
+        loadError: false,
+        loadErrorText: '',
+        page: (payload.page != null ? payload.page : nextPage) + 1,
+        total: typeof payload.total === 'number' ? payload.total : merged.length,
+        hasMore: Boolean(payload.hasMore)
+      })
+    }).catch((err) => {
+      this.setData({
+        loading: false,
+        loadingMore: false,
+        loadError: reset,
+        loadErrorText: reset ? (err.message || '获取新闻失败') : this.data.loadErrorText
+      })
+      wx.showToast({
+        title: err.message || '获取新闻失败',
+        icon: 'none'
+      })
     })
-      .then((res) => {
-        if (!res.success) {
-          throw new Error(res.message || '获取新闻失败')
-        }
-
-        const { list: rawList, total, page: serverPage, hasMore } = normalizeNewsResponseData(res.data)
-        const mapped = rawList.map(mapNewsItem)
-        const merged = reset ? mapped : newsList.concat(mapped)
-
-        this.setData({
-          newsList: merged,
-          loading: false,
-          loadingMore: false,
-          loadError: false,
-          loadErrorText: '',
-          page: (serverPage != null ? serverPage : nextPage) + 1,
-          total: typeof total === 'number' ? total : merged.length,
-          hasMore: Boolean(hasMore)
-        })
-      })
-      .catch((err) => {
-        console.error('获取新闻失败:', err)
-        const msg = requestErrorMessage(err)
-        this.setData({
-          loading: false,
-          loadingMore: false,
-          loadError: reset,
-          loadErrorText: reset ? msg : this.data.loadErrorText
-        })
-        wx.showToast({
-          title: msg,
-          icon: 'none'
-        })
-      })
   },
 
   onRetryLoad() {

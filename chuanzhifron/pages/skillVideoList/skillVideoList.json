@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "技艺展示",
-  "usingComponents": {}
+  "usingComponents": {
+    "app-state": "/components/app-state/index"
+  }
 }
-

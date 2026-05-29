@@ -6,9 +6,9 @@
   <view class="hero" style="height: 379rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">
     <view class="hero-deco" aria-hidden="true"></view>
     <view class="hero-inner">
-      <text class="hero-kicker">INTANGIBLE CULTURAL HERITAGE</text>
-      <text class="hero-title">遗韵</text>
-      <text class="hero-sub">墨香纸韵之间，以数字长卷走近非遗的温度与匠心</text>
+      <text class="hero-kicker">CHUANZHI CUP · DIGITAL HERITAGE</text>
+      <text class="hero-title">传智杯</text>
+      <text class="hero-sub">以更完整的内容组织、沉浸展示与用户互动，呈现非遗项目的真实价值与传播路径。</text>
       <view class="hero-actions">
         <button class="hero-pill" bindtap="onSearch">
           <text class="hero-pill-ico">⌕</text>
@@ -27,53 +27,53 @@
     <view class="sheet-head">
       <view class="sheet-head-left">
         <text class="sheet-en">NAVIGATION</text>
-        <text class="sheet-cn">寻迹导航</text>
+        <text class="sheet-cn">核心导航</text>
       </view>
-      <text class="sheet-tip">轻点即可步入相应篇章</text>
+      <text class="sheet-tip">聚焦比赛演示中最关键的浏览与互动链路</text>
     </view>
     <view class="diamond-grid">
       <view class="diamond-item" bindtap="goNewsList">
         <view class="diamond-icon bg-a">📰</view>
         <text class="diamond-name">新闻列表</text>
-        <text class="diamond-sub">二级列表页</text>
+        <text class="diamond-sub">资讯聚合</text>
       </view>
       
       <!-- Tab 级别入口（探索 / AR / 我的）改用底部栏承载，这里不再重复 -->
       <view class="diamond-item" bindtap="goNational">
         <view class="diamond-icon bg-d">▣</view>
         <text class="diamond-name">国家级名录</text>
-        <text class="diamond-sub">列表页</text>
+        <text class="diamond-sub">国家级项目</text>
       </view>
       <view class="diamond-item" bindtap="goProvincial">
         <view class="diamond-icon bg-e">▤</view>
         <text class="diamond-name">省级名录</text>
-        <text class="diamond-sub">列表页</text>
+        <text class="diamond-sub">省级项目</text>
       </view>
 
       <view class="diamond-item" bindtap="goMasterList">
         <view class="diamond-icon bg-j">✦</view>
         <text class="diamond-name">传承人名录</text>
-        <text class="diamond-sub">大师列表</text>
+        <text class="diamond-sub">人物档案</text>
       </view>
       <view class="diamond-item" bindtap="goSkillVideo">
         <view class="diamond-icon bg-k">🎬</view>
         <text class="diamond-name">技艺视频</text>
-        <text class="diamond-sub">视频列表</text>
+        <text class="diamond-sub">工艺讲解</text>
       </view>
       <view class="diamond-item" bindtap="goActivity">
         <view class="diamond-icon bg-l">📅</view>
         <text class="diamond-name">活动列表</text>
-        <text class="diamond-sub">线下活动</text>
+        <text class="diamond-sub">活动报名</text>
       </view>
       <view class="diamond-item" bindtap="goCollection">
         <view class="diamond-icon bg-m">♡</view>
         <text class="diamond-name">我的收藏</text>
-        <text class="diamond-sub">收藏列表</text>
+        <text class="diamond-sub">个人沉淀</text>
       </view>
       <view class="diamond-item" bindtap="goBooking">
         <view class="diamond-icon bg-n">☰</view>
         <text class="diamond-name">我的预约</text>
-        <text class="diamond-sub">预约列表</text>
+        <text class="diamond-sub">到馆体验</text>
       </view>
     </view>
   </view>
@@ -83,7 +83,7 @@
     <view class="sheet-head">
       <view class="sheet-head-left">
         <text class="sheet-en">ROUTES</text>
-        <text class="sheet-cn">推荐跳转链</text>
+        <text class="sheet-cn">推荐体验路径</text>
       </view>
     </view>
     <scroll-view class="route-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
@@ -100,13 +100,13 @@
         </view>
         <view class="route-card r3" bindtap="goFlowDetailDirect">
           <text class="route-tag">链 C</text>
-          <text class="route-name">直达非遗详情</text>
+          <text class="route-name">精选项目直达</text>
           <text class="route-path">单步进入详情页</text>
         </view>
-        <view class="route-card r4" bindtap="goFlowAR">
+        <view class="route-card r4" bindtap="goImmersiveDemo">
           <text class="route-tag">链 D</text>
-          <text class="route-name">AR 沉浸</text>
-          <text class="route-path">首页 → AR → 相机页</text>
+          <text class="route-name">3D沉浸演示</text>
+          <text class="route-path">首页 → 3D沉浸 → 模型查看</text>
         </view>
       </view>
     </scroll-view>
@@ -144,7 +144,7 @@
     <view class="sheet-head row-between">
       <view class="sheet-head-left">
         <text class="sheet-en">STORIES</text>
-        <text class="sheet-cn">寻迹 · 文化热点</text>
+        <text class="sheet-cn">文化热点</text>
       </view>
       <navigator url="/pages/newsList/newsList" class="sheet-more" hover-class="sheet-more-hover">全部</navigator>
     </view>
@@ -176,7 +176,7 @@
     <view class="sheet-head row-between">
       <view class="sheet-head-left">
         <text class="sheet-en">PICKS</text>
-        <text class="sheet-cn">精选非遗</text>
+        <text class="sheet-cn">精选非遗项目</text>
       </view>
     </view>
     <scroll-view class="pick-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
@@ -192,16 +192,16 @@
     </scroll-view>
   </view>
 
-  <!-- AR 通栏 -->
+  <!-- 3D 通栏 -->
   <view class="ar-cta" bindtap="navigateToARExperience">
     <view class="ar-cta-bg" aria-hidden="true"></view>
     <view class="ar-cta-inner">
       <view class="ar-cta-text">
-        <text class="ar-cta-kicker">IMMERSIVE</text>
-        <text class="ar-cta-title">AR 文物复原体验</text>
-        <text class="ar-cta-desc">进入项目列表后选择场景，将跳转相机体验页</text>
+        <text class="ar-cta-kicker">3D IMMERSIVE</text>
+        <text class="ar-cta-title">3D沉浸演示与数字展陈</text>
+        <text class="ar-cta-desc">查看三维模型、沉浸项目与体验记录，形成完整的展示闭环。</text>
       </view>
-      <view class="ar-cta-btn">立即体验</view>
+      <view class="ar-cta-btn">进入沉浸页</view>
     </view>
   </view>
 

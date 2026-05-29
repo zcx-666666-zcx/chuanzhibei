@@ -2,6 +2,7 @@
  * 用户认证工具函数
  */
 const { request, requestErrorMessage } = require('./util.js')
+const { saveSession, clearSession, getCurrentUser: readCurrentUser, hasSession } = require('./session.js')
 
 const USERNAME_RE = /^[a-zA-Z0-9_\u4e00-\u9fa5]{2,20}$/
 const EMAIL_RE = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,}$/
@@ -71,12 +72,7 @@ function normalizeUserForStorage(user) {
 function persistSession(res) {
   const token = res.data?.token || res.token
   const user = normalizeUserForStorage(res.data?.user || res.user)
-  if (token) {
-    wx.setStorageSync('token', token)
-  }
-  if (user) {
-    wx.setStorageSync('userInfo', user)
-  }
+  saveSession({ token, user })
 }
 
 /**
@@ -188,33 +184,21 @@ const registerUser = (registerData) => {
  * 用户登出
  */
 const logout = () => {
-  wx.removeStorageSync('token')
-  wx.removeStorageSync('userInfo')
+  clearSession()
 }
 
 /**
  * 检查是否已登录
  */
 const isLoggedIn = () => {
-  const token = wx.getStorageSync('token')
-  const userInfo = wx.getStorageSync('userInfo')
-  return !!(token && userInfo)
+  return hasSession()
 }
 
 /**
  * 获取当前用户信息
  */
 const getCurrentUser = () => {
-  const userInfo = wx.getStorageSync('userInfo')
-  if (typeof userInfo === 'string') {
-    try {
-      return JSON.parse(userInfo)
-    } catch (e) {
-      console.error('解析用户信息失败:', e)
-      return null
-    }
-  }
-  return userInfo
+  return readCurrentUser()
 }
 
 module.exports = {

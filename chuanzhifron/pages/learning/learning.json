@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "app-state": "/components/app-state/index"
+  },
   "navigationBarTitleText": "学习中心",
   "enablePullDownRefresh": true
 }

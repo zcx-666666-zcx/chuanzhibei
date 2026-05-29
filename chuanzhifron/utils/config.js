@@ -23,23 +23,10 @@ function ensureLeadingSlash(path) {
   return path.startsWith('/') ? path : `/${path}`;
 }
 
-function isLocalhostBaseUrl(url) {
-  try {
-    const m = String(url || '')
-      .replace(/\/+$/, '')
-      .match(/^https?:\/\/([^/:]+)/i)
-    if (!m) return false
-    const host = (m[1] || '').toLowerCase()
-    return host === 'localhost' || host === '127.0.0.1'
-  } catch (e) {
-    return false
-  }
-}
-
 function getRuntimePlatform() {
   try {
     return wx.getSystemInfoSync().platform || 'unknown'
-  } catch (e) {
+  } catch (_e) {
     return 'unknown'
   }
 }

@@ -2,7 +2,7 @@
 <view class="container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-title">热门AR体验项目</text>
+    <text class="page-title">热门3D沉浸项目</text>
   </view>
 
   <!-- 加载状态 -->
@@ -10,7 +10,7 @@
     <text>加载中...</text>
   </view>
 
-  <!-- AR项目列表 -->
+  <!-- 沉浸项目列表 -->
   <view wx:else class="ar-grid">
     <view class="ar-card card card-hover" 
           wx:for="{{arProjects}}" 
@@ -42,7 +42,7 @@
         <text class="ar-desc">{{item.description}}</text>
         <button class="btn-primary ar-button" bindtap="startARExperience" data-item="{{item}}" catchtap="true">
           <text class="iconfont icon-cube"></text>
-          <text>开始体验</text>
+          <text>进入演示</text>
         </button>
       </view>
     </view>
@@ -50,7 +50,6 @@
 
   <!-- 空状态 -->
   <view wx:if="{{!loading && arProjects.length === 0}}" class="empty">
-    <text class="empty-text">暂无AR体验项目</text>
+    <text class="empty-text">暂无沉浸项目</text>
   </view>
 </view>
-

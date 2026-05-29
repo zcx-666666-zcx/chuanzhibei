@@ -1,15 +1,21 @@
 <view class="container">
-  <view wx:if="{{loading}}" class="state-wrap">
-    <text class="state-text">加载中…</text>
-  </view>
+  <app-state
+    wx:if="{{loading}}"
+    type="loading"
+    title="项目详情加载中"
+    description="正在整理该非遗项目的图文介绍。"
+  />
 
-  <view wx:elif="{{loadFailed}}" class="state-wrap state-fail">
-    <text class="state-text">{{loadErrorText}}</text>
-    <view class="state-actions">
-      <button class="state-btn" bindtap="onRetryLoad" size="mini" type="primary">重新加载</button>
-      <button class="state-btn ghost" bindtap="onFailBack" size="mini">返回</button>
-    </view>
-  </view>
+  <app-state
+    wx:elif="{{loadFailed}}"
+    type="error"
+    title="项目详情暂时不可用"
+    description="{{loadErrorText}}"
+    actionText="重新加载"
+    secondaryActionText="返回"
+    bind:action="onRetryLoad"
+    bind:secondaryaction="onFailBack"
+  />
 
   <block wx:else>
     <!-- 头部标题与基础信息 -->

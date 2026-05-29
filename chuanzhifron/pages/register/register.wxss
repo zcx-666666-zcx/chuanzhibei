@@ -1,91 +1,122 @@
-/* pages/register/register.wxss */
 .page {
   min-height: 100vh;
-  background: var(--rice-paper, #f4efe8);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  padding: 34rpx 28rpx 40rpx;
   box-sizing: border-box;
-  padding: 60rpx 32rpx 40rpx;
-}
-
-.content {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(201, 162, 39, 0.12), transparent 20%),
+    radial-gradient(circle at 12% 18%, rgba(184, 50, 50, 0.1), transparent 24%),
+    linear-gradient(180deg, #ede3d4 0%, #f6f0e8 52%, #f4efe8 100%);
   display: flex;
   flex-direction: column;
 }
 
-.brand {
-  margin-bottom: 40rpx;
+.hero-panel {
+  background: linear-gradient(145deg, #312720 0%, #1a1410 62%, #5a4030 100%);
+  border-radius: 34rpx;
+  padding: 38rpx 32rpx;
+  box-shadow: 0 22rpx 52rpx rgba(26, 20, 16, 0.24);
+}
+
+.hero-kicker {
+  display: block;
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
+  color: rgba(245, 230, 200, 0.58);
+  margin-bottom: 16rpx;
+}
+
+.hero-title {
+  display: block;
+  font-size: 48rpx;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #fbf5ea;
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 25rpx;
+  line-height: 1.65;
+  color: rgba(245, 230, 200, 0.82);
+}
+
+.form-card {
+  margin-top: -16rpx;
+  background: rgba(255, 252, 248, 0.97);
+  border-radius: 30rpx;
+  padding: 30rpx 28rpx 28rpx;
+  box-shadow: 0 18rpx 46rpx rgba(45, 33, 24, 0.08);
+}
+
+.form-head {
   display: flex;
-  flex-direction: column;
-  align-items: center; /* 让 logo/title/subtitle 在水平方向居中 */
-  text-align: center;  /* 让文字居中 */
+  gap: 18rpx;
+  align-items: center;
+  margin-bottom: 28rpx;
 }
 
 .logo {
-  width: 96rpx;
-  height: 96rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 24rpx;
-  display: block;
-  margin-bottom: 24rpx;
+  flex-shrink: 0;
 }
 
-.title {
+.form-head-copy {
+  flex: 1;
+}
+
+.form-title {
   display: block;
-  font-size: 56rpx;
-  color: #121826;
+  font-size: 36rpx;
   font-weight: 700;
-  line-height: 1.25;
+  color: #2a221c;
 }
 
-.subtitle {
+.form-desc {
   display: block;
-  margin-top: 14rpx;
-  font-size: 28rpx;
-  color: #5f687a;
-}
-
-.card {
-  background: #ffffff;
-  border-radius: 28rpx;
-  padding: 32rpx 28rpx 24rpx;
-  box-shadow: 0 10rpx 40rpx rgba(18, 24, 38, 0.08);
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  line-height: 1.55;
+  color: #81776d;
 }
 
 .input-group {
-  margin-bottom: 22rpx;
+  margin-bottom: 20rpx;
 }
 
 .input-label {
   display: block;
-  font-size: 25rpx;
-  color: #3a4459;
   margin-bottom: 12rpx;
+  font-size: 25rpx;
+  color: #544b43;
 }
 
 .form-input {
   width: 100%;
-  height: 84rpx;
-  border-radius: 20rpx;
-  border: 1px solid #e6eaf2;
-  background: #f9fbff;
-  box-sizing: border-box;
+  height: 88rpx;
+  border-radius: 22rpx;
+  background: #f8f3ec;
+  border: 1rpx solid rgba(139, 111, 73, 0.12);
   padding: 0 24rpx;
+  box-sizing: border-box;
   font-size: 30rpx;
-  color: #121826;
+  color: #2a221c;
 }
 
 .primary-btn {
-  margin-top: 10rpx;
+  margin-top: 12rpx;
   width: 100%;
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 22rpx;
+  height: 92rpx;
+  line-height: 92rpx;
+  border-radius: 24rpx;
   border: none;
-  background: linear-gradient(135deg, var(--primary-red, #b83232), #c94a4a);
-  color: #ffffff;
+  background: linear-gradient(135deg, #b83232 0%, #d3523f 100%);
+  color: #fff;
   font-size: 32rpx;
   font-weight: 600;
+  box-shadow: 0 16rpx 28rpx rgba(184, 50, 50, 0.22);
 }
 
 .primary-btn::after {
@@ -93,30 +124,34 @@
 }
 
 .footer {
-  margin-top: 26rpx;
+  margin-top: 24rpx;
   text-align: center;
+}
+
+.footer-text,
+.footer-link {
+  font-size: 25rpx;
 }
 
 .footer-text {
-  color: #6a7387;
-  font-size: 26rpx;
+  color: #7f756c;
 }
 
-.link {
-  color: var(--primary-red, #b83232);
-  font-size: 26rpx;
+.footer-link {
   margin-left: 8rpx;
+  color: #b83232;
 }
 
 .agreement {
+  margin-top: auto;
+  padding-top: 28rpx;
   text-align: center;
   font-size: 22rpx;
-  color: #97a0b4;
-  line-height: 1.7;
-  padding: 0 12rpx;
+  color: #9a8f83;
+  line-height: 1.8;
 }
 
 .agreement-link {
-  color: #6a7387;
+  color: #6f665e;
   margin: 0 6rpx;
 }

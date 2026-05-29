@@ -5,20 +5,28 @@
     <text wx:if="{{keyword}}" class="page-sub">关键词：{{keyword}}</text>
   </view>
 
-  <view wx:if="{{loading}}" class="loading">
-    <text>加载中...</text>
-  </view>
+  <app-state
+    wx:if="{{loading}}"
+    type="loading"
+    title="资讯内容加载中"
+    description="{{keyword ? '正在检索与你的关键词相关的内容。' : '正在获取最新非遗动态。'}}"
+  />
 
-  <view wx:elif="{{loadError}}" class="empty error-block">
-    <text class="empty-text">{{loadErrorText || '加载失败'}}</text>
-    <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重新加载</button>
-  </view>
+  <app-state
+    wx:elif="{{loadError}}"
+    type="error"
+    title="资讯加载失败"
+    description="{{loadErrorText || '请检查网络连接后重试'}}"
+    actionText="重新加载"
+    bind:action="onRetryLoad"
+  />
 
-  <block wx:elif="{{newsList.length === 0}}">
-    <view class="empty">
-      <text class="empty-text">{{keyword ? '未找到相关资讯' : '暂无新闻动态'}}</text>
-    </view>
-  </block>
+  <app-state
+    wx:elif="{{newsList.length === 0}}"
+    type="empty"
+    title="{{keyword ? '未找到相关资讯' : '暂无新闻动态'}}"
+    description="{{keyword ? '可以尝试更换关键词重新搜索。' : '稍后再来看看最新内容。'}}"
+  />
 
   <block wx:else>
     <view class="news-list">

@@ -1,7 +1,9 @@
-// PersonalCenter.js
-const { request, requestErrorMessage } = require('../../utils/util.js')
 const { getCurrentUser, isLoggedIn } = require('../../utils/auth.js')
 const { buildApiUrl, buildStaticUrl, DEFAULT_IMAGE_DATA_URI } = require('../../utils/config.js')
+const { createPageState, patchPageState } = require('../../utils/page-state.js')
+const { requireLogin } = require('../../utils/guard.js')
+const { cancelMyBooking, loadMyOverview, removeMyCollection, updateMyProfile } = require('../../services/profile.service.js')
+const { logout } = require('../../services/auth.service.js')
 
 const DEFAULT_AVATAR = DEFAULT_IMAGE_DATA_URI
 const NICKNAME_MAX_LEN = 32
@@ -19,10 +21,12 @@ Page({
       bookings: 0
     },
     collections: [],
-    displayCollections: [], // 首页显示的收藏列表（只显示前几条）
+    displayCollections: [],
     bookings: [],
     loading: true,
     showEditModal: false,
+    savingProfile: false,
+    pageState: createPageState({ loading: true }),
     editForm: {
       name: '',
       signature: '',
@@ -30,585 +34,305 @@ Page({
     }
   },
 
-  onLoad: function() {
-    // 页面加载时的初始化
-    // 检查用户登录状态
-    const user = getCurrentUser();
+  onLoad() {
+    this.initializeVisitorView()
+    this.loadOverviewData()
+  },
 
-    if (user) {
-      // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
-      const userName = user.nickname || user.nickName || user.username || user.name || '访客';
-      const userAvatar = user.avatarUrl || user.avatar || DEFAULT_AVATAR;
-      const userTitle = user.signature || '非遗文化爱好者';
-      
-      this.setData({
-        'userInfo.name': userName,
-        'userInfo.avatar': userAvatar,
-        'userInfo.title': userTitle
-      });
+  onShow() {
+    if (isLoggedIn()) {
+      this.loadOverviewData()
     } else {
-      // 如果没有登录用户，确保使用默认头像
-      this.setData({
-        'userInfo.avatar': DEFAULT_AVATAR
-      });
+      this.initializeVisitorView()
     }
-    
-    this.loadCollections();
-    this.loadBookings();
   },
 
-  onShow: function() {
-    // 页面显示时刷新用户信息，确保显示最新的用户名
-    const user = getCurrentUser();
-
-    if (user) {
-      // 优先使用nickname（用户设置的昵称），然后是username（账号用户名），最后是其他字段
-      const userName = user.nickname || user.nickName || user.username || user.name || '访客';
-      const userAvatar = user.avatarUrl || user.avatar || DEFAULT_AVATAR;
-      const userTitle = user.signature || '非遗文化爱好者';
-      
-      this.setData({
-        'userInfo.name': userName,
-        'userInfo.avatar': userAvatar,
-        'userInfo.title': userTitle
-      });
-    } else {
-      // 如果没有登录用户，使用默认值
-      this.setData({
-        'userInfo.name': '访客',
-        'userInfo.avatar': DEFAULT_AVATAR,
-        'userInfo.title': '非遗文化爱好者'
-      });
-    }
-    
-    // 刷新所有数据
-    this.loadCollections();
-    this.loadBookings();
+  onPullDownRefresh() {
+    this.loadOverviewData()
+      .finally(() => {
+        wx.stopPullDownRefresh()
+      })
   },
-  
-  // 加载收藏数据
-  loadCollections: function() {
-    // 检查登录状态
+
+  initializeVisitorView() {
+    const user = getCurrentUser()
+    const name = user?.nickname || user?.nickName || user?.username || '访客'
+    const avatar = user?.avatarUrl || user?.avatar || DEFAULT_AVATAR
+    const title = user?.signature || '非遗文化爱好者'
+    this.setData({
+      userInfo: {
+        name,
+        title,
+        avatar
+      },
+      userStats: {
+        collections: 0,
+        bookings: 0
+      },
+      collections: [],
+      displayCollections: [],
+      bookings: [],
+      loading: false,
+      pageState: createPageState({ loading: false, empty: !isLoggedIn() })
+    })
+  },
+
+  loadOverviewData() {
     if (!isLoggedIn()) {
-      this.setData({
-        collections: [],
-        displayCollections: [],
-        'userStats.collections': 0,
-        loading: false
-      });
-      return Promise.resolve();
+      this.initializeVisitorView()
+      return Promise.resolve()
     }
-    
-    // 获取当前用户ID
-    const user = getCurrentUser();
-    if (!user) {
-      this.setData({
-        collections: [],
-        displayCollections: [],
-        'userStats.collections': 0,
-        loading: false
-      });
-      return Promise.resolve();
-    }
-    
-    const userId = user.id || user.userId;
-    if (!userId) {
-      console.error('无法获取用户ID');
-      this.setData({
-        collections: [],
-        displayCollections: [],
-        'userStats.collections': 0,
-        loading: false
-      });
-      return Promise.resolve();
-    }
-    
-    return request({
-      url: '/user/collections/me'
-    }).then(res => {
-      if (!res.success) {
-        throw new Error(res.message || '获取收藏失败');
-      }
-      
-      const list = res.data || [];
-      
-      // 处理收藏数据，确保图片路径正确
-      const collections = list.map(item => {
-        let imageUrl = item.imageUrl || '';
-        if (imageUrl && !imageUrl.startsWith('http')) {
-          imageUrl = buildStaticUrl(imageUrl);
-        }
-        
-        return {
-          ...item,
-          image: imageUrl, // 添加image字段用于兼容wxml
-          imageUrl: imageUrl,
-          name: item.heritageName || item.name,
-          level: item.heritageLevel || item.level,
-          description: item.heritageDescription || item.description,
-          heritageId: item.heritageId || item.id // 确保heritageId存在
-        };
-      });
-      
-      // 首页只显示前3条收藏
-      const displayCollections = collections.slice(0, 3);
-      
-      this.setData({
-        collections: collections,
-        displayCollections: displayCollections,
-        'userStats.collections': collections.length,
-        loading: false
-      });
-    }).catch(err => {
-      console.error('获取收藏失败:', err);
-      // 如果接口失败，显示空列表
-      this.setData({
-        collections: [],
-        displayCollections: [],
-        'userStats.collections': 0,
-        loading: false
-      });
-      if (err.statusCode !== 401) {
+
+    this.setData({ loading: true })
+    patchPageState(this, { loading: true, error: '' })
+    return loadMyOverview()
+      .then((payload) => {
+        const profile = payload.profile || {}
+        const collections = payload.collections || []
+        const bookings = payload.bookings || []
+        this.setData({
+          userInfo: {
+            name: profile.displayName || profile.nickname || profile.username || '访客',
+            title: profile.displayTitle || profile.signature || '非遗文化爱好者',
+            avatar: profile.avatarUrl || DEFAULT_AVATAR
+          },
+          userStats: payload.stats || {
+            collections: collections.length,
+            bookings: bookings.length
+          },
+          collections,
+          displayCollections: collections.slice(0, 3),
+          bookings,
+          loading: false
+        })
+        patchPageState(this, {
+          loading: false,
+          empty: collections.length === 0 && bookings.length === 0
+        })
+      })
+      .catch((err) => {
+        this.setData({
+          loading: false,
+          collections: [],
+          displayCollections: [],
+          bookings: []
+        })
+        patchPageState(this, {
+          loading: false,
+          empty: true,
+          error: err.message || '加载失败'
+        })
         wx.showToast({
-          title: requestErrorMessage(err),
+          title: err.message || '加载失败',
           icon: 'none'
-        });
-      }
-    });
+        })
+      })
   },
 
-
-  // 加载预约数据
-  loadBookings: function() {
-    // 检查登录状态
-    if (!isLoggedIn()) {
-      this.setData({
-        bookings: [],
-        'userStats.bookings': 0
-      });
-      return Promise.resolve();
-    }
-    
-    // 获取当前用户ID
-    const user = getCurrentUser();
-    if (!user) {
-      this.setData({
-        bookings: [],
-        'userStats.bookings': 0
-      });
-      return Promise.resolve();
-    }
-    
-    const userId = user.id || user.userId;
-    if (!userId) {
-      console.error('无法获取用户ID');
-      this.setData({
-        bookings: [],
-        'userStats.bookings': 0
-      });
-      return Promise.resolve();
-    }
-    
-    return request({
-      url: '/user/bookings/me'
-    }).then(res => {
-      if (!res.success) {
-        throw new Error(res.message || '获取预约失败');
-      }
-      
-      const list = res.data || [];
-      
-      // 处理预约数据，统一格式
-      const processedBookings = list.map(booking => {
-        let bookingItem = {
-          id: booking.id,
-          status: booking.status || 'pending',
-          statusText: this.getStatusText(booking.status || 'pending'),
-          time: booking.time || '待确认',
-          location: booking.location || '待确认',
-          contact: booking.contact || '待确认'
-        };
-        
-        // 根据预约类型设置不同的显示字段
-        if (booking.type === 'experience') {
-          // 传承人体验预约
-          bookingItem.masterId = booking.masterId;
-          bookingItem.masterName = booking.masterName || '';
-          bookingItem.skill = booking.skill || '';
-          bookingItem.masterAvatar = booking.masterAvatar || '';
-          bookingItem.type = 'experience';
-        } else if (booking.type === 'activity') {
-          // 活动报名
-          bookingItem.activityId = booking.activityId;
-          bookingItem.masterName = booking.activityTitle || '';
-          bookingItem.skill = '活动报名';
-          bookingItem.masterAvatar = ''; // 活动没有头像
-          bookingItem.type = 'activity';
-        } else if (booking.type === 'watch') {
-          // 预约观看
-          bookingItem.activityId = booking.activityId;
-          bookingItem.masterName = booking.activityTitle || '';
-          bookingItem.skill = '预约观看';
-          bookingItem.masterAvatar = ''; // 活动没有头像
-          bookingItem.type = 'watch';
-        }
-        
-        return bookingItem;
-      });
-      
-      this.setData({
-        bookings: processedBookings,
-        'userStats.bookings': processedBookings.length
-      });
-    }).catch(err => {
-      console.error('获取预约数据失败:', err);
-      this.setData({
-        bookings: [],
-        'userStats.bookings': 0
-      });
-      if (err.statusCode !== 401) {
-        wx.showToast({
-          title: requestErrorMessage(err),
-          icon: 'none'
-        });
-      }
-    });
-  },
-
-  // 获取状态文本
-  getStatusText: function(status) {
-    const statusMap = {
-      'pending': '待确认',
-      'confirmed': '已确认',
-      'cancelled': '已取消',
-      'completed': '已完成'
-    };
-    return statusMap[status] || '待确认';
-  },
-
-  // 头像加载失败时使用默认头像
-  onAvatarError: function(e) {
+  onAvatarError() {
     this.setData({
       'userInfo.avatar': DEFAULT_AVATAR
-    });
+    })
   },
 
-  // 点击用户信息卡片
-  onUserCardTap: function() {
-    // 检查登录状态
-    if (!isLoggedIn()) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
+  onUserCardTap() {
+    if (!requireLogin({ content: '请先登录后编辑个人资料' })) {
+      return
     }
-    
-    const user = getCurrentUser();
-    if (!user) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    // 初始化编辑表单
+
+    const user = getCurrentUser()
     this.setData({
       showEditModal: true,
       editForm: {
-        name: user.nickname || user.nickName || user.username || user.name || '',
-        signature: user.signature || '',
-        avatar: user.avatarUrl || user.avatar || this.data.userInfo.avatar
+        name: user?.nickname || user?.nickName || user?.username || '',
+        signature: user?.signature || '',
+        avatar: user?.avatarUrl || this.data.userInfo.avatar
       }
-    });
+    })
   },
 
-  // 关闭编辑弹窗
-  closeEditModal: function() {
+  closeEditModal() {
     this.setData({
       showEditModal: false
-    });
+    })
   },
 
-  // 阻止事件冒泡
-  stopPropagation: function() {
-    // 空函数，用于阻止点击弹窗内容时关闭弹窗
-  },
+  stopPropagation() {},
 
-  // 用户名称输入
-  onNameInput: function(e) {
+  onNameInput(e) {
     this.setData({
       'editForm.name': e.detail.value
-    });
+    })
   },
 
-  // 个人签名输入
-  onSignatureInput: function(e) {
+  onSignatureInput(e) {
     this.setData({
       'editForm.signature': e.detail.value
-    });
+    })
   },
 
-  // 选择头像
-  chooseAvatar: function() {
-    const that = this;
-    const token = wx.getStorageSync('token');
-    if (!token) {
-      wx.showToast({
-        title: '登录已过期，请重新登录',
-        icon: 'none'
-      });
-      return;
+  chooseAvatar() {
+    if (!requireLogin({ content: '请先登录后上传头像' })) {
+      return
     }
+
+    const token = wx.getStorageSync('token')
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: function(res) {
-        const tempFilePath = res.tempFilePaths[0];
-        
-        // 上传图片到服务器
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0]
         wx.uploadFile({
           url: buildApiUrl('/files/upload-image'),
           filePath: tempFilePath,
           name: 'file',
           header: {
-            Authorization: `Bearer ${token}`
+            Authorization: token ? `Bearer ${token}` : ''
           },
           formData: {
-            'type': 'avatar'
+            type: 'avatar'
           },
-          success: function(uploadRes) {
+          success: (uploadRes) => {
             try {
-              if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
-                let message = `上传失败（${uploadRes.statusCode}）`;
-                try {
-                  const parsed = typeof uploadRes.data === 'string' ? JSON.parse(uploadRes.data) : uploadRes.data;
-                  message = parsed?.message || parsed?.error || message;
-                } catch (_) {}
-                throw new Error(message);
+              const payload = typeof uploadRes.data === 'string' ? JSON.parse(uploadRes.data) : uploadRes.data
+              if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300 || !payload.success) {
+                throw new Error(payload?.message || '上传失败')
               }
-              // 解析响应数据
-              let data;
-              if (typeof uploadRes.data === 'string') {
-                data = JSON.parse(uploadRes.data);
-              } else {
-                data = uploadRes.data;
+              let imageUrl = payload?.data?.url || ''
+              if (imageUrl && !imageUrl.startsWith('http')) {
+                imageUrl = buildStaticUrl(imageUrl)
               }
-              
-              if (data && data.success && data.data) {
-                let imageUrl = data.data.url || data.data;
-                if (imageUrl && !imageUrl.startsWith('http')) {
-                  imageUrl = buildStaticUrl(imageUrl);
-                }
-                that.setData({
-                  'editForm.avatar': imageUrl
-                });
-                wx.showToast({
-                  title: '头像上传成功',
-                  icon: 'success'
-                });
-              } else {
-                const errorMsg = data?.message || data?.error || '上传失败';
-                console.error('上传失败:', errorMsg, data);
-                throw new Error(errorMsg);
-              }
+              this.setData({
+                'editForm.avatar': imageUrl
+              })
+              wx.showToast({
+                title: '头像上传成功',
+                icon: 'success'
+              })
             } catch (e) {
-              console.error('解析上传结果失败:', e, uploadRes);
               wx.showToast({
                 title: e.message || '上传失败',
-                icon: 'none',
-                duration: 2000
-              });
+                icon: 'none'
+              })
             }
           },
-          fail: function(err) {
-            console.error('上传头像失败:', err);
+          fail: () => {
             wx.showToast({
               title: '上传失败，请重试',
-              icon: 'none',
-              duration: 2000
-            });
+              icon: 'none'
+            })
           }
-        });
-      },
-      fail: function(err) {
-        console.error('选择图片失败:', err);
+        })
       }
-    });
+    })
   },
 
-  // 保存用户信息
-  saveUserInfo: function() {
-    const user = getCurrentUser();
-    if (!user) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      return;
+  saveUserInfo() {
+    if (this.data.savingProfile) {
+      return
     }
-    
-    const userId = user.id || user.userId;
-    if (!userId) {
-      wx.showToast({
-        title: '无法获取用户信息',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    const editForm = this.data.editForm;
-    const nickname = (editForm.name || '').trim()
-    const signature = (editForm.signature || '').trim()
+    const nickname = (this.data.editForm.name || '').trim()
+    const signature = (this.data.editForm.signature || '').trim()
 
     if (!nickname) {
       wx.showToast({
         title: '用户名称不能为空',
         icon: 'none'
-      });
-      return;
+      })
+      return
     }
     if (nickname.length > NICKNAME_MAX_LEN) {
       wx.showToast({
         title: '用户名称最长 32 字',
         icon: 'none'
-      });
-      return;
+      })
+      return
     }
     if (signature.length > SIGNATURE_MAX_LEN) {
       wx.showToast({
         title: '个人签名最长 50 字',
         icon: 'none'
-      });
-      return;
+      })
+      return
     }
-    
-    // 准备更新数据
-    const updateData = {};
-    updateData.nickname = nickname;
-    if (editForm.avatar) {
-      updateData.avatarUrl = editForm.avatar;
-    }
-    updateData.signature = signature;
-    
-    // 调用后端API更新用户信息
-    request({
-      url: `/users/${userId}`,
-      method: 'PUT',
-      data: updateData
-    }).then(res => {
-      if (res.success) {
-        // 更新本地存储的用户信息
-        const updatedUser = { ...(res.data || {}) };
-        if (!updatedUser.userId && updatedUser.id) {
-          updatedUser.userId = updatedUser.id;
-        }
-        if (!updatedUser.nickName && updatedUser.nickname) {
-          updatedUser.nickName = updatedUser.nickname;
-        }
-        wx.setStorageSync('userInfo', updatedUser);
-        
-        // 更新页面显示 - 优先使用nickname（用户设置的昵称）
-        const userName = updatedUser.nickname || updatedUser.nickName || updatedUser.username || updatedUser.name || '访客';
-        const userAvatar = updatedUser.avatarUrl || updatedUser.avatar || DEFAULT_AVATAR;
-        const userTitle = updatedUser.signature || '非遗文化爱好者';
-        
-        this.setData({
-          'userInfo.name': userName,
-          'userInfo.avatar': userAvatar,
-          'userInfo.title': userTitle,
-          showEditModal: false
-        });
-        
-        wx.showToast({
-          title: '保存成功',
-          icon: 'success'
-        });
-      } else {
-        wx.showToast({
-          title: res.message || '保存失败',
-          icon: 'none'
-        });
-      }
-    }).catch(err => {
-      console.error('保存用户信息失败:', err);
+
+    this.setData({ savingProfile: true })
+    updateMyProfile({
+      nickname,
+      signature,
+      avatarUrl: this.data.editForm.avatar || ''
+    }).then((profile) => {
+      this.setData({
+        userInfo: {
+          name: profile.displayName || profile.nickname || profile.username || '访客',
+          title: profile.displayTitle || profile.signature || '非遗文化爱好者',
+          avatar: profile.avatarUrl || DEFAULT_AVATAR
+        },
+        showEditModal: false
+      })
       wx.showToast({
-        title: requestErrorMessage(err),
+        title: '保存成功',
+        icon: 'success'
+      })
+    }).catch((err) => {
+      wx.showToast({
+        title: err.message || '保存失败',
         icon: 'none'
-      });
-    });
+      })
+    }).finally(() => {
+      this.setData({ savingProfile: false })
+    })
   },
 
-  // 设置按钮
-  onSettings: function() {
+  onSettings() {
     wx.showActionSheet({
       itemList: ['编辑资料', '隐私设置', '通知设置'],
       success: (res) => {
-        const actions = ['编辑资料', '隐私设置', '通知设置'];
+        const actions = ['编辑资料', '隐私设置', '通知设置']
         if (res.tapIndex === 0) {
-          this.onUserCardTap();
-          return;
+          this.onUserCardTap()
+          return
         }
-        const key = res.tapIndex === 1 ? 'privacyEnabled' : 'notificationEnabled';
-        const enabled = wx.getStorageSync(key) !== false;
-        wx.setStorageSync(key, !enabled);
+        const key = res.tapIndex === 1 ? 'privacyEnabled' : 'notificationEnabled'
+        const enabled = wx.getStorageSync(key) !== false
+        wx.setStorageSync(key, !enabled)
         wx.showToast({
           title: `${actions[res.tapIndex]}已${enabled ? '关闭' : '开启'}`,
           icon: 'none'
-        });
+        })
       }
-    });
+    })
   },
 
-  // 收藏点击
-  onCollectionTap: function(e) {
-    const item = e.currentTarget.dataset.item;
-    const heritageId = item.heritageId || item.id;
-    
-    // 如果heritageId不存在，使用收藏数据来显示详情
+  onCollectionTap(e) {
+    const item = e.currentTarget.dataset.item
+    const heritageId = item.heritageId || item.id
     if (!heritageId) {
       wx.showToast({
         title: '收藏项信息不完整',
         icon: 'none'
-      });
-      return;
+      })
+      return
     }
-    
-    // 将收藏数据存储到全局，以便详情页使用
-    const collectionData = {
-      name: item.name || item.heritageName,
-      description: item.description || item.heritageDescription,
-      level: item.level || item.heritageLevel,
+
+    wx.setStorageSync('tempCollectionData', {
+      name: item.name,
+      description: item.description,
+      level: item.level,
       imageUrl: item.imageUrl || item.image,
-      heritageId: heritageId
-    };
-    
-    // 临时存储收藏数据
-    wx.setStorageSync('tempCollectionData', collectionData);
-    
-    // 跳转到非遗详情页面
+      heritageId
+    })
+
     wx.navigateTo({
       url: `/pages/heritageDetail/heritageDetail?id=${heritageId}&fromCollection=true`
-    });
+    })
   },
 
-  // 移除收藏
-  removeCollection: function(e) {
-    const item = e.currentTarget.dataset.item;
-    const heritageName = item.heritageName || item.name || '该项目';
-    
+  removeCollection(e) {
+    const item = e.currentTarget.dataset.item
+    const heritageName = item.name || '该项目'
+
     wx.showModal({
       title: '移除收藏',
       content: `确定要移除"${heritageName}"的收藏吗？`,
@@ -616,70 +340,31 @@ Page({
       cancelText: '取消',
       confirmText: '确定',
       success: (res) => {
-        if (res.confirm) {
-          const user = getCurrentUser();
-          if (!user) {
-            wx.showToast({
-              title: '请先登录',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          const userId = user.id || user.userId;
-          if (!userId) {
-            wx.showToast({
-              title: '无法获取用户信息',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          const heritageId = item.heritageId || item.id;
-          if (!heritageId) {
-            wx.showToast({
-              title: '收藏项信息不完整',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          // 调用后端接口删除收藏
-          request({
-            url: `/user/collections/me/heritage/${heritageId}`,
-            method: 'DELETE'
-          }).then(response => {
-            if (response && response.success) {
-              // 重新加载收藏列表
-              this.loadCollections();
-              
-              wx.showToast({
-                title: '已移除收藏',
-                icon: 'success'
-              });
-            } else {
-              wx.showToast({
-                title: response?.message || '移除收藏失败',
-                icon: 'none'
-              });
-            }
-          }).catch(err => {
-            console.error('移除收藏失败:', err);
-            wx.showToast({
-              title: requestErrorMessage(err),
-              icon: 'none'
-            });
-          });
+        if (!res.confirm) {
+          return
         }
+        const heritageId = item.heritageId || item.id
+        removeMyCollection(heritageId)
+          .then(() => this.loadOverviewData())
+          .then(() => {
+            wx.showToast({
+              title: '已移除收藏',
+              icon: 'success'
+            })
+          })
+          .catch((err) => {
+            wx.showToast({
+              title: err.message || '移除收藏失败',
+              icon: 'none'
+            })
+          })
       }
-    });
+    })
   },
 
-
-  // 取消预约
-  cancelBooking: function(e) {
-    const item = e.currentTarget.dataset.item;
-    const bookingTitle = item.skill ? `${item.masterName} - ${item.skill}` : item.masterName;
+  cancelBooking(e) {
+    const item = e.currentTarget.dataset.item
+    const bookingTitle = item.skill ? `${item.masterName} - ${item.skill}` : item.masterName
     wx.showModal({
       title: '取消预约',
       content: `确定要取消"${bookingTitle}"的预约吗？`,
@@ -687,207 +372,106 @@ Page({
       cancelText: '不取消',
       confirmText: '确定取消',
       success: (res) => {
-        if (res.confirm) {
-          const user = getCurrentUser();
-          if (!user) {
-            wx.showToast({
-              title: '请先登录',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          const userId = user.id || user.userId;
-          if (!userId) {
-            wx.showToast({
-              title: '无法获取用户信息',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          const bookingId = item.id;
-          if (!bookingId) {
-            wx.showToast({
-              title: '预约信息不完整',
-              icon: 'none'
-            });
-            return;
-          }
-          
-          // 调用后端接口删除预约
-          request({
-            url: `/user/bookings/me/booking/${bookingId}`,
-            method: 'DELETE'
-          }).then(response => {
-            if (response && response.success) {
-              // 重新加载预约数据
-              this.loadBookings();
-              
-              wx.showToast({
-                title: '已取消预约',
-                icon: 'success'
-              });
-            } else {
-              wx.showToast({
-                title: response?.message || '取消预约失败',
-                icon: 'none'
-              });
-            }
-          }).catch(err => {
-            console.error('取消预约失败:', err);
-            wx.showToast({
-              title: requestErrorMessage(err),
-              icon: 'none'
-            });
-          });
+        if (!res.confirm) {
+          return
         }
+        cancelMyBooking(item.id)
+          .then(() => this.loadOverviewData())
+          .then(() => {
+            wx.showToast({
+              title: '已取消预约',
+              icon: 'success'
+            })
+          })
+          .catch((err) => {
+            wx.showToast({
+              title: err.message || '取消预约失败',
+              icon: 'none'
+            })
+          })
       }
-    });
+    })
   },
 
-  // 查看全部收藏
-  viewAllCollections: function() {
-    // 检查登录状态
-    if (!isLoggedIn()) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
+  viewAllCollections() {
+    if (!requireLogin({ content: '请先登录后查看收藏列表' })) {
+      return
     }
-    
-    // 跳转到收藏列表页面
     wx.navigateTo({
       url: '/pages/collectionList/collectionList'
-    });
+    })
   },
 
-
-  // 查看全部预约
-  viewAllBookings: function() {
-    // 检查登录状态
-    if (!isLoggedIn()) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录',
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
+  viewAllBookings() {
+    if (!requireLogin({ content: '请先登录后查看预约列表' })) {
+      return
     }
-    
-    // 跳转到预约体验列表页面
     wx.navigateTo({
       url: '/pages/bookingList/bookingList'
-    });
+    })
   },
 
-  // 菜单点击
-  onMenuTap: function(e) {
-    const type = e.currentTarget.dataset.type;
+  onMenuTap(e) {
+    const type = e.currentTarget.dataset.type
     const menuMap = {
       profile: '个人资料',
       settings: '设置',
       help: '帮助与反馈',
       about: '关于我们'
-    };
-    
+    }
+
     if (type === 'settings') {
       wx.showActionSheet({
         itemList: ['编辑资料', '隐私设置', '通知设置', '退出登录'],
         success: (res) => {
           if (res.tapIndex === 3) {
-            // 退出登录
             wx.showModal({
               title: '退出登录',
               content: '确定要退出登录吗？',
-              success: (res) => {
-                if (res.confirm) {
-                  // 清除用户信息
-                  wx.removeStorageSync('token');
-                  wx.removeStorageSync('userInfo');
-                  
-                  // 跳转到登录页面
+              success: (confirmRes) => {
+                if (confirmRes.confirm) {
+                  logout()
+                  this.initializeVisitorView()
                   wx.redirectTo({
                     url: '/pages/login/login'
-                  });
+                  })
                 }
               }
-            });
-          } else {
-            if (res.tapIndex === 0) {
-              this.onUserCardTap();
-              return;
-            }
-            const key = res.tapIndex === 1 ? 'privacyEnabled' : 'notificationEnabled';
-            const enabled = wx.getStorageSync(key) !== false;
-            wx.setStorageSync(key, !enabled);
-            wx.showToast({
-              title: `${['隐私设置', '通知设置'][res.tapIndex - 1]}已${enabled ? '关闭' : '开启'}`,
-              icon: 'none'
-            });
+            })
+            return
           }
+          if (res.tapIndex === 0) {
+            this.onUserCardTap()
+            return
+          }
+          const key = res.tapIndex === 1 ? 'privacyEnabled' : 'notificationEnabled'
+          const enabled = wx.getStorageSync(key) !== false
+          wx.setStorageSync(key, !enabled)
+          wx.showToast({
+            title: `${['隐私设置', '通知设置'][res.tapIndex - 1]}已${enabled ? '关闭' : '开启'}`,
+            icon: 'none'
+          })
         }
-      });
+      })
     } else if (type === 'help') {
       wx.showModal({
         title: '帮助与反馈',
-        content: '本地调试建议：\n1. 先启动后端再打开小程序\n2. 登录后再进行收藏/预约操作\n3. 如遇网络异常请检查 apiBaseUrl 配置',
+        content: '建议先启动后端与 Redis，再打开微信开发者工具联调；如遇接口异常，可在后台和数据库中查看自动初始化结果。',
         showCancel: false,
         confirmText: '知道了'
-      });
+      })
     } else if (type === 'about') {
       wx.showModal({
         title: '关于我们',
-        content: '非遗传承小程序（本地调试版）\n版本：v1.1.0-local\n技术栈：微信小程序 + Spring Boot',
+        content: '传智杯项目致力于用更完整的数字产品体验连接非遗内容、传承人和公众。',
         showCancel: false,
         confirmText: '知道了'
-      });
+      })
     } else {
-      wx.showModal({
-        title: menuMap[type],
-        content: '请点击头像卡片编辑个人资料',
-        showCancel: false,
-        confirmText: '知道了'
-      });
-    }
-  },
-
-  // 下拉刷新
-  onPullDownRefresh: function() {
-    this.setData({
-      loading: true
-    });
-    
-    Promise.all([
-      this.loadCollections().catch(() => {}),
-      this.loadBookings().catch(() => {})
-    ]).finally(() => {
-      wx.stopPullDownRefresh();
       wx.showToast({
-        title: '刷新成功',
-        icon: 'success'
-      });
-    });
-  },
-
+        title: `${menuMap[type] || '功能'}开发中`,
+        icon: 'none'
+      })
+    }
+  }
 })

@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/index/index",
     "pages/login/login",
+    "pages/index/index",
     "pages/register/register",
     "pages/Heritage/Heritage",
     "pages/ARExperience/ARExperience",
@@ -25,7 +25,7 @@
   ],
   "window": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "遗韵 · 非遗传承",
+    "navigationBarTitleText": "传智杯 · 非遗传承",
     "navigationBarBackgroundColor": "#1a1410",
     "backgroundColor": "#f4efe8"
   },
@@ -41,7 +41,7 @@
       },
       {
         "pagePath": "pages/ARExperience/ARExperience",
-        "text": "沉浸"
+        "text": "3D沉浸"
       },
       {
         "pagePath": "pages/PersonalCenter/PersonalCenter",

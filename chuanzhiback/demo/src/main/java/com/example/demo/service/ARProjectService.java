@@ -2,8 +2,10 @@ package com.example.demo.service;
 
 import com.example.demo.entity.ARExperienceRecord;
 import com.example.demo.entity.ARProject;
+import com.example.demo.entity.ArExperience;
 import com.example.demo.entity.User;
 import com.example.demo.repository.ARExperienceRecordRepository;
+import com.example.demo.repository.ArExperienceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,9 @@ public class ARProjectService {
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ArExperienceRepository arExperienceRepository;
 
     private final List<ARProject> projectList = new ArrayList<>();
 
@@ -185,19 +190,35 @@ public class ARProjectService {
     }
 
     public List<Map<String, Object>> listModelCatalog() {
+        List<ArExperience> dbModels = arExperienceRepository.findAll();
+        List<Map<String, Object>> dynamicModels = dbModels.stream()
+                .filter(item -> item.getModelUrl() != null && !item.getModelUrl().isBlank())
+                .map(item -> buildModel(
+                        String.valueOf(item.getId()),
+                        item.getName(),
+                        item.getModelUrl(),
+                        item.getImageUrl(),
+                        item.getInstructions()
+                ))
+                .collect(Collectors.toList());
+        if (!dynamicModels.isEmpty()) {
+            return dynamicModels;
+        }
+
         List<Map<String, Object>> models = new ArrayList<>();
-        models.add(buildModel("stone-stele", "古代石碑", "/uploads/3D/ancient-stone-stele.glb", "/uploads/ar_index/ar_bronze1.jpg"));
-        models.add(buildModel("manuscript-cylinder", "古代经卷轴筒", "/uploads/3D/ancient-manuscript-cylinder.glb", "/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg"));
-        models.add(buildModel("cloisonne-vase", "景泰蓝花瓶", "/uploads/3D/cloisonne-vase.glb", "/uploads/masters_InheritorCommunit/master_suxiu.jpg"));
+        models.add(buildModel("stone-stele", "古代石碑", "/uploads/3D/ancient-stone-stele.glb", "/uploads/ar_index/ar_bronze1.jpg", "默认演示模型：古代石碑"));
+        models.add(buildModel("manuscript-cylinder", "古代经卷轴筒", "/uploads/3D/ancient-manuscript-cylinder.glb", "/uploads/heritage_index/recommend_heritage_jingdezhenciqi.jpg", "默认演示模型：古代经卷轴筒"));
+        models.add(buildModel("cloisonne-vase", "景泰蓝花瓶", "/uploads/3D/cloisonne-vase.glb", "/uploads/masters_InheritorCommunit/master_suxiu.jpg", "默认演示模型：景泰蓝花瓶"));
         return models;
     }
 
-    private Map<String, Object> buildModel(String id, String name, String modelUrl, String coverImage) {
+    private Map<String, Object> buildModel(String id, String name, String modelUrl, String coverImage, String instructions) {
         Map<String, Object> item = new HashMap<>();
         item.put("id", id);
         item.put("name", name);
         item.put("modelUrl", modelUrl);
         item.put("coverImage", coverImage);
+        item.put("instructions", instructions);
         item.put("source", "api");
         return item;
     }

@@ -1,10 +1,19 @@
 <view class="container">
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  <app-state
+    wx:if="{{loading}}"
+    type="loading"
+    title="传承人信息加载中"
+    description="正在准备传承人简介与技能资料。"
+  />
 
-  <view wx:elif="{{loadError}}" class="error">
-    <text class="error-text">{{loadErrorText || '加载失败'}}</text>
-    <button class="retry-btn" bindtap="onRetryLoad" size="mini" type="primary">重试</button>
-  </view>
+  <app-state
+    wx:elif="{{loadError}}"
+    type="error"
+    title="传承人信息加载失败"
+    description="{{loadErrorText || '请稍后重试'}}"
+    actionText="重新加载"
+    bind:action="onRetryLoad"
+  />
 
   <view wx:else class="detail-card">
     <image class="avatar" src="{{inheritor.avatar}}" mode="aspectFill"></image>

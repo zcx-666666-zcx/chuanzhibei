@@ -1,22 +1,17 @@
 const { getAdaptiveDpr } = require('../../utils/resourceProfile.js')
 const { getBaseUrl } = require('../../utils/config.js')
+const { request, requestErrorMessage } = require('../../utils/util.js')
 const {
   DEVELOPMENT_DEVICE_BASE_URL,
   DEVELOPMENT_DEVICE_BASE_URL_HTTPS
 } = require('../../utils/env.js')
-const { getLocalFallbackModels } = require('../../utils/xrModels.js')
+const { getLocalFallbackModels, normalizeModelList } = require('../../utils/xrModels.js')
 
 /**
  * 大 glb 直连 xr 易超时；先 downloadFile。石碑约 30MB：1Mbps 理论需约 4～8 分钟，
  * 仍可能触发运行库超时；根本办法是压缩 glb（建议 5MB 以内）或提高出口带宽。
  */
 const MODEL_DOWNLOAD_TIMEOUT_MS = 600000
-
-function defaultStoneModelUrl() {
-  const list = getLocalFallbackModels()
-  const hit = list.find((m) => m.id === 'stone-stele')
-  return (hit || list[0]).modelUrl
-}
 
 function isLikelyLocalPath(url) {
   return typeof url === 'string' && url.startsWith('wxfile://')
@@ -30,9 +25,17 @@ Page({
     renderHeight: 1200,
     selectedModelSrc: '',
     modelLoading: true,
-    modelLoadHint: ''
+    modelLoadHint: '',
+    pageTitle: '3D沉浸演示',
+    modelList: [],
+    currentModelName: ''
   },
-  onLoad() {
+  onLoad(options = {}) {
+    if (options.title) {
+      const pageTitle = decodeURIComponent(options.title)
+      this.setData({ pageTitle })
+      wx.setNavigationBarTitle({ title: pageTitle })
+    }
     const info = wx.getSystemInfoSync()
     const w = info.windowWidth
     const h = info.windowHeight
@@ -66,20 +69,55 @@ Page({
         '[xrDemo3D] 工具内单指旋转/双指缩放：请在模拟器顶部菜单打开「模拟触控」，再在 3D 画布区域操作。'
       )
     }
-    this.prepareModelAsset()
+    this.loadModelCatalog(options.modelId)
   },
 
-  prepareModelAsset() {
-    const remoteUrl = defaultStoneModelUrl()
+  loadModelCatalog(preferredModelId) {
+    request({ url: '/ar/models' })
+      .then((res) => {
+        const rawList = (res && res.data && res.data.list) || []
+        const normalized = normalizeModelList(rawList)
+        if (normalized.length) {
+          this.setData({ modelList: normalized })
+          const active = normalized.find((item) => String(item.id) === String(preferredModelId || '')) || normalized[0]
+          this.prepareModelAsset(active)
+          return
+        }
+        const fallback = getLocalFallbackModels()
+        this.setData({ modelList: fallback })
+        this.prepareModelAsset(fallback[0])
+      })
+      .catch((err) => {
+        const fallback = getLocalFallbackModels()
+        this.setData({
+          modelList: fallback,
+          modelLoadHint: requestErrorMessage(err)
+        })
+        this.prepareModelAsset(fallback[0])
+      })
+  },
+
+  prepareModelAsset(modelItem) {
+    const remoteUrl = modelItem && modelItem.modelUrl
     if (!remoteUrl) {
       this.setData({ modelLoading: false, modelLoadHint: '未配置模型地址' })
       return
     }
     if (isLikelyLocalPath(remoteUrl)) {
-      this.setData({ selectedModelSrc: remoteUrl, modelLoading: false, modelLoadHint: '' })
+      this.setData({
+        selectedModelSrc: remoteUrl,
+        modelLoading: false,
+        modelLoadHint: '',
+        currentModelName: (modelItem && modelItem.name) || this.data.pageTitle
+      })
       return
     }
-    this.setData({ modelLoading: true, selectedModelSrc: '', modelLoadHint: '正在连接服务器…' })
+    this.setData({
+      modelLoading: true,
+      selectedModelSrc: '',
+      modelLoadHint: '正在连接服务器…',
+      currentModelName: (modelItem && modelItem.name) || this.data.pageTitle
+    })
     const task = wx.downloadFile({
       url: remoteUrl,
       timeout: MODEL_DOWNLOAD_TIMEOUT_MS,

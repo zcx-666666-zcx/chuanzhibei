@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "我的收藏",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "app-state": "/components/app-state/index"
+  }
 }
-

@@ -1,12 +1,19 @@
 <view class="container">
-  <view wx:if="{{loading}}" class="state-wrap">
-    <text class="state-text">加载项目中…</text>
-  </view>
+  <app-state
+    wx:if="{{loading}}"
+    type="loading"
+    title="沉浸项目加载中"
+    description="正在准备演示素材、讲解视频与体验说明。"
+  />
 
-  <view wx:elif="{{loadFailed}}" class="state-wrap state-fail">
-    <text class="state-text">{{loadErrorText}}</text>
-    <button class="state-btn" bindtap="onRetryLoadProject" size="mini" type="primary">重新加载</button>
-  </view>
+  <app-state
+    wx:elif="{{loadFailed}}"
+    type="error"
+    title="沉浸项目加载失败"
+    description="{{loadErrorText}}"
+    actionText="重新加载"
+    bind:action="onRetryLoadProject"
+  />
 
   <block wx:else>
     <view class="header">
@@ -15,9 +22,9 @@
     </view>
 
     <view class="card">
-      <text class="card-title">识别提示</text>
-      <text class="card-text">请对准下方「识别图」，保持手机稳定；当前为演示流程，识别成功后将叠加播放讲解视频。</text>
-      <text wx:if="{{!project.videoUrl}}" class="card-warn">暂无讲解视频地址，仍可体验识别流程；若后台已配置视频，请下拉沉浸页重新进入本页。</text>
+      <text class="card-title">演示提示</text>
+      <text class="card-text">当前页面用于承接你已录制的讲解视频和项目展示素材，适合作为沉浸内容说明页继续保留。</text>
+      <text wx:if="{{!project.videoUrl}}" class="card-warn">暂无讲解视频地址；如后台已补充素材，请重新进入本页查看。</text>
       <video wx:if="{{project.videoUrl}}"
              id="ar-play-preview-video"
              src="{{project.videoUrl}}"
@@ -46,12 +53,12 @@
     </view>
 
     <view class="footer">
-      <button class="btn-primary" bindtap="startCamera">调用摄像头并开始识别</button>
+      <button class="btn-primary" bindtap="startCamera">开始讲解演示</button>
     </view>
 
     <view wx:if="{{arRecognitionActive}}" class="ar-overlay">
       <view class="ar-result">
-        <text class="result-text">识别成功！正在播放AR视频...</text>
+        <text class="result-text">演示开始，正在播放讲解视频...</text>
         <video wx:if="{{project.videoUrl}}" 
                src="{{project.videoUrl}}" 
                controls 

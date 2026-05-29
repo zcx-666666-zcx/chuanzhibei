@@ -1,8 +1,6 @@
 -- 与 chuanzhiback/uploads 目录下实际资源命名对齐，写入 ar_project（便于库内查询与后续改读库）
 -- 使用 ON DUPLICATE KEY UPDATE，重复启动时刷新路径与文案
 
-USE your_database_name; -- Replace 'your_database_name' with the actual name of your database
-
 INSERT INTO ar_project (id, name, description, detail, instruction,
                         cover_image, marker_image, video_url, duration, category, is_hot,
                         create_time, update_time)
@@ -64,4 +62,4 @@ ON DUPLICATE KEY UPDATE name         = VALUES(name),
                         duration     = VALUES(duration),
                         category     = VALUES(category),
                         is_hot       = VALUES(is_hot),
-                        update_time  = NOW(6);;
+                        update_time  = NOW(6);

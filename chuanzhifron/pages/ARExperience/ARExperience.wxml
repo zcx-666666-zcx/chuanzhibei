@@ -1,41 +1,28 @@
-<!-- 沉浸体验 · 与首页同色纸感 -->
 <view class="page">
   <view class="bg-layer" aria-hidden="true"></view>
 
   <view class="hero">
     <view class="hero-deco" aria-hidden="true"></view>
     <view class="hero-inner">
-      <text class="hero-kicker">IMMERSIVE · AR / VR</text>
-      <text class="hero-title">沉浸体验</text>
-      <text class="hero-sub">对准识别图或平面，在实景画面中叠加讲解与细节（可后续扩展 VR 全景）</text>
+      <text class="hero-kicker">IMMERSIVE · 3D SHOWCASE</text>
+      <text class="hero-title">3D沉浸演示</text>
+      <text class="hero-sub">不再使用 AR 扫描逻辑，当前统一沉淀为三维展陈、数字讲解与个人体验记录。</text>
     </view>
   </view>
 
   <view class="sheet sheet-tight">
     <view class="sheet-head">
       <view class="sheet-head-left">
-        <text class="sheet-en">INTRO</text>
-        <text class="sheet-cn">什么是文物 沉浸 体验</text>
+        <text class="sheet-en">OVERVIEW</text>
+        <text class="sheet-cn">演示能力概览</text>
       </view>
     </view>
-    <view class="intro-inner">
-      <text class="intro-desc">对准指定的文物图片（Marker），在真实画面上叠加播放文物的讲解视频与细节画面，让文物在光影中徐徐「活」起来。</text>
-      <text class="intro-features">您可以：</text>
-      <view class="feature-list">
-        <view class="feature-item">
-          <text class="feature-icon">🔍</text>
-          <text class="feature-text">在真实场景中观看文物细节视频</text>
-        </view>
-        <view class="feature-item">
-          <text class="feature-icon">👆</text>
-          <text class="feature-text">对准海报/展板即可触发 沉浸 叠加</text>
-        </view>
-        <view class="feature-item">
-          <text class="feature-icon">📖</text>
-          <text class="feature-text">聆听文物背后的历史与工艺故事</text>
-        </view>
+    <view class="overview-card">
+      <view class="overview-copy">
+        <text class="overview-title">适合比赛答辩与成果展示的沉浸链路</text>
+        <text class="overview-desc">从项目介绍、三维模型查看、沉浸内容卡片到历史记录，整个体验路径更清晰，也更适合你当前项目能力边界。</text>
       </view>
-      <image src="{{arPlaceholderImage}}" class="intro-image" mode="aspectFill" lazy-load="{{true}}"></image>
+      <image src="{{arPlaceholderImage}}" class="overview-image" mode="aspectFill" lazy-load="{{true}}"></image>
     </view>
   </view>
 
@@ -43,30 +30,24 @@
     <view class="sheet-head">
       <view class="sheet-head-left">
         <text class="sheet-en">GUIDE</text>
-        <text class="sheet-cn">体验指南</text>
+        <text class="sheet-cn">观看方式</text>
       </view>
     </view>
     <view class="guide-grid">
       <view class="guide-item">
-        <view class="guide-icon">
-          <text class="iconfont icon-mobile">📱</text>
-        </view>
-        <text class="guide-title">打开小程序</text>
-        <text class="guide-desc">确保设备支持并已授予相机权限</text>
+        <view class="guide-icon">01</view>
+        <text class="guide-title">进入模型页</text>
+        <text class="guide-desc">查看重点文物或器物的三维展示模型</text>
       </view>
       <view class="guide-item">
-        <view class="guide-icon">
-          <text class="iconfont icon-camera">📷</text>
-        </view>
-        <text class="guide-title">扫描识别</text>
-        <text class="guide-desc">将相机对准识别图或平面</text>
+        <view class="guide-icon">02</view>
+        <text class="guide-title">旋转与缩放</text>
+        <text class="guide-desc">从多角度观察结构、纹样与细节信息</text>
       </view>
       <view class="guide-item">
-        <view class="guide-icon">
-          <text class="iconfont icon-hand">👆</text>
-        </view>
-        <text class="guide-title">互动体验</text>
-        <text class="guide-desc">在屏幕上进行缩放与查看</text>
+        <view class="guide-icon">03</view>
+        <text class="guide-title">结合内容讲解</text>
+        <text class="guide-desc">与首页资讯、视频和详情页形成内容闭环</text>
       </view>
     </view>
   </view>
@@ -75,13 +56,13 @@
     <view class="sheet-head">
       <view class="sheet-head-left">
         <text class="sheet-en">DEMO</text>
-        <text class="sheet-cn">3D 沉浸演示</text>
+        <text class="sheet-cn">3D 模型演示</text>
       </view>
     </view>
-    <text class="demo-desc">基于微信 xr-frame：展台场景 + 服务端 uploads/3D 目录下的自有 glb（经卷轴筒、石碑、景泰蓝花瓶等）+ 多光源与阴影。单指旋转视角，双指缩放。</text>
-    <navigator url="/pages/xrDemo3D/xrDemo3D" class="demo-nav demo-nav-primary" hover-class="demo-nav-hover">
-      <text class="demo-nav-title">进入 3D 演示</text>
-      <text class="demo-nav-sub">页内可切换模型</text>
+    <text class="demo-desc">当前使用你项目中已经可运行的 xr-frame 三维模型能力，后续只需要持续替换更正式的模型素材与说明文案即可。</text>
+    <navigator url="/pages/xrDemo3D/xrDemo3D?title=3D沉浸演示" class="demo-nav demo-nav-primary" hover-class="demo-nav-hover">
+      <text class="demo-nav-title">进入默认演示模型</text>
+      <text class="demo-nav-sub">适合作为答辩现场的稳定展示入口</text>
     </navigator>
   </view>
 
@@ -89,12 +70,12 @@
     <view class="sheet-head row-between">
       <view class="sheet-head-left">
         <text class="sheet-en">PROJECTS</text>
-        <text class="sheet-cn">沉浸 体验项目</text>
+        <text class="sheet-cn">沉浸内容卡片</text>
       </view>
       <text class="sheet-more" bindtap="goARProjectListFull">全部</text>
     </view>
     <text wx:if="{{loading}}" class="ar-pro-hint">项目加载中…</text>
-    <text wx:elif="{{!arProjects.length}}" class="ar-pro-hint">暂无项目，可下拉刷新或从首页进入「AR 项目列表」</text>
+    <text wx:elif="{{!arProjects.length}}" class="ar-pro-hint">暂无沉浸项目，可下拉刷新后重试</text>
     <scroll-view wx:else class="pick-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
       <view class="pick-track">
         <view
@@ -107,7 +88,7 @@
           <image src="{{item.coverImage}}" class="pick-img" mode="aspectFill" lazy-load="{{true}}"></image>
           <view class="pick-body">
             <text class="pick-name">{{item.name}}</text>
-            <text class="pick-region">轻点进入相机体验</text>
+            <text class="pick-region">点击进入 3D 模型页</text>
           </view>
         </view>
       </view>
@@ -118,14 +99,11 @@
     <view class="sheet-head">
       <view class="sheet-head-left">
         <text class="sheet-en">HISTORY</text>
-        <text class="sheet-cn">我的体验记录</text>
+        <text class="sheet-cn">最近体验记录</text>
       </view>
     </view>
     <view class="ar-grid">
-      <view class="ar-card card card-hover"
-            wx:for="{{experienceRecords}}"
-            wx:key="id"
-            wx:if="{{experienceRecords.length > 0}}">
+      <view class="ar-card card card-hover" wx:for="{{experienceRecords}}" wx:key="id" wx:if="{{experienceRecords.length > 0}}">
         <view class="ar-image-container">
           <video
             id="record-preview-video-{{index}}"
@@ -149,9 +127,7 @@
           <text class="ar-title">{{item.name}}</text>
           <text class="ar-desc">体验时间：{{item.time}}</text>
           <text class="ar-desc">时长：{{item.duration}}</text>
-          <button class="btn-secondary ar-button" bindtap="replayExperience" data-item="{{item}}" catchtap="true">
-            <text>重新体验</text>
-          </button>
+          <button class="btn-secondary ar-button" bindtap="replayExperience" data-item="{{item}}" catchtap="true">再次查看</button>
         </view>
       </view>
       <view wx:if="{{experienceRecords.length === 0}}" class="no-record">

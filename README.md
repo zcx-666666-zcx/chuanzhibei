@@ -5,6 +5,19 @@
 - `chuanzhifron`: 微信小程序前端
 - `chuanzhiback/demo`: Spring Boot 后端
 
+## 文档目录
+
+- 总索引：[doc/README.md](doc/README.md)
+- 项目总览：[doc/project/项目全面介绍文档.md](doc/project/项目全面介绍文档.md)
+- 迭代规划：[doc/project/竞赛迭代规划与实现路径.md](doc/project/竞赛迭代规划与实现路径.md)
+- 开发日志：[doc/project/开发日志-2026-03-24.md](doc/project/开发日志-2026-03-24.md)
+- 生产部署：[doc/deploy/生产部署指南.md](doc/deploy/生产部署指南.md)
+- 后台部署：[doc/deploy/若依后台部署指南.md](doc/deploy/若依后台部署指南.md)
+- 专题方案：[doc/specs/非遗传承系统专题页功能设计方案.md](doc/specs/非遗传承系统专题页功能设计方案.md)
+- 本地开发记录：[doc/internal/local-dev/本地小程序完善计划.md](doc/internal/local-dev/本地小程序完善计划.md)
+- 执行计划归档：[doc/internal/plans/2026-05-29-local-miniapp-improvement.md](doc/internal/plans/2026-05-29-local-miniapp-improvement.md)
+- 本地原始文档归档：[doc/archive/法贴雕版拓印-市级非遗项目.docx](<doc/archive/法贴雕版拓印-市级非遗项目.docx>)
+
 ## 架构优化结果（本次）
 
 ### 1) 前端联调入口统一
@@ -78,7 +91,7 @@ cd chuanzhiback/demo
 - `GET /actuator/health/liveness`
 - `GET /actuator/health/readiness`
 
-生产环境部署细节请参考：`生产部署指南.md`（含后端 `prod` 启动校验、`utils/env.js` 发布开关、小程序合法域名）。
+生产环境部署细节请参考：[`doc/deploy/生产部署指南.md`](doc/deploy/生产部署指南.md)（含后端 `prod` 启动校验、`utils/env.js` 发布开关、小程序合法域名）。
 
 - 小程序：`chuanzhifron/utils/env.js` 中 `APP_ENV` / `PRODUCTION_API_BASE_URL`
 - 后端：`SPRING_PROFILES_ACTIVE=prod` 且满足 `TOKEN_SECRET`、`PUBLIC_BASE_URL`（https）、`CORS_ALLOWED_ORIGIN_PATTERNS`（禁止 `*`）
@@ -113,7 +126,7 @@ wx.setStorageSync('apiBaseUrl', 'https://你的可访问域名')
 - 核心链路（登录/注册、资讯、非遗详情、收藏、预约、沉浸项目、AR 历史）联调通过，可用于比赛演示。
 - 图片/视频在 `https` 域名下已可正常访问（配合小程序合法域名配置）。
 - 3D 页已具备进入、模型切换与基础渲染能力；高质量模型效果与视觉调优待后续补充。
-- 根目录与各子文档已按当前代码（页面注册、八宫格、接口与遗留模块）统一更新，详见 `开发日志-2026-03-24.md` 中「文档与代码全量对齐」一节。
+- 根目录与各子文档已按当前代码（页面注册、八宫格、接口与遗留模块）统一更新，详见 [`doc/project/开发日志-2026-03-24.md`](doc/project/开发日志-2026-03-24.md) 中「文档与代码全量对齐」一节。
 
 ## 联调稳定性检查清单
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# 传之贝 RuoYi 后台管理系统 — 一键部署脚本
+# 传智杯 RuoYi 后台管理系统 — 一键部署脚本
 # 运行方式: chmod +x setup-ruoyi.sh && ./setup-ruoyi.sh
 # ============================================================
 
@@ -18,7 +18,7 @@ SQL_FILE="$SCRIPT_DIR/demo/src/main/resources/schema-bootstrap.sql"
 
 echo ""
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  传之贝 RuoYi 后台管理系统 — 环境部署  ${NC}"
+echo -e "${GREEN}  传智杯 RuoYi 后台管理系统 — 环境部署  ${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 

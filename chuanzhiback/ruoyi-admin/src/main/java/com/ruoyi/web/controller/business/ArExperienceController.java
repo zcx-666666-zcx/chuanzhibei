@@ -11,7 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * AR体验管理
+ * 3D沉浸演示管理
  */
 @RestController
 @RequestMapping("/business/ar")

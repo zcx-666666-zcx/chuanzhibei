@@ -71,7 +71,7 @@ Page({
       this.setData({
         loading: false,
         loadFailed: true,
-        loadErrorText: err.message || '获取AR项目失败'
+        loadErrorText: err.message || '获取沉浸项目失败'
       })
     })
   },

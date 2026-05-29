@@ -463,7 +463,7 @@ Page({
     } else if (type === 'about') {
       wx.showModal({
         title: '关于我们',
-        content: '传之贝致力于以更现代的数字体验连接非遗内容、传承人和公众。',
+        content: '传智杯项目致力于用更完整的数字产品体验连接非遗内容、传承人和公众。',
         showCancel: false,
         confirmText: '知道了'
       })

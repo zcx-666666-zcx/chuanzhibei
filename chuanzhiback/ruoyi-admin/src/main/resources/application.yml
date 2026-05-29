@@ -1,4 +1,4 @@
-# 传之贝 RuoYi 后台管理系统配置
+# 传智杯 RuoYi 后台管理系统配置
 server:
   port: 8080
 

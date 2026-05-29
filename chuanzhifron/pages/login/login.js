@@ -2,7 +2,7 @@ const { validateUsername, validatePassword } = require('../../utils/auth.js')
 const { DEFAULT_IMAGE_DATA_URI, buildStaticUrl } = require('../../utils/config.js')
 const { createPageState, patchPageState } = require('../../utils/page-state.js')
 const { loginWithUsername, loginWithWechat } = require('../../services/auth.service.js')
-const { loadClientConfig } = require('../../utils/session.js')
+const { hasSession, loadClientConfig } = require('../../utils/session.js')
 
 Page({
   data: {
@@ -18,6 +18,11 @@ Page({
   },
 
   onLoad() {
+    if (hasSession()) {
+      wx.switchTab({ url: '/pages/index/index' })
+      return
+    }
+
     const pages = getCurrentPages()
     const current = pages[pages.length - 1]
     const options = (current && current.options) || {}

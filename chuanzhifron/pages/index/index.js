@@ -6,7 +6,7 @@ const { loadHomePayload } = require('../../services/home.service.js')
 
 Page({
   data: {
-    motto: '非遗传承 - 智慧生活',
+    motto: '传智杯 · 非遗数字传承',
     userInfo: {},
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
@@ -23,11 +23,18 @@ Page({
   },
 
   onLoad() {
+    if (!isLoggedIn()) {
+      wx.redirectTo({ url: '/pages/login/login' })
+      return
+    }
     this.syncGlobalUser()
     this.loadPageData()
   },
 
   onShow() {
+    if (!isLoggedIn()) {
+      return
+    }
     this.syncGlobalUser()
   },
 
@@ -321,5 +328,9 @@ Page({
 
   goPersonal() {
     wx.switchTab({ url: '/pages/PersonalCenter/PersonalCenter' })
+  },
+
+  goImmersiveDemo() {
+    wx.navigateTo({ url: '/pages/xrDemo3D/xrDemo3D' })
   }
 })

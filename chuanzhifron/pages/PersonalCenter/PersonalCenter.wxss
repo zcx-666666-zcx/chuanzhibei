@@ -1,20 +1,18 @@
-/* 与首页同色纸感（底图、留白见 index.wxss） */
 @import '../index/index.wxss';
 
 .user-card,
-.section {
+.section,
+.quick-panel {
   position: relative;
   z-index: 1;
 }
 
-/* 用户信息卡片 */
 .user-card {
   background: linear-gradient(145deg, #2f2620, #1a1410);
-  margin: 28rpx 30rpx 24rpx;
-  border-radius: 28rpx;
-  padding: 40rpx 36rpx 34rpx;
-  box-shadow: 0 20rpx 48rpx rgba(0, 0, 0, 0.35);
-  position: relative;
+  margin: 28rpx 24rpx 20rpx;
+  border-radius: 30rpx;
+  padding: 34rpx 30rpx 30rpx;
+  box-shadow: 0 20rpx 48rpx rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
@@ -22,193 +20,220 @@
   content: '';
   position: absolute;
   right: -60rpx;
-  top: -40rpx;
+  top: -36rpx;
   width: 220rpx;
   height: 220rpx;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(245, 230, 200, 0.16) 0%, transparent 70%);
 }
 
-.user-card:active {
-  transform: scale(0.98);
-  transition: all 0.18s ease-out;
+.user-top,
+.user-stats {
+  position: relative;
+  z-index: 1;
 }
 
-.user-card::after {
-  content: '✒';
-  position: absolute;
-  top: 38rpx;
-  right: 34rpx;
-  font-size: 30rpx;
-  opacity: 0.45;
-  color: #f5e6c8;
+.user-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20rpx;
 }
 
 .user-header {
   display: flex;
   align-items: center;
-  margin-bottom: 32rpx;
-}
-
-.user-avatar {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  margin-right: 24rpx;
-  border: 4rpx solid rgba(245, 230, 200, 0.7);
-}
-
-.user-info {
   flex: 1;
 }
 
+.user-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  margin-right: 22rpx;
+  border: 4rpx solid rgba(245, 230, 200, 0.7);
+}
+
 .user-name {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #f8f0e4;
   display: block;
-  margin-bottom: 8rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #f8f0e4;
 }
 
 .user-title {
-  font-size: 28rpx;
-  color: rgba(245, 230, 200, 0.8);
   display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: rgba(245, 230, 200, 0.8);
 }
 
-.settings-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-}
-
-.settings-btn:active {
-  color: #c41e3a;
+.edit-entry {
+  flex-shrink: 0;
+  padding: 14rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5e6c8;
+  font-size: 24rpx;
 }
 
 .user-stats {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 6rpx;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-top: 28rpx;
 }
 
 .stat-item {
-  text-align: center;
+  padding: 20rpx 22rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .stat-number {
-  font-size: 48rpx;
-  font-weight: bold;
-  color: #f5e6c8;
   display: block;
-  margin-bottom: 8rpx;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #f5e6c8;
 }
 
 .stat-label {
-  font-size: 24rpx;
-  color: rgba(245, 230, 200, 0.78);
   display: block;
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  color: rgba(245, 230, 200, 0.78);
 }
 
-/* 区块样式 */
+.quick-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  padding: 0 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.quick-item {
+  background: rgba(255, 253, 251, 0.94);
+  border-radius: 24rpx;
+  padding: 24rpx 20rpx;
+  box-shadow: 0 12rpx 28rpx rgba(42, 34, 28, 0.06);
+}
+
+.quick-kicker {
+  display: block;
+  font-size: 18rpx;
+  letter-spacing: 3rpx;
+  color: #b83232;
+}
+
+.quick-title {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2a221c;
+  line-height: 1.35;
+}
+
 .section {
-  margin-bottom: 40rpx;
-  padding: 0 30rpx;
+  margin: 0 24rpx 24rpx;
+  padding: 30rpx 24rpx;
+  background: rgba(255, 253, 251, 0.94);
+  border-radius: 28rpx;
+  box-shadow: 0 12rpx 30rpx rgba(42, 34, 28, 0.06);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30rpx;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
 }
 
 .section-header-right {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .section-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-  position: relative;
-  padding-bottom: 12rpx;
-}
-
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 60rpx;
-  height: 4rpx;
-  background-color: #c41e3a;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2a221c;
 }
 
 .section-count {
-  font-size: 24rpx;
-  color: #999;
+  font-size: 23rpx;
+  color: #9a928a;
 }
 
 .more-link {
-  font-size: 28rpx;
-  color: #c41e3a;
+  font-size: 24rpx;
+  color: #b83232;
 }
 
-/* 收藏列表 */
-.collection-list {
+.empty-panel {
+  padding: 28rpx 20rpx;
+  text-align: center;
+  background: #f7f2eb;
+  border-radius: 20rpx;
+  color: #968b80;
+  font-size: 25rpx;
+}
+
+.collection-list,
+.booking-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 18rpx;
 }
 
-.collection-item {
-  background: white;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
+.collection-item,
+.booking-item {
+  background: #fff;
+  border-radius: 22rpx;
+  padding: 20rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
 }
 
 .collection-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 12rpx;
-  margin-right: 24rpx;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 18rpx;
+  margin-right: 20rpx;
 }
 
-.collection-content {
+.collection-content,
+.booking-content {
   flex: 1;
+  min-width: 0;
 }
 
-.collection-title {
+.collection-title,
+.booking-title {
+  display: block;
   font-size: 28rpx;
-  font-weight: bold;
-  color: #333;
-  display: block;
-  margin-bottom: 8rpx;
+  font-weight: 700;
+  color: #2a221c;
 }
 
-.collection-level {
-  font-size: 22rpx;
-  color: #999;
+.collection-level,
+.booking-time {
   display: block;
-  margin-bottom: 8rpx;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #8f857b;
 }
 
 .collection-desc {
-  font-size: 24rpx;
-  color: #666;
-  line-height: 1.4;
+  display: block;
+  margin-top: 10rpx;
+  font-size: 23rpx;
+  line-height: 1.5;
+  color: #6f665e;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -216,81 +241,28 @@
   -webkit-box-orient: vertical;
 }
 
-.remove-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  width: 40rpx;
-  height: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-}
-
-.remove-btn:active {
-  color: #c41e3a;
-}
-
-
-/* 预约列表 */
-.booking-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.booking-item {
-  background: white;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-}
-
-.master-avatar {
-  width: 80rpx;
-  height: 80rpx;
+.master-avatar,
+.master-avatar-placeholder {
+  width: 82rpx;
+  height: 82rpx;
   border-radius: 50%;
-  margin-right: 24rpx;
+  margin-right: 18rpx;
+  flex-shrink: 0;
 }
 
 .master-avatar-placeholder {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  margin-right: 24rpx;
-  background-color: #f0e6d2;
+  background: #f0e6d2;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .avatar-placeholder-icon {
-  font-size: 36rpx;
-}
-
-.booking-content {
-  flex: 1;
-}
-
-.booking-title {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #333;
-  display: block;
-  margin-bottom: 8rpx;
-}
-
-.booking-time {
-  font-size: 24rpx;
-  color: #666;
-  display: block;
-  margin-bottom: 8rpx;
+  font-size: 34rpx;
 }
 
 .booking-status {
+  margin-top: 10rpx;
   font-size: 22rpx;
   padding: 8rpx 16rpx;
   border-radius: 16rpx;
@@ -298,261 +270,125 @@
 }
 
 .booking-status.confirmed {
-  background-color: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.12);
+  color: #2f8f52;
 }
 
 .booking-status.pending {
-  background-color: rgba(255, 193, 7, 0.1);
-  color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.12);
+  color: #bb8a00;
 }
 
 .cancel-btn {
-  padding: 16rpx 24rpx;
+  padding: 14rpx 20rpx;
   font-size: 24rpx;
   white-space: nowrap;
 }
 
-/* 功能菜单 */
-.menu-section {
-  background: white;
-  margin: 20rpx 30rpx;
-  border-radius: 20rpx;
-  overflow: hidden;
-  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  padding: 32rpx 40rpx;
-  border-bottom: 2rpx solid #f5f5f5;
-}
-
-.menu-item:last-child {
-  border-bottom: none;
-}
-
-.menu-icon {
-  font-size: 40rpx;
-  margin-right: 24rpx;
-  width: 40rpx;
-  text-align: center;
-}
-
-.menu-text {
-  flex: 1;
-  font-size: 28rpx;
-  color: #333;
-}
-
-.menu-arrow {
-  font-size: 24rpx;
-  color: #999;
-}
-
-/* 图标字体 */
-.iconfont {
-  font-size: 32rpx;
-}
-
-.icon-settings::before {
-  content: '⚙️';
-}
-
-.icon-close::before {
-  content: '✕';
-}
-
-/* 修改个人信息弹窗 */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  z-index: 20;
+  background: rgba(19, 15, 12, 0.45);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  align-items: flex-end;
 }
 
 .modal-content {
-  background: white;
-  border-radius: 24rpx;
-  width: 90%;
-  max-width: 600rpx;
-  max-height: 80vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  background: #fffdf9;
+  border-radius: 30rpx 30rpx 0 0;
+  padding: 28rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 40rpx;
-  border-bottom: 2rpx solid #f5f5f5;
+  margin-bottom: 24rpx;
 }
 
 .modal-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2a221c;
 }
 
 .modal-close {
-  font-size: 48rpx;
-  color: #999;
+  font-size: 44rpx;
+  color: #8f857b;
   line-height: 1;
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-body {
-  padding: 40rpx;
-  flex: 1;
 }
 
 .form-item {
-  margin-bottom: 40rpx;
-}
-
-.form-item:last-child {
-  margin-bottom: 0;
+  margin-bottom: 20rpx;
 }
 
 .form-label {
-  font-size: 28rpx;
-  color: #333;
   display: block;
-  margin-bottom: 16rpx;
-  font-weight: 500;
-}
-
-.form-input {
-  width: 100%;
-  padding: 24rpx;
-  border: 2rpx solid #e0e0e0;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #333;
-  background-color: #fafafa;
-}
-
-.form-input:focus {
-  border-color: #c41e3a;
-  background-color: white;
-}
-
-.form-textarea {
-  width: 100%;
-  min-height: 120rpx;
-  padding: 24rpx;
-  border: 2rpx solid #e0e0e0;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #333;
-  background-color: #fafafa;
-}
-
-.form-textarea:focus {
-  border-color: #c41e3a;
-  background-color: white;
+  margin-bottom: 12rpx;
+  font-size: 25rpx;
+  color: #544b43;
 }
 
 .avatar-upload {
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: 18rpx;
 }
 
 .avatar-preview {
-  width: 120rpx;
-  height: 120rpx;
+  width: 92rpx;
+  height: 92rpx;
   border-radius: 50%;
-  border: 2rpx solid #e0e0e0;
+}
+
+.btn-upload,
+.btn-cancel,
+.btn-confirm {
+  border: none;
 }
 
 .btn-upload {
-  padding: 20rpx 32rpx;
-  font-size: 26rpx;
-  background-color: #f5f5f5;
-  color: #333;
-  border-radius: 12rpx;
-  border: none;
+  background: #f1e8dc;
+  color: #6f5d4d;
+  border-radius: 18rpx;
+  font-size: 24rpx;
+  padding: 0 22rpx;
 }
 
-.btn-upload:active {
-  background-color: #e0e0e0;
+.form-input,
+.form-textarea {
+  width: 100%;
+  background: #f8f3ec;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(139, 111, 73, 0.12);
+  padding: 20rpx 22rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  color: #2a221c;
+}
+
+.form-textarea {
+  min-height: 180rpx;
 }
 
 .modal-footer {
-  display: flex;
-  gap: 20rpx;
-  padding: 40rpx;
-  border-top: 2rpx solid #f5f5f5;
-}
-
-.btn-cancel,
-.btn-confirm {
-  flex: 1;
-  padding: 24rpx;
-  font-size: 28rpx;
-  border-radius: 12rpx;
-  border: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-top: 24rpx;
 }
 
 .btn-cancel {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-.btn-cancel:active {
-  background-color: #e0e0e0;
+  background: #f1e8dc;
+  color: #6f5d4d;
+  border-radius: 20rpx;
 }
 
 .btn-confirm {
-  background-color: #c41e3a;
-  color: white;
-}
-
-.btn-confirm:active {
-  background-color: #a01a2e;
-}
-
-
-/* 响应式调整 */
-@media (max-width: 750rpx) {
-  .collection-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .collection-image {
-    width: 100%;
-    height: 200rpx;
-    margin-right: 0;
-    margin-bottom: 20rpx;
-  }
-  
-  .booking-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .master-avatar {
-    margin-right: 0;
-    margin-bottom: 20rpx;
-  }
-  
-  .cancel-btn {
-    width: 100%;
-    margin-top: 20rpx;
-  }
+  background: linear-gradient(135deg, #b83232 0%, #d3523f 100%);
+  color: #fff;
+  border-radius: 20rpx;
 }

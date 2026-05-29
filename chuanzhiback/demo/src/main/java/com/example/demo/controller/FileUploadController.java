@@ -51,6 +51,16 @@ public class FileUploadController {
                     subDir = "avatars/";
                 } else if ("post".equals(type)) {
                     subDir = "posts/";
+                } else if ("3d".equals(type)) {
+                    subDir = "3D/";
+                }
+            }
+
+            if ("3d".equals(type)) {
+                String originalFilename = file.getOriginalFilename();
+                String lowerName = originalFilename == null ? "" : originalFilename.toLowerCase();
+                if (!(lowerName.endsWith(".glb") || lowerName.endsWith(".gltf"))) {
+                    return ResponseEntity.ok(Result.error("3D 模型仅支持 .glb 或 .gltf 文件"));
                 }
             }
             

@@ -62,7 +62,7 @@
   display: block;
   font-size: 72rpx;
   font-weight: 700;
-  letter-spacing: 20rpx;
+  letter-spacing: 12rpx;
   color: #f8f0e4;
   line-height: 1.1;
   margin-bottom: 12rpx;
@@ -297,8 +297,8 @@
 }
 
 .route-card.r4 {
-  background: linear-gradient(160deg, #fff8f0 0%, #ffe4c4 100%);
-  border: 1rpx solid rgba(180, 100, 40, 0.15);
+  background: linear-gradient(160deg, #f7fbff 0%, #dcefff 100%);
+  border: 1rpx solid rgba(58, 110, 165, 0.15);
 }
 
 .route-tag {
@@ -628,6 +628,7 @@
   font-size: 24rpx;
   color: rgba(245, 230, 200, 0.78);
   line-height: 1.45;
+  max-width: 88%;
 }
 
 .ar-cta-btn {

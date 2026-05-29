@@ -120,6 +120,16 @@
                 controls-position="right"
                 style="width: 100%"
               />
+              <FileUpload
+                v-else-if="field.type === 'file'"
+                v-model="formModel[field.prop]"
+                :action="field.action || '/api/files/upload'"
+                :data="field.data || {}"
+                :limit="field.limit || 1"
+                :fileSize="field.fileSize || 50"
+                :fileType="field.fileType || ['glb', 'gltf']"
+                :isShowTip="field.isShowTip !== false"
+              />
               <el-switch
                 v-else-if="field.type === 'switch'"
                 v-model="formModel[field.prop]"

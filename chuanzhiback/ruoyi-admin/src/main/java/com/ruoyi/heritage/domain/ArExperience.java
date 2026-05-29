@@ -4,16 +4,14 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
-/** AR体验 — 对应 ar_experience 表 */
+/** 3D沉浸演示 — 对应 ar_experience 表 */
 @TableName("ar_experience")
 public class ArExperience {
     @TableId(type = IdType.AUTO) private Long id;
     private String name;
     private String description;
     private String imageUrl;
-    @TableField(exist = false)
     private String modelUrl;
-    @TableField(exist = false)
     private String instructions;
     private Boolean isHot;
     @TableField(fill = FieldFill.INSERT) @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") private Date createTime;

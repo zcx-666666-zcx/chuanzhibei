@@ -1,5 +1,5 @@
 -- =============================================================================
--- 传之贝统一数据库初始化脚本
+-- 传智杯统一数据库初始化脚本
 -- 说明：
 --   1. 统一维护小程序业务表与后台管理系统所需 sys_* 表。
 --   2. 全部使用 IF NOT EXISTS / ON DUPLICATE KEY UPDATE，支持重复执行。
@@ -72,9 +72,43 @@ CREATE TABLE IF NOT EXISTS ar_experience (
     update_time DATETIME(6) NULL,
     description VARCHAR(255) NULL,
     image_url VARCHAR(255) NULL,
+    model_url VARCHAR(500) NULL,
+    instructions TEXT NULL,
     is_hot BIT(1) NULL,
     name VARCHAR(255) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @ar_model_url_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'ar_experience'
+      AND COLUMN_NAME = 'model_url'
+);
+SET @ar_model_url_sql := IF(
+    @ar_model_url_exists = 0,
+    'ALTER TABLE ar_experience ADD COLUMN model_url VARCHAR(500) NULL AFTER image_url',
+    'SELECT 1'
+);
+PREPARE stmt FROM @ar_model_url_sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @ar_instructions_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'ar_experience'
+      AND COLUMN_NAME = 'instructions'
+);
+SET @ar_instructions_sql := IF(
+    @ar_instructions_exists = 0,
+    'ALTER TABLE ar_experience ADD COLUMN instructions TEXT NULL AFTER model_url',
+    'SELECT 1'
+);
+PREPARE stmt FROM @ar_instructions_sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 CREATE TABLE IF NOT EXISTS banner (
     id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -437,14 +471,14 @@ VALUES (1, 1)
 ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
 
 INSERT INTO sys_dept (dept_id, parent_id, ancestors, dept_name, order_num, leader, status, create_time)
-VALUES (100, 0, '0', '传之贝科技', 1, '管理员', '0', NOW()),
+VALUES (100, 0, '0', '传智杯项目组', 1, '管理员', '0', NOW()),
        (101, 100, '0,100', '研发部门', 1, '管理员', '0', NOW()),
        (102, 100, '0,100', '运营部门', 2, '管理员', '0', NOW())
 ON DUPLICATE KEY UPDATE update_time = NOW();
 
 INSERT INTO app_client_config (id, config_key, config_name, config_value, config_type, status, sort_order, remark)
 VALUES
-    (1, 'appName', '小程序名称', '传之贝', 'string', '0', 1, '小程序展示名称'),
+    (1, 'appName', '小程序名称', '传智杯', 'string', '0', 1, '小程序展示名称'),
     (2, 'homeNewsSize', '首页新闻条数', '5', 'number', '0', 2, '首页聚合资讯数量'),
     (3, 'homeRecommendSize', '首页推荐条数', '4', 'number', '0', 3, '首页推荐非遗数量'),
     (4, 'profileCollectionPreviewSize', '个人中心收藏预览数', '3', 'number', '0', 4, '个人中心展示收藏预览数量'),
@@ -491,7 +525,7 @@ VALUES (1, '系统管理', 0, 1, 'system', NULL, 1, 'M', '0', '0', 'system', NUL
        (503, '轮播管理', 2, 4, 'banner', 'business/banner/index', 1, 'C', '0', '0', 'picture', 'banner:list'),
        (504, '视频管理', 2, 5, 'video', 'business/video/index', 1, 'C', '0', '0', 'video', 'video:list'),
        (505, '活动管理', 2, 6, 'activity', 'business/activity/index', 1, 'C', '0', '0', 'date-range', 'activity:list'),
-       (506, 'AR体验管理', 2, 7, 'ar', 'business/ar/index', 1, 'C', '0', '0', 'guide', 'ar:list'),
+       (506, '3D沉浸演示管理', 2, 7, 'ar', 'business/ar/index', 1, 'C', '0', '0', 'guide', 'ar:list'),
        (507, '用户管理', 2, 8, 'wxuser', 'business/wxuser/index', 1, 'C', '0', '0', 'user', 'wxuser:list'),
        (508, '预约管理', 2, 9, 'booking', 'business/booking/index', 1, 'C', '0', '0', 'time', 'booking:list'),
        (1000, '用户查询', 100, 1, '', NULL, 1, 'F', '0', '0', NULL, 'system:user:query'),
@@ -532,10 +566,10 @@ VALUES (1, '系统管理', 0, 1, 'system', NULL, 1, 'M', '0', '0', 'system', NUL
        (5021, '活动新增', 505, 2, '', NULL, 1, 'F', '0', '0', NULL, 'activity:add'),
        (5022, '活动修改', 505, 3, '', NULL, 1, 'F', '0', '0', NULL, 'activity:edit'),
        (5023, '活动删除', 505, 4, '', NULL, 1, 'F', '0', '0', NULL, 'activity:remove'),
-       (5024, 'AR查询', 506, 1, '', NULL, 1, 'F', '0', '0', NULL, 'ar:query'),
-       (5025, 'AR新增', 506, 2, '', NULL, 1, 'F', '0', '0', NULL, 'ar:add'),
-       (5026, 'AR修改', 506, 3, '', NULL, 1, 'F', '0', '0', NULL, 'ar:edit'),
-       (5027, 'AR删除', 506, 4, '', NULL, 1, 'F', '0', '0', NULL, 'ar:remove'),
+       (5024, '沉浸演示查询', 506, 1, '', NULL, 1, 'F', '0', '0', NULL, 'ar:query'),
+       (5025, '沉浸演示新增', 506, 2, '', NULL, 1, 'F', '0', '0', NULL, 'ar:add'),
+       (5026, '沉浸演示修改', 506, 3, '', NULL, 1, 'F', '0', '0', NULL, 'ar:edit'),
+       (5027, '沉浸演示删除', 506, 4, '', NULL, 1, 'F', '0', '0', NULL, 'ar:remove'),
        (5028, '小程序用户查询', 507, 1, '', NULL, 1, 'F', '0', '0', NULL, 'wxuser:query'),
        (5029, '小程序用户删除', 507, 2, '', NULL, 1, 'F', '0', '0', NULL, 'wxuser:remove'),
        (5030, '预约查询', 508, 1, '', NULL, 1, 'F', '0', '0', NULL, 'booking:query'),
@@ -555,6 +589,26 @@ SET parent_id = CASE
         ELSE order_num
     END
 WHERE menu_id IN (104, 105);
+
+UPDATE sys_dept
+SET dept_name = CASE
+        WHEN dept_id = 100 THEN '传智杯项目组'
+        WHEN dept_id = 101 THEN '研发部门'
+        WHEN dept_id = 102 THEN '运营部门'
+        ELSE dept_name
+    END
+WHERE dept_id IN (100, 101, 102);
+
+UPDATE sys_menu
+SET menu_name = CASE
+        WHEN menu_id = 506 THEN '3D沉浸演示管理'
+        WHEN menu_id = 5024 THEN '沉浸演示查询'
+        WHEN menu_id = 5025 THEN '沉浸演示新增'
+        WHEN menu_id = 5026 THEN '沉浸演示修改'
+        WHEN menu_id = 5027 THEN '沉浸演示删除'
+        ELSE menu_name
+    END
+WHERE menu_id IN (506, 5024, 5025, 5026, 5027);
 
 INSERT INTO sys_role_menu (role_id, menu_id)
 SELECT 1, menu_id FROM sys_menu

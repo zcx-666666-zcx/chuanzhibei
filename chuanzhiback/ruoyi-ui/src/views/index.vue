@@ -2,7 +2,7 @@
   <div class="dashboard">
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">传之贝后台管理中心</p>
+        <p class="eyebrow">传智杯后台管理中心</p>
         <h1>非遗内容、用户预约、运营数据统一管理</h1>
         <p class="summary">
           当前后台已接入若依 Vue3 管理壳，配套 Spring Boot + MySQL + Redis 管理接口，
@@ -31,14 +31,14 @@
         <ul>
           <li>系统用户、角色、菜单、部门管理</li>
           <li>非遗、传承人、新闻、轮播、视频管理</li>
-          <li>活动、AR 体验、小程序用户、预约管理</li>
+          <li>活动、3D 沉浸演示、小程序用户、预约管理</li>
         </ul>
       </article>
       <article class="panel">
         <h3>运行说明</h3>
         <ul>
           <li>后台接口默认地址：`http://127.0.0.1:8080`</li>
-          <li>Redis 建议使用 Docker 容器 `redis-chuanzhibei`</li>
+          <li>Redis 建议使用 Docker 容器 `redis-chuanzhibei` 或自定义名称</li>
           <li>数据库缺失表会在 `ruoyi-admin` 启动时自动补齐</li>
         </ul>
       </article>

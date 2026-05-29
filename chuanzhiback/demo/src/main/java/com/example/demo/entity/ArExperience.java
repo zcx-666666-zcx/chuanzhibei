@@ -9,6 +9,8 @@ public class ArExperience extends BaseEntity {
     private String name;
     private String description;
     private String imageUrl;
+    private String modelUrl;
+    private String instructions;
     private Boolean isHot;
     
     // Constructors
@@ -16,10 +18,12 @@ public class ArExperience extends BaseEntity {
         super();
     }
     
-    public ArExperience(String name, String description, String imageUrl, Boolean isHot) {
+    public ArExperience(String name, String description, String imageUrl, String modelUrl, String instructions, Boolean isHot) {
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
+        this.modelUrl = modelUrl;
+        this.instructions = instructions;
         this.isHot = isHot;
     }
     
@@ -46,6 +50,22 @@ public class ArExperience extends BaseEntity {
     
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getModelUrl() {
+        return modelUrl;
+    }
+
+    public void setModelUrl(String modelUrl) {
+        this.modelUrl = modelUrl;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
     }
     
     public Boolean getIsHot() {

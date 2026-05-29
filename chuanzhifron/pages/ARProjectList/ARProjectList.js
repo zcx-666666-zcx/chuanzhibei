@@ -37,7 +37,7 @@ Page({
         loading: false
       })
       wx.showToast({
-        title: err.message || '加载AR项目失败',
+        title: err.message || '加载沉浸项目失败',
         icon: 'none'
       })
       throw err
@@ -51,21 +51,8 @@ Page({
 
   startARExperience(e) {
     const item = e && e.currentTarget ? e.currentTarget.dataset.item : e
-    wx.getSetting({
-      success: (res) => {
-        if (res.authSetting['scope.camera'] === false) {
-          wx.showModal({
-            title: '需要相机权限',
-            content: 'AR体验需要访问您的相机，请在设置中开启相机权限',
-            showCancel: false,
-            confirmText: '知道了'
-          })
-          return
-        }
-        wx.navigateTo({
-          url: `/pages/ARPlay/ARPlay?id=${item.id}&videoUrl=${encodeURIComponent(item.videoUrl || '')}`
-        })
-      }
+    wx.navigateTo({
+      url: `/pages/xrDemo3D/xrDemo3D?title=${encodeURIComponent(item.name || '3D沉浸演示')}`
     })
   },
 

@@ -9,7 +9,7 @@
     <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>chuanzhibei-parent</name>
-    <description>传之贝 - 非遗传承平台（父工程）</description>
+    <description>传智杯 - 非遗传承平台（父工程）</description>
 
     <modules>
         <module>demo</module>

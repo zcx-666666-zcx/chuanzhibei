@@ -1,59 +1,81 @@
-<!-- pages/login/login.wxml -->
 <view class="page">
-  <view class="content">
-    <view class="brand">
-      <image class="logo" src="{{logoUrl}}" mode="aspectFill" binderror="onLogoError"></image>
-      <text class="title">欢迎回来</text>
-      <text class="subtitle">登录后继续探索非遗文化</text>
+  <view class="hero-panel">
+    <view class="hero-copy">
+      <text class="hero-kicker">CHUANZHI CUP</text>
+      <text class="hero-title">传智杯非遗数字传承平台</text>
+      <text class="hero-subtitle">以企业级产品标准梳理内容、体验与管理后台，让比赛作品真正具备完整的产品叙事。</text>
+    </view>
+    <view class="hero-badge">
+      <image class="hero-logo" src="{{logoUrl}}" mode="aspectFill" binderror="onLogoError"></image>
+      <text class="hero-badge-text">数字化展示 · 内容运营 · 用户互动</text>
+    </view>
+  </view>
+
+  <view class="auth-card">
+    <view class="section-head">
+      <text class="section-title">欢迎登录</text>
+      <text class="section-desc">登录后可查看收藏、预约和个性化学习内容</text>
     </view>
 
-    <view class="card">
-      <view class="tabs" wx:if="{{clientConfig.usernameLoginEnabled !== false && clientConfig.wechatLoginEnabled !== false}}">
-        <view class="tab {{currentTab === 0 ? 'active' : ''}}" data-tab="0" bindtap="switchTabHandler">账号登录</view>
-        <view class="tab {{currentTab === 1 ? 'active' : ''}}" data-tab="1" bindtap="switchTabHandler">微信登录</view>
+    <view class="tabs" wx:if="{{clientConfig.usernameLoginEnabled !== false && clientConfig.wechatLoginEnabled !== false}}">
+      <view class="tab {{currentTab === 0 ? 'active' : ''}}" data-tab="0" bindtap="switchTabHandler">账号登录</view>
+      <view class="tab {{currentTab === 1 ? 'active' : ''}}" data-tab="1" bindtap="switchTabHandler">微信登录</view>
+    </view>
+
+    <view class="form-content" wx:if="{{clientConfig.usernameLoginEnabled !== false && currentTab === 0}}">
+      <view class="input-group">
+        <text class="input-label">用户名</text>
+        <input
+          class="form-input"
+          placeholder="请输入用户名"
+          value="{{username}}"
+          bindinput="onUsernameInput"
+        />
       </view>
 
-      <view class="form-content" wx:if="{{clientConfig.usernameLoginEnabled !== false && currentTab === 0}}">
-        <view class="input-group">
-          <text class="input-label">用户名</text>
-          <input
-            class="form-input"
-            placeholder="2～20 位，中文、字母、数字或下划线"
-            value="{{username}}"
-            bindinput="onUsernameInput"
-          />
-        </view>
-
-        <view class="input-group">
-          <text class="input-label">密码</text>
-          <input
-            class="form-input"
-            placeholder="至少 6 位"
-            password
-            value="{{password}}"
-            bindinput="onPasswordInput"
-          />
-        </view>
-
-        <button class="primary-btn" bindtap="onLogin" loading="{{submitting}}" disabled="{{submitting}}">
-          {{submitting ? '登录中…' : '登录'}}
-        </button>
-
-        <view class="footer">
-          <text class="link" bindtap="goToRegister">立即注册</text>
-          <text class="divider">|</text>
-          <text class="muted-text">忘记密码请联系管理员</text>
-        </view>
+      <view class="input-group">
+        <text class="input-label">密码</text>
+        <input
+          class="form-input"
+          placeholder="请输入密码"
+          password
+          value="{{password}}"
+          bindinput="onPasswordInput"
+        />
       </view>
 
-      <view class="form-content wechat-area" wx:if="{{clientConfig.wechatLoginEnabled !== false && currentTab === 1}}">
-        <view class="wechat-badge">微</view>
-        <text class="wechat-title">微信快速登录</text>
-        <text class="wechat-desc">演示环境将使用登录凭证生成账号；正式环境需配置 code2Session</text>
-        <button class="wechat-btn" bindtap="onWechatLogin" loading="{{submitting}}" disabled="{{submitting}}">
-          微信登录
-        </button>
-        <text class="link center-link" bindtap="switchTabHandler" data-tab="0" wx:if="{{clientConfig.usernameLoginEnabled !== false}}">使用账号密码登录</text>
+      <button class="primary-btn" bindtap="onLogin" loading="{{submitting}}" disabled="{{submitting}}">
+        {{submitting ? '登录中…' : '进入平台'}}
+      </button>
+
+      <view class="meta-row">
+        <text class="meta-link" bindtap="goToRegister">注册新账号</text>
+        <text class="meta-text">忘记密码请联系管理员</text>
+      </view>
+    </view>
+
+    <view class="form-content wechat-area" wx:if="{{clientConfig.wechatLoginEnabled !== false && currentTab === 1}}">
+      <view class="wechat-mark">微</view>
+      <text class="wechat-title">微信快捷登录</text>
+      <text class="wechat-desc">适合比赛演示和真机联调，正式环境可继续接真实用户体系。</text>
+      <button class="primary-btn wechat-btn" bindtap="onWechatLogin" loading="{{submitting}}" disabled="{{submitting}}">
+        微信授权登录
+      </button>
+      <text class="meta-link center-link" bindtap="switchTabHandler" data-tab="0" wx:if="{{clientConfig.usernameLoginEnabled !== false}}">改用账号密码登录</text>
+    </view>
+
+    <view class="tips-panel">
+      <view class="tip-item">
+        <text class="tip-label">内容浏览</text>
+        <text class="tip-value">新闻、名录、视频、活动统一入口</text>
+      </view>
+      <view class="tip-item">
+        <text class="tip-label">互动能力</text>
+        <text class="tip-value">收藏、预约、学习进度联动个人中心</text>
+      </view>
+      <view class="tip-item">
+        <text class="tip-label">沉浸能力</text>
+        <text class="tip-value">3D沉浸演示与后台内容管理同步</text>
       </view>
     </view>
   </view>

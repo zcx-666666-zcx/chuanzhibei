@@ -13,7 +13,7 @@
     <artifactId>ruoyi-admin</artifactId>
     <packaging>jar</packaging>
     <name>ruoyi-admin</name>
-    <description>传之贝 - RuoYi 后台管理系统</description>
+    <description>传智杯 - RuoYi 后台管理系统</description>
 
     <dependencies>
         <!-- Spring Boot Web -->

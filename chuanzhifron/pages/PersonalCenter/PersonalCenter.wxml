@@ -1,38 +1,55 @@
-<!--PersonalCenter.wxml · 与首页同色纸感 -->
 <view class="page">
   <view class="bg-layer" aria-hidden="true"></view>
-  <!-- 用户信息卡片 -->
+
   <view class="user-card" bindtap="onUserCardTap">
-    <view class="user-header">
-      <image src="{{userInfo.avatar}}" class="user-avatar" mode="aspectFill" binderror="onAvatarError" lazy-load="{{true}}"></image>
-      <view class="user-info">
-        <text class="user-name">{{userInfo.name || '访客'}}</text>
-        <text class="user-title">{{userInfo.title || '非遗文化爱好者'}}</text>
+    <view class="user-top">
+      <view class="user-header">
+        <image src="{{userInfo.avatar}}" class="user-avatar" mode="aspectFill" binderror="onAvatarError" lazy-load="{{true}}"></image>
+        <view class="user-info">
+          <text class="user-name">{{userInfo.name || '访客'}}</text>
+          <text class="user-title">{{userInfo.title || '非遗文化爱好者'}}</text>
+        </view>
       </view>
+      <view class="edit-entry">编辑资料</view>
     </view>
-    
+
     <view class="user-stats">
       <view class="stat-item">
         <text class="stat-number">{{userStats.collections}}</text>
-        <text class="stat-label">我的收藏</text>
+        <text class="stat-label">收藏项目</text>
       </view>
       <view class="stat-item">
         <text class="stat-number">{{userStats.bookings}}</text>
-        <text class="stat-label">预约体验</text>
+        <text class="stat-label">预约记录</text>
       </view>
     </view>
   </view>
 
-  <!-- 我的收藏 -->
+  <view class="quick-panel">
+    <view class="quick-item" bindtap="viewAllCollections">
+      <text class="quick-kicker">COLLECTION</text>
+      <text class="quick-title">我的收藏</text>
+    </view>
+    <view class="quick-item" bindtap="viewAllBookings">
+      <text class="quick-kicker">BOOKING</text>
+      <text class="quick-title">我的预约</text>
+    </view>
+    <view class="quick-item" data-type="help" bindtap="onMenuTap">
+      <text class="quick-kicker">HELP</text>
+      <text class="quick-title">联调帮助</text>
+    </view>
+  </view>
+
   <view class="section">
     <view class="section-header">
-      <text class="section-title">我的收藏</text>
-      <view class="section-header-right" wx:if="{{collections.length > 3}}">
+      <text class="section-title">收藏预览</text>
+      <view class="section-header-right" wx:if="{{collections.length > 0}}">
         <text class="section-count">{{collections.length}}项</text>
-        <navigator url="/pages/collectionList/collectionList" class="more-link">查看更多</navigator>
+        <text class="more-link" bindtap="viewAllCollections">查看全部</text>
       </view>
     </view>
-    <view class="collection-list">
+    <view wx:if="{{displayCollections.length === 0}}" class="empty-panel">暂无收藏内容</view>
+    <view wx:else class="collection-list">
       <view class="collection-item" wx:for="{{displayCollections}}" wx:key="id" bindtap="onCollectionTap" data-item="{{item}}">
         <image src="{{item.image || item.imageUrl || userInfo.avatar}}" class="collection-image" mode="aspectFill" lazy-load="{{true}}"></image>
         <view class="collection-content">
@@ -40,18 +57,17 @@
           <text class="collection-level">{{item.level || item.heritageLevel}}</text>
           <text class="collection-desc">{{item.description || item.heritageDescription}}</text>
         </view>
-        
       </view>
     </view>
   </view>
 
-  <!-- 预约体验 -->
   <view class="section">
     <view class="section-header">
-      <text class="section-title">预约体验</text>
+      <text class="section-title">预约记录</text>
       <text class="more-link" bindtap="viewAllBookings" wx:if="{{bookings.length > 0}}">查看全部</text>
     </view>
-    <view class="booking-list">
+    <view wx:if="{{bookings.length === 0}}" class="empty-panel">暂无预约记录</view>
+    <view wx:else class="booking-list">
       <view class="booking-item" wx:for="{{bookings}}" wx:key="id">
         <image wx:if="{{item.masterAvatar}}" src="{{item.masterAvatar}}" class="master-avatar" mode="aspectFill" lazy-load="{{true}}"></image>
         <view wx:else class="master-avatar-placeholder">
@@ -62,23 +78,19 @@
           <text class="booking-time">{{item.time}}</text>
           <text class="booking-status {{item.status}}">{{item.statusText}}</text>
         </view>
-        <button wx:if="{{item.status === 'pending' || item.status === 'confirmed'}}" class="btn-secondary cancel-btn" bindtap="cancelBooking" data-item="{{item}}">
-          取消预约
-        </button>
+        <button wx:if="{{item.status === 'pending' || item.status === 'confirmed'}}" class="btn-secondary cancel-btn" bindtap="cancelBooking" data-item="{{item}}">取消</button>
       </view>
     </view>
   </view>
 
-  <!-- 修改个人信息弹窗 -->
   <view class="modal-overlay" wx:if="{{showEditModal}}" bindtap="closeEditModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">修改个人信息</text>
         <text class="modal-close" bindtap="closeEditModal">×</text>
       </view>
-      
+
       <view class="modal-body">
-        <!-- 头像选择 -->
         <view class="form-item">
           <text class="form-label">头像</text>
           <view class="avatar-upload">
@@ -86,25 +98,22 @@
             <button class="btn-upload" bindtap="chooseAvatar">选择头像</button>
           </view>
         </view>
-        
-        <!-- 用户名称 -->
+
         <view class="form-item">
           <text class="form-label">用户名称</text>
           <input class="form-input" placeholder="请输入用户名称" value="{{editForm.name}}" bindinput="onNameInput" />
         </view>
-        
-        <!-- 个人签名 -->
+
         <view class="form-item">
           <text class="form-label">个人签名</text>
           <textarea class="form-textarea" placeholder="请输入个人签名" value="{{editForm.signature}}" bindinput="onSignatureInput" maxlength="50"></textarea>
         </view>
       </view>
-      
+
       <view class="modal-footer">
         <button class="btn-cancel" bindtap="closeEditModal">取消</button>
         <button class="btn-confirm" bindtap="saveUserInfo">保存</button>
       </view>
     </view>
   </view>
-
 </view>

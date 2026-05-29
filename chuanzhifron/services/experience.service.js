@@ -300,7 +300,7 @@ function listArProjects() {
     }
   }).then((res) => {
     if (!res.success) {
-      throw new Error(res.message || '获取AR项目失败')
+      throw new Error(res.message || '获取沉浸项目失败')
     }
     const list = res.data?.list || res.data || []
     return list.map((item, index) => mapArProject(item, index))

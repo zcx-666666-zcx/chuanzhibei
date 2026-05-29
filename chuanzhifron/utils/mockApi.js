@@ -309,7 +309,7 @@ function mockRequest(options) {
   }
   if (method === 'GET' && path === '/app/config') {
     return ok({
-      appName: '传之贝',
+      appName: '传智杯',
       homeNewsSize: 5,
       homeRecommendSize: 4,
       profileCollectionPreviewSize: 3,
@@ -341,7 +341,7 @@ function mockRequest(options) {
         type: 'news'
       })),
       clientConfig: {
-        appName: '传之贝'
+        appName: '传智杯'
       }
     })
   }

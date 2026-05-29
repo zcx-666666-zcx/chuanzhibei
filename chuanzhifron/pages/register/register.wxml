@@ -1,73 +1,51 @@
-<!-- pages/register/register.wxml -->
 <view class="page">
-  <view class="content">
-    <view class="brand">
+  <view class="hero-panel">
+    <text class="hero-kicker">CREATE ACCOUNT</text>
+    <text class="hero-title">创建你的传智杯账号</text>
+    <text class="hero-subtitle">注册后即可同步收藏、预约、学习记录与个性化展示。</text>
+  </view>
+
+  <view class="form-card">
+    <view class="form-head">
       <image class="logo" src="{{logoUrl}}" mode="aspectFill" binderror="onLogoError"></image>
-      <text class="title">创建账号</text>
-      <text class="subtitle">开启你的非遗传承之旅</text>
+      <view class="form-head-copy">
+        <text class="form-title">基础信息</text>
+        <text class="form-desc">建议使用真实可记忆的账号信息，便于比赛演示与后台联调。</text>
+      </view>
     </view>
 
-    <view class="card">
-      <view class="input-group">
-        <text class="input-label">用户名</text>
-        <input
-          class="form-input"
-          placeholder="2～20 位，中文、字母、数字或下划线"
-          value="{{username}}"
-          bindinput="onUsernameInput"
-        />
-      </view>
+    <view class="input-group">
+      <text class="input-label">用户名</text>
+      <input class="form-input" placeholder="2～20 位中文、字母、数字或下划线" value="{{username}}" bindinput="onUsernameInput" />
+    </view>
 
-      <view class="input-group">
-        <text class="input-label">昵称（可选）</text>
-        <input
-          class="form-input"
-          placeholder="不填则与用户名相同，最长 32 字"
-          value="{{nickname}}"
-          bindinput="onNicknameInput"
-        />
-      </view>
+    <view class="input-group">
+      <text class="input-label">昵称</text>
+      <input class="form-input" placeholder="用于小程序展示，最长 32 字" value="{{nickname}}" bindinput="onNicknameInput" />
+    </view>
 
-      <view class="input-group">
-        <text class="input-label">密码</text>
-        <input
-          class="form-input"
-          placeholder="6～64 位"
-          password
-          value="{{password}}"
-          bindinput="onPasswordInput"
-        />
-      </view>
+    <view class="input-group">
+      <text class="input-label">密码</text>
+      <input class="form-input" placeholder="请设置 6～64 位密码" password value="{{password}}" bindinput="onPasswordInput" />
+    </view>
 
-      <view class="input-group">
-        <text class="input-label">确认密码</text>
-        <input
-          class="form-input"
-          placeholder="请再次输入密码"
-          password
-          value="{{confirmPassword}}"
-          bindinput="onConfirmPasswordInput"
-        />
-      </view>
+    <view class="input-group">
+      <text class="input-label">确认密码</text>
+      <input class="form-input" placeholder="请再次输入密码" password value="{{confirmPassword}}" bindinput="onConfirmPasswordInput" />
+    </view>
 
-      <view class="input-group">
-        <text class="input-label">邮箱（可选）</text>
-        <input
-          class="form-input"
-          placeholder="用于找回与通知"
-          value="{{email}}"
-          bindinput="onEmailInput"
-        />
-      </view>
+    <view class="input-group">
+      <text class="input-label">邮箱</text>
+      <input class="form-input" placeholder="可用于通知与账号找回" value="{{email}}" bindinput="onEmailInput" />
+    </view>
 
-      <button class="primary-btn" bindtap="onRegister" loading="{{submitting}}" disabled="{{submitting}}">
-        {{submitting ? '提交中…' : '注册'}}
-      </button>
+    <button class="primary-btn" bindtap="onRegister" loading="{{submitting}}" disabled="{{submitting}}">
+      {{submitting ? '提交中…' : '完成注册'}}
+    </button>
 
-      <view class="footer">
-        <text class="footer-text">已有账号？</text>
-        <text class="link" bindtap="goToLogin">返回登录</text>
-      </view>
+    <view class="footer">
+      <text class="footer-text">已有账号？</text>
+      <text class="footer-link" bindtap="goToLogin">返回登录</text>
     </view>
   </view>
 

@@ -1,4 +1,9 @@
 <view class="xr-wrap xr-wrap--pure">
+  <view class="xr-heading">
+    <text class="xr-heading-kicker">3D IMMERSIVE</text>
+    <text class="xr-heading-title">{{pageTitle}}</text>
+    <text wx:if="{{currentModelName}}" class="xr-heading-sub">{{currentModelName}}</text>
+  </view>
   <view wx:if="{{modelLoading}}" class="xr-loading">
     <text class="xr-loading-text">{{modelLoadHint || '准备模型…'}}</text>
   </view>

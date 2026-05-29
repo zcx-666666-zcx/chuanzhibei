@@ -2,10 +2,44 @@
   width: 100%;
   height: 100vh;
   background: #ebe8df;
+  position: relative;
 }
 
 .xr-wrap--pure {
   background: #ebe8df;
+}
+
+.xr-heading {
+  position: absolute;
+  left: 24rpx;
+  top: 24rpx;
+  z-index: 3;
+  padding: 18rpx 20rpx;
+  border-radius: 22rpx;
+  background: rgba(26, 20, 16, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.xr-heading-kicker {
+  display: block;
+  font-size: 18rpx;
+  letter-spacing: 3rpx;
+  color: rgba(245, 230, 200, 0.62);
+}
+
+.xr-heading-title {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #f8f0e4;
+}
+
+.xr-heading-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: rgba(248, 240, 228, 0.82);
 }
 
 .xr-loading {

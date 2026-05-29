@@ -44,7 +44,7 @@ Page({
         loading: false
       })
       wx.showToast({
-        title: err.message || '加载AR项目失败',
+        title: err.message || '加载沉浸项目失败',
         icon: 'none'
       })
     })
@@ -62,22 +62,9 @@ Page({
 
   onArProjectTap(e) {
     const item = e.currentTarget.dataset.item
-    if (!item || item.id == null) return
-    wx.getSetting({
-      success: (res) => {
-        if (res.authSetting['scope.camera'] === false) {
-          wx.showModal({
-            title: '需要相机权限',
-            content: 'AR体验需要访问您的相机，请在设置中开启相机权限',
-            showCancel: false,
-            confirmText: '知道了'
-          })
-          return
-        }
-        wx.navigateTo({
-          url: `/pages/ARPlay/ARPlay?id=${item.id}&videoUrl=${encodeURIComponent(item.videoUrl || '')}`
-        })
-      }
+    if (!item) return
+    wx.navigateTo({
+      url: `/pages/xrDemo3D/xrDemo3D?title=${encodeURIComponent(item.name || '3D沉浸演示')}`
     })
   },
 
@@ -108,28 +95,15 @@ Page({
   replayExperience(e) {
     const item = e.currentTarget.dataset.item
     wx.showModal({
-      title: '重新体验',
+      title: '重新查看',
       content: `确定要重新体验"${item.name}"吗？`,
       showCancel: true,
       cancelText: '取消',
       confirmText: '确定',
       success: (res) => {
         if (res.confirm) {
-          wx.getSetting({
-            success: (res) => {
-              if (res.authSetting['scope.camera'] === false) {
-                wx.showModal({
-                  title: '需要相机权限',
-                  content: 'AR体验需要访问您的相机，请在设置中开启相机权限',
-                  showCancel: false,
-                  confirmText: '知道了'
-                })
-                return
-              }
-              wx.navigateTo({
-                url: `/pages/ARPlay/ARPlay?id=${item.projectId}&videoUrl=${encodeURIComponent(item.videoUrl || '')}`
-              })
-            }
+          wx.navigateTo({
+            url: `/pages/xrDemo3D/xrDemo3D?title=${encodeURIComponent(item.name || '3D沉浸演示')}`
           })
         }
       }

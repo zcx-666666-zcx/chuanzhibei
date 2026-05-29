@@ -161,13 +161,21 @@ function handleUploadError(err) {
 
 // 上传成功回调
 function handleUploadSuccess(res, file) {
-  if (res.code === 200) {
+  const isRuoYiStyle = res && res.code === 200
+  const isMiniProgramStyle = res && res.success === true && res.data && res.data.url
+
+  if (isRuoYiStyle) {
     uploadList.value.push({ name: res.fileName, url: res.fileName })
+    uploadedSuccessfully()
+  } else if (isMiniProgramStyle) {
+    const url = res.data.url
+    const filename = res.data.filename || getFileName(url)
+    uploadList.value.push({ name: filename, url })
     uploadedSuccessfully()
   } else {
     number.value--
     proxy.$modal.closeLoading()
-    proxy.$modal.msgError(res.msg)
+    proxy.$modal.msgError(res.msg || res.message || '上传失败')
     proxy.$refs.fileUpload.handleRemove(file)
     uploadedSuccessfully()
   }

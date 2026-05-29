@@ -7,6 +7,7 @@
     "lint": "eslint \"utils/**/*.js\" \"services/**/*.js\" \"components/**/*.js\" \"pages/**/*.js\"",
     "format": "prettier --write \"**/*.{js,json,md,wxml,wxss}\"",
     "format:check": "prettier --check \"**/*.{js,json,md,wxml,wxss}\"",
+    "smoke:local": "../scripts/local-smoke.sh",
     "test": "jest --runInBand"
   },
   "devDependencies": {

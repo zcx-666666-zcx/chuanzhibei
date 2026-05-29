@@ -17,7 +17,7 @@
 
 ## 环境与联调配置
 
-- `utils/env.js`：`APP_ENV`（`development` / `production`）、`USE_MOCK_IN_DEVELOPMENT`、`PRODUCTION_API_BASE_URL`。生产发布前改为 `production` 并填写 https 根地址（见根目录 `生产部署指南.md`）。
+- `utils/env.js`：`APP_ENV`（`development` / `production`）、`USE_MOCK_IN_DEVELOPMENT`、`PRODUCTION_API_BASE_URL`。生产发布前改为 `production` 并填写 https 根地址（见根目录 `doc/deploy/生产部署指南.md`）。
 - `utils/config.js` 默认开发地址 `DEFAULT_BASE_URL`：`http://localhost:8001`
 - 运行时覆盖（优先级最高）：
   - `wx.setStorageSync('apiBaseUrl', 'http://你的IP:8001')` 或生产 `https://...`
@@ -82,6 +82,6 @@
 ### 相关文档
 
 - 根目录 `README.md`：联调与启动。
-- `项目全面介绍文档.md`：架构与模块总览。
-- `竞赛迭代规划与实现路径.md`：与界面对照的接口与迭代任务。
-- `生产部署指南.md`：上线与环境变量。
+- `doc/project/项目全面介绍文档.md`：架构与模块总览。
+- `doc/project/竞赛迭代规划与实现路径.md`：与界面对照的接口与迭代任务。
+- `doc/deploy/生产部署指南.md`：上线与环境变量。
